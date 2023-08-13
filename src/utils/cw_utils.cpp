@@ -73,5 +73,5 @@ bool cw_utils::print_msg(string s, verbosity_t verbosity) {
  * @return status of message, true == ok
  */
 bool cw_utils::print_msg(stringstream *s, verbosity_t verbosity) {
-  print_msg(s->str(), verbosity);
+  return print_msg(s->str(), verbosity);
 }

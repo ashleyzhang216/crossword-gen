@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# build products
+*.o
+test/word_finder/build

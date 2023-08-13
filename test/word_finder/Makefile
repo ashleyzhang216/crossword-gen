@@ -5,8 +5,8 @@
 # ==================================================================
 
 # main directories
-SRC_DIR=../src
-TEST_DIR=./
+SRC_DIR=../../src
+TEST_DIR=../
 
 # src dirs
 UTIL_DIR=utils
@@ -16,7 +16,13 @@ COMMON_DIR=common
 CATCH_DIR=catch
 
 # g++ settings
+D = -D
+DEFINES = $(D) CW_TOP
+CPPFLAGS += -pipe
+CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -std=c++17 $(DEFINES)
 INC=-I$(SRC_DIR)
+
+BIN = cw_test_driver
 
 all : $(BIN)
 
@@ -25,12 +31,12 @@ clean :
 
 # path of where object files will be created
 OFILES = cw_utils.o \
-				cw_test_driver.o \
+		cw_test_driver.o \
 
 # full path of all header files to build
 HFILES = $(SRC_DIR)/$(UTIL_DIR)/cw_utils.h \
-				$(SRC_DIR)/$(COMMON_DIR)/common_data_types.h \
-				$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \
+		$(SRC_DIR)/$(COMMON_DIR)/common_data_types.h \
+		$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \
 
 $(BIN) : $(OFILES)
 	$(CXX) $(INC) *.o -o $(BIN)
