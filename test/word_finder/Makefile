@@ -11,6 +11,7 @@ TEST_DIR=../
 # src dirs
 UTIL_DIR=utils
 COMMON_DIR=common
+WORDFINDER_DIR=word_finder
 
 # test dirs
 CATCH_DIR=catch
@@ -31,11 +32,17 @@ clean :
 
 # path of where object files will be created
 OFILES = cw_utils.o \
+		common_parent.o \
+		word_finder.o \
+		word_finder_data_types.o \
 		cw_test_driver.o \
 
 # full path of all header files to build
 HFILES = $(SRC_DIR)/$(UTIL_DIR)/cw_utils.h \
 		$(SRC_DIR)/$(COMMON_DIR)/common_data_types.h \
+		$(SRC_DIR)/$(COMMON_DIR)/common_parent.h \
+		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder.h \
+		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder_data_types.h \
 		$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \
 
 $(BIN) : $(OFILES)

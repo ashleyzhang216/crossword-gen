@@ -6,8 +6,6 @@
 
 #include "cw_utils.h"
 
-using namespace cw_utils_ns;
-
 #ifndef VERBOSITY_NUM
 verbosity_t VERBOSITY = INFO;
 #else

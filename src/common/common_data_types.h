@@ -13,8 +13,11 @@
 #include <exception>
 #include <vector>
 #include <string>
+#include <fstream>
+#include <unordered_set>
+#include <unordered_map>
 
-// TODO: add defines for params
+#define MAX_WORD_LEN 20
 
 using std::cout;
 using std::cerr;
@@ -23,6 +26,9 @@ using std::exception;
 using std::string;
 using std::stringstream;
 using std::vector;
+using std::ifstream;
+using std::unordered_set;
+using std::unordered_map;
 
 namespace common_data_types_ns {
   // TODO: populate
