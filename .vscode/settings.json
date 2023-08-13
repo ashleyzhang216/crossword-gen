@@ -4,6 +4,7 @@
     "iostream": "cpp",
     "atomic": "cpp",
     "bitset": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "unordered_set": "cpp"
   }
 }

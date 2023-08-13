@@ -9,7 +9,7 @@
 using namespace word_finder_data_types_ns;
 
 /**
- * constructor for letter_node object
+ * @brief constructor for letter_node object
  * @param is_head if this is the parent node for tree, i.e. ignore this letter
  * @param letter the letter this node contains, undefined iff is_head
 */

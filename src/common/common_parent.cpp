@@ -9,7 +9,8 @@
 using namespace common_parent_ns;
 
 /**
- * common constructor for all blocks
+ * @brief common constructor for all blocks
+ * 
  * @param name name of this block
 */
 common_parent::common_parent(string name) {

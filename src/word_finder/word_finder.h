@@ -19,10 +19,16 @@ using namespace word_finder_data_types_ns;
 namespace word_finder_ns {
     class word_finder : public common_parent {
         public:
+            // base constructor
             word_finder(string name, string file_addr);
 
-            // TODO: add more functions
+            // word check
+            bool is_word(string word);
 
+            // find all words that match a pattern
+            void find_matches(unordered_set<string>* matches, string pattern);
+
+            // destructor
             ~word_finder();
 
         private:
@@ -38,8 +44,11 @@ namespace word_finder_ns {
             // hashset of all defined words for O(1) validity checking
             unordered_set<string> word_set;
 
-            // function to insert words into word_tree upon initialization
+            // helper to insert words into word_tree upon initialization
             void add_word_to_tree(letter_node* node, string word, uint pos);
+
+            // helper to traverse word_tree for finding all words that fit a pattern
+            void traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, letter_node* node, string fragment);
     };
 }
 

@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #define MAX_WORD_LEN 20
+#define PATTERN_PLACEHOLDER '?'
 
 using std::cout;
 using std::cerr;
