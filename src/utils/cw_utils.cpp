@@ -19,8 +19,8 @@ verbosity_t VERBOSITY = (verbosity_t)VERBOSITY_NUM;
  * @param min_verbosity min verbosity of messages to be printed
  */
 cw_utils::cw_utils(string name, verbosity_t min_verbosity) {
-  this->name = name;
-  this->min_verbosity = min_verbosity;
+    this->name = name;
+    this->min_verbosity = min_verbosity;
 }
 
 /**
@@ -31,36 +31,36 @@ cw_utils::cw_utils(string name, verbosity_t min_verbosity) {
  * @return status of message, true == ok
  */
 bool cw_utils::print_msg(string s, verbosity_t verbosity) {
-  if(this->min_verbosity <= verbosity) {
-    switch(verbosity) {
-      case FATAL:
-        cerr << "Fatal Error: " << name << " " << s << endl;
-        return false;
-        break;
-      case ERROR:
-        cerr << "Error: " << name << " " << s << endl;
-        return false;
-        break;
-      case WARNING:
-        cerr << "Warning: " << name << " " << s << endl;
-        return false;
-        break;
-      case INFO:
-        cout << "Info: " << name << " " << s << endl;
-        return true;
-        break;
-      case DEBUG:
-        cout << "Debug: " << name << " " << s << endl;
-        return true;
-        break;
-      default:
-        cerr << "Debug Warning: " << name << " got unknown verbosity with msg " << s << endl;
-        return true;
-        break;
+    if(this->min_verbosity >= verbosity) {
+        switch(verbosity) {
+        case FATAL:
+            cerr << "Fatal Error: " << name << " " << s << endl;
+            return false;
+            break;
+        case ERROR:
+            cerr << "Error: " << name << " " << s << endl;
+            return false;
+            break;
+        case WARNING:
+            cout << "Warning: " << name << " " << s << endl;
+            return false;
+            break;
+        case INFO:
+            cout << "Info: " << name << " " << s << endl;
+            return true;
+            break;
+        case DEBUG:
+            cout << "Debug: " << name << " " << s << endl;
+            return true;
+            break;
+        default:
+            cerr << "Debug Warning: " << name << " got unknown verbosity with msg " << s << endl;
+            return true;
+            break;
+        }
+    } else {
+        return verbosity != FATAL && verbosity != ERROR;
     }
-  } else {
-    return verbosity != FATAL && verbosity != ERROR;
-  }
 }
 
 /**
@@ -71,5 +71,7 @@ bool cw_utils::print_msg(string s, verbosity_t verbosity) {
  * @return status of message, true == ok
  */
 bool cw_utils::print_msg(stringstream *s, verbosity_t verbosity) {
-  return print_msg(s->str(), verbosity);
+    bool result = print_msg(s->str(), verbosity);
+    s->str("");
+    return result;
 }

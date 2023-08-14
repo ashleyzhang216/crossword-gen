@@ -13,7 +13,9 @@ using namespace word_finder_data_types_ns;
  * @param is_head if this is the parent node for tree, i.e. ignore this letter
  * @param letter the letter this node contains, undefined iff is_head
 */
-letter_node::letter_node(bool is_head, char letter) {
+letter_node::letter_node(bool is_head, bool valid, char letter) {
     this->is_head = is_head;
+    this->valid = valid;
     this->letter = letter;
 }
+

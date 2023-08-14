@@ -17,9 +17,11 @@ namespace common_parent_ns {
             cw_utils* utils;
             stringstream ss;
 
+            // base constructor
             common_parent(string name);
 
-            // TODO: add more common functions
+            // shorthand for test drivers to print failed tests
+            bool check_condition(string name, bool condition);
             
         private:
             // TODO: implement

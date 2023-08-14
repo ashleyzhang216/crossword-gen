@@ -22,7 +22,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
     assert(word_file.is_open());
 
     // initialize word tree
-    word_tree = new letter_node(true, '_');
+    word_tree = new letter_node(true, false, '_');
 
     // parse word file
     string word;
@@ -79,11 +79,14 @@ word_finder::~word_finder() {
 void word_finder::add_word_to_tree(letter_node* node, string word, uint pos) {
     
     // all letters added to tree
-    if(pos >= word.size()) return;
+    if(pos >= word.size()) {
+        node->valid = true;
+        return;
+    }
 
     // create child node if it doesn't exist yet
     if(node->next.find(word.at(pos)) == node->next.end()) {
-        node->next.insert({word.at(pos), new letter_node(false, word.at(pos))});
+        node->next.insert({word.at(pos), new letter_node(false, false, word.at(pos))});
     } 
 
     // recurse to next letter
@@ -103,20 +106,33 @@ void word_finder::add_word_to_tree(letter_node* node, string word, uint pos) {
 */
 void word_finder::traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, letter_node* node, string fragment) {
 
-    // pattern fully matched, this is a valid word
+    ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
+       << " @ node " << node->letter;
+    utils->print_msg(&ss, DEBUG);
+
+    // pattern fully matched
     if(pos >= pattern.size()) {
-        matches->insert(fragment);
+        // AND this is a valid word
+        ss << "pattern fully matched, valid check: " << node->valid;
+        utils->print_msg(&ss, DEBUG);
+
+        if(node->valid) matches->insert(fragment);
         return;
     }
 
     if(pattern.at(pos) == PATTERN_PLACEHOLDER) {
         // wildcard at this index, add all possible matches
+        ss << "traversing for wild card";
+        utils->print_msg(&ss, DEBUG);
+
         for(auto& pair : node->next) {
-            traverse_to_find_matches(matches, pattern, pos + 1, node->next[pattern.at(pos)], fragment + pair.first);
+            traverse_to_find_matches(matches, pattern, pos + 1, pair.second, fragment + pair.first);
         }
 
     } else if (node->next.find(pattern.at(pos)) != node->next.end()) {
         // next letter progresses towards a valid word, continue
+        ss << "traversing for letter " << pattern.at(pos);
+        utils->print_msg(&ss, DEBUG);
         traverse_to_find_matches(matches, pattern, pos + 1, node->next[pattern.at(pos)], fragment + pattern.at(pos));
 
     } else {

@@ -32,7 +32,11 @@ using std::unordered_set;
 using std::unordered_map;
 
 namespace common_data_types_ns {
-  // TODO: populate
+
+    // TODO: template this function for all datatypes
+    // compare contents of string hashsets
+    bool string_sets_equal(const unordered_set<string>* lhs, const unordered_set<string>* rhs);
+    
 } // common_data_types_ns
 
 #endif // COMMON_DATA_TYPES_H
