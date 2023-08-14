@@ -27,11 +27,15 @@ namespace crossword_test_driver_ns {
             bool test_constructor_contents_vector(uint length, uint height, vector<vector<char> > contents, string ground_truth);
             bool test_constructor_contents_string(uint length, uint height, string contents,                string ground_truth);
 
+            // cw tests for reading and writing
+            bool test_write_at(char c, uint row, uint col, string ground_truth);
+            bool test_read_at (uint row, uint col, char ground_truth);
+            
             // destructor
             ~crossword_test_driver() { delete dut; }
 
         private:
             // TODO: change to use unique_ptr
-            crossword* dut;
+            crossword* dut = nullptr;
     }; // crossword_test_driver
 } // crossword_test_driver_ns
