@@ -19,8 +19,11 @@ namespace crossword_ns {
             // base constructor
             crossword(string name, uint length, uint height);
 
-            // constructor with declaration of puzzle contents
+            // constructor with declaration of puzzle contents in vector form
             crossword(string name, uint length, uint height, vector<vector<char> > contents);
+
+            // constructor with declaration of puzzle contents in string form
+            crossword(string name, uint length, uint height, string contents);
 
             // get dimensions
             uint rows() const { return height; }

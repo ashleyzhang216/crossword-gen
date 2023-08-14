@@ -36,10 +36,10 @@ crossword::crossword(string name, uint length, uint height) : common_parent(name
 }
 
 /**
- * @brief constructor for crossword with puzzle contents
+ * @brief constructor for crossword with puzzle contents in vector
  * @param length # of columns
  * @param height # of rows
- * @param contents contents of puzzle
+ * @param contents vector contents of puzzle
 */
 crossword::crossword(string name, uint length, uint height, vector<vector<char> > contents) : crossword(name, length, height) {
     // validate input puzzle size
@@ -52,6 +52,26 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
             puzzle[i][j] = {
                 .type = char_to_tile_type(contents[i][j]),
                 .c = contents[i][j]
+            };
+        }
+    }
+}
+
+/**
+ * @brief constructor for crossword with puzzle contents in string
+ * @param length # of columns
+ * @param height # of rows
+ * @param contents string contents of puzzle, indexed by row then column
+*/
+crossword::crossword(string name, uint length, uint height, string contents) : crossword(name, length, height) {
+    assert(contents.size() == length * height);
+
+    // update puzzle contents
+    for(uint i = 0; i < height; i++) {
+        for(uint j = 0; j < length; j++) {
+            puzzle[i][j] = {
+                .type = char_to_tile_type(contents.at(i*length + j)),
+                .c = contents.at(i*length + j)
             };
         }
     }
@@ -97,7 +117,7 @@ crossword::~crossword() {
 /**
  * @brief operator to print crossword contents for testing
 */
-ostream& operator<<(ostream& os, const crossword& cw) {
+ostream& crossword_ns::operator<<(ostream& os, const crossword& cw) {
     for(uint row = 0; row < cw.rows(); row++) {
         os << endl;
         for(uint col = 0; col < cw.cols(); col++) {
