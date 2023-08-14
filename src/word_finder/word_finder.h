@@ -17,6 +17,9 @@ using namespace common_parent_ns;
 using namespace word_finder_data_types_ns;
 
 namespace word_finder_ns {
+    /**
+     * @brief utility class to find words that fit within patterns
+    */
     class word_finder : public common_parent {
         public:
             // base constructor

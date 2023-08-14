@@ -14,6 +14,9 @@ using namespace crossword_data_types_ns;
 using namespace common_parent_ns;
 
 namespace crossword_ns {
+    /**
+     * @brief represents a crossword puzzle
+    */
     class crossword : public common_parent {
         public:
             // base constructor
