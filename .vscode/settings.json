@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "iosfwd": "cpp",
+    "iostream": "cpp",
+    "atomic": "cpp",
+    "bitset": "cpp",
+    "fstream": "cpp",
+    "unordered_set": "cpp"
+  }
+}
