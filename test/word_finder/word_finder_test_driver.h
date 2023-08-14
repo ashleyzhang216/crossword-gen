@@ -26,5 +26,5 @@ namespace word_finder_test_driver_ns {
 
         private:
             word_finder* dut;
-    };
-}
+    }; // word_finder_test_driver
+} // word_finder_test_driver_ns

@@ -21,7 +21,7 @@ TEST_CASE("word_finder hello_world", "[word_finder],[hello_world],[quick]") {
 */
 TEST_CASE("word_finder word_set-basic", "[word_finder],[quick]") {
 
-    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_set-basic", "data/dict_barebones.txt");
+    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_set-basic", "word_finder/data/dict_barebones.txt");
     unordered_set<string> valid = {
         "ab",
         "ace",
@@ -50,7 +50,7 @@ TEST_CASE("word_finder word_set-basic", "[word_finder],[quick]") {
  * basic test to check word_set for barebone dictionary
 */
 TEST_CASE("word_finder word_tree-basic", "[word_finder],[quick]") {
-    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_set-basic", "data/dict_barebones.txt");
+    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_set-basic", "word_finder/data/dict_barebones.txt");
     
     unordered_map<string, unordered_set<string> > test_cases = {
         {"ab", {"ab"}},

@@ -53,7 +53,7 @@ bool word_finder::is_word(string word) {
 }
 
 /**
- * @brief adds all words that match pattern with PATTERN_PLACEHOLDER ('?') as placeholder
+ * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
@@ -120,7 +120,7 @@ void word_finder::traverse_to_find_matches(unordered_set<string>* matches, strin
         return;
     }
 
-    if(pattern.at(pos) == PATTERN_PLACEHOLDER) {
+    if(pattern.at(pos) == WILDCARD) {
         // wildcard at this index, add all possible matches
         ss << "traversing for wild card";
         utils->print_msg(&ss, DEBUG);

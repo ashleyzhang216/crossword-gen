@@ -18,7 +18,10 @@
 #include <unordered_map>
 
 #define MAX_WORD_LEN 20
-#define PATTERN_PLACEHOLDER '?'
+#define WILDCARD '?' // tile/pattern where any letter can go
+#define BLACK 'X'    // tile where no letter can be placed
+#define WCD WILDCARD // for shorthand
+#define BLK BLACK    // for shorthand
 
 using std::cout;
 using std::cerr;
@@ -28,6 +31,7 @@ using std::string;
 using std::stringstream;
 using std::vector;
 using std::ifstream;
+using std::ostream;
 using std::unordered_set;
 using std::unordered_map;
 
