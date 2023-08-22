@@ -9,9 +9,13 @@
 
 #include "cw_csp_data_types.h"
 #include "../common/common_parent.h"
+#include "../crossword/crossword_data_types.h"
+#include "../crossword/crossword.h"
 
 using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
+using namespace crossword_data_types_ns;
+using namespace crossword_ns;
 
 namespace cw_csp_ns {
     /**
@@ -19,10 +23,20 @@ namespace cw_csp_ns {
     */
     class cw_csp : public common_parent {
         public:
-            // base constructor
-            cw_csp(string name);
+            // constructor w/o puzzle contents
+            cw_csp(string name, uint length, uint height);
+
+            // constructor with puzzle contents
+            cw_csp(string name, uint length, uint height, string contents);
+        
+        protected:
+            // populate variables & constraints
+            void initialize_csp();
 
         private:
+            // crossword to be solved
+            unique_ptr<crossword> cw = nullptr;
+
             // csp structures
             unordered_set<cw_variable>     variables;
             unordered_set<cw_constraint>   constraints;

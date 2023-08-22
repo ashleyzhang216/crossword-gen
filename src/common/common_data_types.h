@@ -38,6 +38,7 @@ using std::hash;
 
 // RAII
 using std::shared_ptr;
+using std::unique_ptr;
 
 namespace common_data_types_ns {
 

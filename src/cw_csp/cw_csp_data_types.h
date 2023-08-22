@@ -36,8 +36,8 @@ namespace cw_csp_data_types_ns {
     typedef struct cw_constraint {
         uint lhs_index; // index of shared letter in lhs
         uint rhs_index; // index of shared letter in rhs
-        shared_ptr<cw_variable> lhs; 
-        shared_ptr<cw_variable> rhs; 
+        shared_ptr<cw_variable> lhs = nullptr;
+        shared_ptr<cw_variable> rhs = nullptr;
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;
