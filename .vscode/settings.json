@@ -8,6 +8,15 @@
     "unordered_set": "cpp",
     "vector": "cpp",
     "ostream": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "__locale": "cpp",
+    "__threading_support": "cpp",
+    "optional": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "system_error": "cpp",
+    "thread": "cpp",
+    "type_traits": "cpp",
+    "variant": "cpp"
   }
 }

@@ -66,6 +66,7 @@ void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
  * @brief destructor for word_finder
 */
 word_finder::~word_finder() {
+    word_tree->~letter_node();
     delete word_tree;
 }
 

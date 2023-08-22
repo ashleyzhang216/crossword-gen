@@ -9,7 +9,7 @@
 using namespace crossword_test_driver_ns;
 
 /**
- * @brief basic constructor for word_finder test driver
+ * @brief basic constructor for crossword test driver
 */
 crossword_test_driver::crossword_test_driver(string name) : common_parent(name) {
     // do nothing

@@ -17,11 +17,11 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#define MAX_WORD_LEN 20
-#define WILDCARD '?' // tile/pattern where any letter can go
-#define BLACK 'X'    // tile where no letter can be placed
-#define WCD WILDCARD // for shorthand
-#define BLK BLACK    // for shorthand
+#define MAX_WORD_LEN 20 // max length for a single word
+#define WILDCARD '?'    // tile/pattern where any letter can go
+#define BLACK 'X'       // tile where no letter can be placed
+#define WCD WILDCARD    // shorthand
+#define BLK BLACK       // shorthand
 
 using std::cout;
 using std::cerr;
@@ -34,6 +34,10 @@ using std::ifstream;
 using std::ostream;
 using std::unordered_set;
 using std::unordered_map;
+using std::hash;
+
+// RAII
+using std::shared_ptr;
 
 namespace common_data_types_ns {
 
