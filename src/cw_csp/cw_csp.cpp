@@ -123,11 +123,14 @@ void cw_csp::initialize_csp() {
                     // was previously iterating word
                     // save progress as new word
 
-                    // save new variable
-                    shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), finder);
-                    ss << "adding new variable: " << *new_var;
-                    utils->print_msg(&ss, DEBUG);
-                    variables.insert(new_var);
+                    // single letters are not full words
+                    if(cur_var_len > 1) {
+                        // save new variable
+                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), finder);
+                        ss << "adding new variable: " << *new_var;
+                        utils->print_msg(&ss, DEBUG);
+                        variables.insert(new_var);
+                    }
 
                 } else {
                     // was not previously iterating word
@@ -141,7 +144,7 @@ void cw_csp::initialize_csp() {
             }
         }
 
-        if(traversing_word) {
+        if(traversing_word && cur_var_len > 1) {
             // applicable if the last space in a row is blank
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), finder);
             ss << "adding new variable: " << *new_var;
@@ -184,11 +187,14 @@ void cw_csp::initialize_csp() {
                     // was previously iterating word
                     // save progress as new word
 
-                    // save new variable
-                    shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), finder);
-                    ss << "adding new variable: " << *new_var;
-                    utils->print_msg(&ss, DEBUG);
-                    variables.insert(new_var);
+                    // single letters are not full words
+                    if(cur_var_len > 1) {
+                        // save new variable
+                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), finder);
+                        ss << "adding new variable: " << *new_var;
+                        utils->print_msg(&ss, DEBUG);
+                        variables.insert(new_var);
+                    }
 
                 } else {
                     // was not previously iterating word
@@ -202,8 +208,8 @@ void cw_csp::initialize_csp() {
             }
         }
 
-        if(traversing_word) {
-            // applicable if the last space in a row is blank
+        if(traversing_word && cur_var_len > 1) {
+            // applicable if the last 2+ spaces in a row are blank
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), finder);
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);

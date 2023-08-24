@@ -1,5 +1,7 @@
-a
-ab
+an
+at
+on
+to
 ace
 and
 cat
@@ -9,5 +11,12 @@ cup
 cub
 dan
 dab
+cars
+caps
+core
+door
+boob
+been
+node
 hello
 racecar
