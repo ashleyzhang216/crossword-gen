@@ -42,9 +42,7 @@ using std::unique_ptr;
 
 namespace common_data_types_ns {
 
-    // TODO: template this function for all datatypes
-    // compare contents of string hashsets
-    bool string_sets_equal(const unordered_set<string>* lhs, const unordered_set<string>* rhs);
+    // TODO: implement
     
 } // common_data_types_ns
 

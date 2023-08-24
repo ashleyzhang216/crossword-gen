@@ -19,6 +19,10 @@ namespace cw_csp_test_driver_ns {
         public:
             // base constructor
             cw_csp_test_driver(string name);
+
+            // csp initialization tests
+            bool test_constructor_empty(uint length, uint height, string filepath);
+            bool test_constructor_contents(uint length, uint height, string contents, string filepath);
             
             // destructor
             ~cw_csp_test_driver() { delete dut; }

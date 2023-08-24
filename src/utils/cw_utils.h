@@ -11,51 +11,69 @@
 
 // verbosity levels
 typedef enum {
-  FATAL = 0,
-  ERROR = 1,
-  WARNING = 2, 
-  INFO = 3,
-  DEBUG = 4
+    FATAL = 0,
+    ERROR = 1,
+    WARNING = 2, 
+    INFO = 3,
+    DEBUG = 4
 } verbosity_t;
 
 // global verbosity
 extern verbosity_t VERBOSITY;
 
 struct assertion_failure_exception : public exception {
-  const char *what() const throw() {
-    return "crossword-gen failed assertion";
-  }
+    const char *what() const throw() {
+        return "crossword-gen failed assertion";
+    }
 };
 
 #undef assert
-#define assert(x)                                                                                   \
-  if(!(x)) {                                                                                        \
-    cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
-    throw assertion_failure_exception();                                                            \
-  }                                                                                                 \
+#define assert(x)                                                                                       \
+    if(!(x)) {                                                                                          \
+        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
+        throw assertion_failure_exception();                                                            \
+    }                                                                                                   \
 
 #undef assert_m
-#define assert_m(x, msg)                                                                            \
-  if(!(x)) {                                                                                        \
-    cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
-          << msg << endl;                                                                            \
-    throw assertion_failure_exception();                                                            \
-  } 
+#define assert_m(x, msg)                                                                                \
+    if(!(x)) {                                                                                          \
+        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
+            << msg << endl;                                                                             \
+        throw assertion_failure_exception();                                                            \
+    } 
+
+/**
+ * @brief template function to compare contents of hashsets for testing
+ * 
+ * @param lhs ptr to lhs set
+ * @param rhs ptr to rhs set
+ * @returns true iff contents of lhs & rhs are identical
+*/
+template <typename T> 
+inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<T>* rhs) {
+    if(lhs->size() != rhs->size()) return false;
+
+    for(const T& t : *lhs) {
+        if(rhs->count(t) == 0) return false;
+    }
+
+    return true;
+}
 
 class cw_utils {
-  public:
-    string name;
-    verbosity_t min_verbosity;
+    public:
+        string name;
+        verbosity_t min_verbosity;
 
-    // base constructor
-    cw_utils(string name, verbosity_t verbosity);
+        // base constructor
+        cw_utils(string name, verbosity_t verbosity);
 
-    // unused destructor
-    ~cw_utils(){};
+        // unused destructor
+        ~cw_utils(){};
 
-    // general message print
-    bool print_msg(string s, verbosity_t verbosity = INFO);
-    bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
+        // general message print
+        bool print_msg(string s, verbosity_t verbosity = INFO);
+        bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
 };
 
 

@@ -34,7 +34,7 @@ namespace cw_csp_ns {
             cw_csp(string name, uint length, uint height, string contents, string filepath);
         
         protected:
-            // populate variables & constraints
+            // helper func to populate variables & constraints
             void initialize_csp();
 
         private:
