@@ -37,6 +37,7 @@ namespace cw_csp_data_types_ns {
     } cw_variable;
 
     // equality constraints between 2 letters in 2 cw vars
+    // uni-directional, in constraint set both a constraint and its reverse must both exist
     typedef struct cw_constraint {
         uint lhs_index; // index of shared letter in lhs
         uint rhs_index; // index of shared letter in rhs

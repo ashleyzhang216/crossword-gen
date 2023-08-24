@@ -149,6 +149,7 @@ void cw_csp::initialize_csp() {
         constraint_ptrs[constraint] = std::make_shared<cw_constraint>(*constraint_ptr);
     }
 
+    // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
     vector<vector<cw_constraint> > var_intersect_table;
 
@@ -181,7 +182,33 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    // TODO: find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
+    // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
+    for(uint row = 0; row < cw->rows(); row++) {
+        for(uint col = 0; col < cw->cols(); col++) {
+            if(var_intersect_table[row][col].rhs != nullptr) {
+                // assert that 2 variables exist in constraint
+                if(var_intersect_table[row][col].lhs == nullptr) {
+                    ss << "var_intersect_table has nullptr lhs with non-nullptr rhs";
+                    utils->print_msg(&ss, ERROR);
+                }
 
-    // TODO: build arc table to figure out what variables affect other variables
+                // forward arc
+                constraints.insert(var_intersect_table[row][col]);
+
+                // backwards arc
+                constraints.insert({
+                    .lhs_index = var_intersect_table[row][col].rhs_index,
+                    .rhs_index = var_intersect_table[row][col].lhs_index,
+                    .lhs = var_intersect_table[row][col].rhs,
+                    .rhs = var_intersect_table[row][col].lhs
+                });
+            }
+        }
+    }
+
+    // build arc table to list out all dependencies for easy arc queueing in AC-3
+    arc_dependencies.clear();
+    for(cw_constraint constraint : constraints) {
+        arc_dependencies[variable_ptrs[*constraint.rhs]].insert(variable_ptrs[*constraint.lhs]);
+    }
 }

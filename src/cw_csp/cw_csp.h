@@ -52,7 +52,8 @@ namespace cw_csp_ns {
             unordered_map<cw_variable,   shared_ptr<cw_variable> >   variable_ptrs;
             unordered_map<cw_constraint, shared_ptr<cw_constraint> > constraint_ptrs;
 
-            // TODO: add data structure from variables to those that depend on it
+            // arc_dependencies[var_i] contains ptrs to all vars var_k in arcs of the form (var_k, var_i) 
+            unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_variable> > > arc_dependencies;
 
     }; // cw_csp
 } // cw_csp_ns
