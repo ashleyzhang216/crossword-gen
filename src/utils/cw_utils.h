@@ -21,6 +21,22 @@ typedef enum {
 // global verbosity
 extern verbosity_t VERBOSITY;
 
+class cw_utils {
+    public:
+        string name;
+        verbosity_t min_verbosity;
+
+        // base constructor
+        cw_utils(string name, verbosity_t verbosity);
+
+        // unused destructor
+        ~cw_utils(){};
+
+        // general message print
+        bool print_msg(string s, verbosity_t verbosity = INFO);
+        bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
+};
+
 struct assertion_failure_exception : public exception {
     const char *what() const throw() {
         return "crossword-gen failed assertion";
@@ -51,30 +67,72 @@ struct assertion_failure_exception : public exception {
 */
 template <typename T> 
 inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<T>* rhs) {
-    if(lhs->size() != rhs->size()) return false;
 
-    for(const T& t : *lhs) {
-        if(rhs->count(t) == 0) return false;
+    stringstream ss;
+    cw_utils* utils = new cw_utils("set_contents_equal()", VERBOSITY);
+    bool result = true;
+
+    if(lhs->size() != rhs->size()) {
+        ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
+        utils->print_msg(&ss, WARNING);
+        result = false;
     }
 
-    return true;
+    for(const T& t : *lhs) {
+        if(rhs->count(t) == 0) {
+            ss << "missing from rhs: " << t;
+            utils->print_msg(&ss, WARNING);
+            result = false;
+        }
+    }
+
+    // not necessary for correctivity checking, only for debug
+    for(const T& t : *rhs) {
+        if(lhs->count(t) == 0) {
+            ss << "missing from lhs: " << t;
+            utils->print_msg(&ss, WARNING);
+            result = false;
+        }
+    }
+
+    return result;
 }
 
-class cw_utils {
-    public:
-        string name;
-        verbosity_t min_verbosity;
+/**
+ * @brief template function to compare contents of hashmap to hashset for testing
+ * 
+ * @param lhs ptr to lhs map
+ * @param rhs ptr to rhs map
+ * @returns true iff contents of lhs & rhs are identical
+*/
+template <typename K, typename V>
+inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >* lhs, const unordered_map<K, unordered_set<V> >* rhs) {
+    
+    stringstream ss;
+    cw_utils* utils = new cw_utils("map_to_set_contents_equal()", VERBOSITY);
+    bool result = true;
 
-        // base constructor
-        cw_utils(string name, verbosity_t verbosity);
+    if(lhs->size() != rhs->size()) {
+        ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
+        utils->print_msg(&ss, WARNING);
+        result = false;
+    }
+    
+    for(const auto& pair : *lhs) {
+        if(rhs->find(pair.first) == rhs->end()) {
+            ss << "key missing from rhs: " << pair.first;
+            utils->print_msg(&ss, WARNING);
+            result = false;
+            continue;
+        }
+        if(!set_contents_equal(&(rhs->at(pair.first)), &(pair.second))) {
+            ss << "set contents for key " << pair.first << " not equal";
+            utils->print_msg(&ss, WARNING);
+            result = false;
+        }
+    }
 
-        // unused destructor
-        ~cw_utils(){};
-
-        // general message print
-        bool print_msg(string s, verbosity_t verbosity = INFO);
-        bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
-};
-
+    return result;
+}
 
 #endif // CW_UTILS_H

@@ -23,6 +23,11 @@ namespace cw_csp_data_types_ns {
         VERTICAL   = 1,
     };
 
+    const unordered_map<word_direction, string> word_dir_name = {
+        {HORIZONTAL, "HORIZONTAL"},
+        {VERTICAL, "VERTICAL"}
+    };
+
     // a variable in a constraint satisfaction problem
     typedef struct cw_variable {
         uint origin_row;              // 0-indexed
@@ -31,10 +36,17 @@ namespace cw_csp_data_types_ns {
         word_direction dir;           // direction of word of this var
         unordered_set<string> domain; // all possible words that fit
 
+        // standard constructor for cw_csp
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, shared_ptr<word_finder> finder);
+
+        // testing-only constructor
+        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<string> domain);
 
         bool operator==(const cw_variable& rhs) const;
     } cw_variable;
+
+    // operator to print out cw_variable for debug
+    ostream& operator<<(ostream& os, const cw_variable& var);
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
@@ -43,9 +55,18 @@ namespace cw_csp_data_types_ns {
         uint rhs_index; // index of shared letter in rhs
         shared_ptr<cw_variable> lhs = nullptr;
         shared_ptr<cw_variable> rhs = nullptr;
+
+        // blank constructor for initialization
+        cw_constraint() {}
+        
+        // value constructor
+        cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;
+
+    // operator to print out cw_constraint for debug
+    ostream& operator<<(ostream& os, const cw_constraint& var);
 
 } // cw_csp_data_types_ns
 

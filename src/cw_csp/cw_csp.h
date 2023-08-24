@@ -32,6 +32,12 @@ namespace cw_csp_ns {
 
             // constructor with puzzle contents
             cw_csp(string name, uint length, uint height, string contents, string filepath);
+
+            // read-only getters for testing
+            shared_ptr   <word_finder>                              get_finder()           const { return finder;       }
+            unordered_set<cw_variable>                              get_variables()        const;
+            unordered_set<cw_constraint>                            get_constraints()      const;
+            unordered_map<cw_variable, unordered_set<cw_variable> > get_arc_dependencies() const;
         
         protected:
             // helper func to populate variables & constraints
@@ -45,12 +51,15 @@ namespace cw_csp_ns {
             shared_ptr<word_finder> finder = nullptr;
 
             // csp structures
-            unordered_set<cw_variable>     variables;
-            unordered_set<cw_constraint>   constraints;
+            // unordered_set<cw_variable>     variables;
+            // unordered_set<cw_constraint>   constraints;
+
+            unordered_set<shared_ptr<cw_variable> >   variables;
+            unordered_set<shared_ptr<cw_constraint> > constraints;
 
             // ptrs to csp structures
-            unordered_map<cw_variable,   shared_ptr<cw_variable> >   variable_ptrs;
-            unordered_map<cw_constraint, shared_ptr<cw_constraint> > constraint_ptrs;
+            // unordered_map<cw_variable,   shared_ptr<cw_variable> >   variable_ptrs;
+            // unordered_map<cw_constraint, shared_ptr<cw_constraint> > constraint_ptrs;
 
             // arc_dependencies[var_i] contains ptrs to all vars var_k in arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_variable> > > arc_dependencies;
