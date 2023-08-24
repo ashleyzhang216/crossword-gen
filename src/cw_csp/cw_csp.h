@@ -11,11 +11,15 @@
 #include "../common/common_parent.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
+#include "../word_finder/word_finder_data_types.h"
+#include "../word_finder/word_finder.h"
 
 using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
+using namespace word_finder_data_types_ns;
+using namespace word_finder_ns;
 
 namespace cw_csp_ns {
     /**
@@ -24,10 +28,10 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // constructor w/o puzzle contents
-            cw_csp(string name, uint length, uint height);
+            cw_csp(string name, uint length, uint height, string filepath);
 
             // constructor with puzzle contents
-            cw_csp(string name, uint length, uint height, string contents);
+            cw_csp(string name, uint length, uint height, string contents, string filepath);
         
         protected:
             // populate variables & constraints
@@ -37,9 +41,18 @@ namespace cw_csp_ns {
             // crossword to be solved
             unique_ptr<crossword> cw = nullptr;
 
+            // word_finder to populate domains
+            shared_ptr<word_finder> finder = nullptr;
+
             // csp structures
             unordered_set<cw_variable>     variables;
             unordered_set<cw_constraint>   constraints;
+
+            // ptrs to csp structures
+            unordered_map<cw_variable,   shared_ptr<cw_variable> >   variable_ptrs;
+            unordered_map<cw_constraint, shared_ptr<cw_constraint> > constraint_ptrs;
+
+            // TODO: add data structure from variables to those that depend on it
 
     }; // cw_csp
 } // cw_csp_ns

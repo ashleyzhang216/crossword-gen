@@ -30,6 +30,27 @@ namespace std {
     }
 }
 
+/**
+ * @brief constructor for cw_variable to be used by cw_csp
+ * 
+ * @param origin_row row of top-left square in var
+ * @param origin_col col of top-left square in var
+ * @param length num of letters in this var
+ * @param dir direction of this var
+ * @param pattern word pattern to find matches for to populate domain
+ * @param finder ptr to word_finder to populate domain
+*/
+cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, shared_ptr<word_finder> finder) {
+    this->origin_row = origin_row;
+    this->origin_col = origin_col;
+    this->length = length;
+    this->dir = dir;
+    domain.clear();
+
+    // populate domain
+    finder->find_matches(&domain, pattern);
+}
+
 // ############### cw_constraint ###############
 
 /**

@@ -8,8 +8,12 @@
 #define CW_CSP_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
+#include "../word_finder/word_finder_data_types.h"
+#include "../word_finder/word_finder.h"
 
 using namespace common_data_types_ns;
+using namespace word_finder_data_types_ns;
+using namespace word_finder_ns;
 
 namespace cw_csp_data_types_ns {
 
@@ -27,10 +31,10 @@ namespace cw_csp_data_types_ns {
         word_direction dir;           // direction of word of this var
         unordered_set<string> domain; // all possible words that fit
 
+        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, shared_ptr<word_finder> finder);
+
         bool operator==(const cw_variable& rhs) const;
     } cw_variable;
-
-    //size_t hash(const cw_variable& var) const;
 
     // equality constraints between 2 letters in 2 cw vars
     typedef struct cw_constraint {
