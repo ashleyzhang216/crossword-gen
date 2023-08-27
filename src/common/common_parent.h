@@ -11,6 +11,9 @@
 #include "../utils/cw_utils.h"
 
 namespace common_parent_ns {
+    /**
+     * @brief common class that all classes/test drivers inherit for universal utility access
+    */
     class common_parent {
         public:
             string name;
@@ -20,7 +23,7 @@ namespace common_parent_ns {
             // base constructor
             common_parent(string name);
 
-            // shorthand for test drivers to print failed tests
+            // shorthand for test drivers only to print failed tests
             bool check_condition(string name, bool condition);
             
         private:

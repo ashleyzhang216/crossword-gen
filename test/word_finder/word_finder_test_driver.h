@@ -24,7 +24,11 @@ namespace word_finder_test_driver_ns {
             // basic directed test for word_tree
             bool test_word_tree_basic(string pattern, unordered_set<string> ground_truth);
 
+            // destructor
+            ~word_finder_test_driver() { delete dut; }
+
         private:
+            // TODO: change to use unique_ptr
             word_finder* dut;
-    };
-}
+    }; // word_finder_test_driver
+} // word_finder_test_driver_ns

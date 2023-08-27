@@ -25,7 +25,9 @@ namespace word_finder_data_types_ns {
 
         // constructor to initialize new words/head
         letter_node(bool is_head, bool valid, char letter);
+
+        ~letter_node();
     } letter_node;
-}
+} // word_finder_data_types_ns
 
 #endif // WORD_FINDER_DATA_TYPES_H

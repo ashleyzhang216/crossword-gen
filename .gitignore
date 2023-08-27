@@ -33,4 +33,4 @@
 
 # build products
 *.o
-test/word_finder/build
+test/build

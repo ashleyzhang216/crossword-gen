@@ -32,7 +32,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
         word_set.insert(word);
 
         // add to word tree
-        if(word.size() <= MAX_WORD_LEN) {
+        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
             add_word_to_tree(word_tree, word, 0);
         } else {
             ss << "parsed word (" << word << ") with size over " << MAX_WORD_LEN;
@@ -53,7 +53,7 @@ bool word_finder::is_word(string word) {
 }
 
 /**
- * @brief adds all words that match pattern with PATTERN_PLACEHOLDER ('?') as placeholder
+ * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
@@ -66,6 +66,7 @@ void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
  * @brief destructor for word_finder
 */
 word_finder::~word_finder() {
+    word_tree->~letter_node();
     delete word_tree;
 }
 
@@ -120,7 +121,7 @@ void word_finder::traverse_to_find_matches(unordered_set<string>* matches, strin
         return;
     }
 
-    if(pattern.at(pos) == PATTERN_PLACEHOLDER) {
+    if(pattern.at(pos) == WILDCARD) {
         // wildcard at this index, add all possible matches
         ss << "traversing for wild card";
         utils->print_msg(&ss, DEBUG);

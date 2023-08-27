@@ -75,3 +75,7 @@ bool cw_utils::print_msg(stringstream *s, verbosity_t verbosity) {
     s->str("");
     return result;
 }
+
+// ############### set_contents_equal() ###############
+
+template bool set_contents_equal<string>(const unordered_set<string>* lhs, const unordered_set<string>* rhs, bool debug_prints);
