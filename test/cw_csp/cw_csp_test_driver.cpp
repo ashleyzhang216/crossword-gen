@@ -29,7 +29,7 @@ bool cw_csp_test_driver::test_constructor_empty(
     uint length, uint height, string filepath,
     unordered_set<cw_variable>* expected_variables,
     unordered_set<cw_constraint>* expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_variable> >* expected_arc_dependencies
+    unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
@@ -38,7 +38,7 @@ bool cw_csp_test_driver::test_constructor_empty(
     bool result = true;
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
-    unordered_map<cw_variable, unordered_set<cw_variable> > result_arc_dependencies = dut->get_arc_dependencies();
+    unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
 
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));
@@ -62,7 +62,7 @@ bool cw_csp_test_driver::test_constructor_contents(
     uint length, uint height, string contents, string filepath,
     unordered_set<cw_variable>* expected_variables,
     unordered_set<cw_constraint>* expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_variable> >* expected_arc_dependencies
+    unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_contents(): " << length << ", " << height;
@@ -71,7 +71,7 @@ bool cw_csp_test_driver::test_constructor_contents(
     bool result = true;
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
-    unordered_map<cw_variable, unordered_set<cw_variable> > result_arc_dependencies = dut->get_arc_dependencies();
+    unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
 
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));

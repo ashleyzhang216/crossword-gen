@@ -24,12 +24,12 @@ namespace cw_csp_test_driver_ns {
             bool test_constructor_empty(uint length, uint height, string filepath, 
                 unordered_set<cw_variable>* expected_variables,
                 unordered_set<cw_constraint>* expected_constraints,
-                unordered_map<cw_variable, unordered_set<cw_variable> >* expected_arc_dependencies
+                unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
             );
             bool test_constructor_contents(uint length, uint height, string contents, string filepath,
                 unordered_set<cw_variable>* expected_variables,
                 unordered_set<cw_constraint>* expected_constraints,
-                unordered_map<cw_variable, unordered_set<cw_variable> >* expected_arc_dependencies
+                unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
             );
             
             // destructor

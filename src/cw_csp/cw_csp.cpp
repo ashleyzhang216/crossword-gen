@@ -66,8 +66,8 @@ unordered_set<cw_constraint> cw_csp::get_constraints() const {
  * 
  * @return copy of arc_depenencies with all pointers de-referenced
 */
-unordered_map<cw_variable, unordered_set<cw_variable> > cw_csp::get_arc_dependencies() const {
-    unordered_map<cw_variable, unordered_set<cw_variable> > result;
+unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_dependencies() const {
+    unordered_map<cw_variable, unordered_set<cw_constraint> > result;
     for(const auto& pair : arc_dependencies) {
         for(const auto& ptr : arc_dependencies.at(pair.first)) {
             result[*(pair.first)].insert(*ptr);
@@ -298,8 +298,14 @@ void cw_csp::initialize_csp() {
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     arc_dependencies.clear();
     for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
-
-        //arc_dependencies[variable_ptrs[*constraint.rhs]].insert(variable_ptrs[*constraint.lhs]);
-        arc_dependencies[constraint_ptr->rhs].insert(constraint_ptr->lhs);
+        arc_dependencies[constraint_ptr->rhs].insert(constraint_ptr);
     }
+}
+
+/**
+ * @brief AC-3 algorithm to reduce this crossword CSP
+*/
+void cw_csp::ac3() {
+    // TODO: implement
+
 }
