@@ -32,7 +32,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
         word_set.insert(word);
 
         // add to word tree
-        if(word.size() <= MAX_WORD_LEN) {
+        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
             add_word_to_tree(word_tree, word, 0);
         } else {
             ss << "parsed word (" << word << ") with size over " << MAX_WORD_LEN;

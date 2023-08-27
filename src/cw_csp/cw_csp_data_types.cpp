@@ -12,11 +12,13 @@ using namespace cw_csp_data_types_ns;
 
 template bool set_contents_equal<cw_variable>(
     const unordered_set<cw_variable>* lhs, 
-    const unordered_set<cw_variable>* rhs
+    const unordered_set<cw_variable>* rhs, 
+    bool debug_prints
 );
 template bool set_contents_equal<cw_constraint>(
     const unordered_set<cw_constraint>* lhs, 
-    const unordered_set<cw_constraint>* rhs
+    const unordered_set<cw_constraint>* rhs, 
+    bool debug_prints
 );
 
 // ############### map_to_set_contents_equal() ###############
@@ -36,7 +38,7 @@ bool cw_variable::operator==(const cw_variable& rhs) const {
         && origin_col == rhs.origin_col
         && length == rhs.length 
         && dir == rhs.dir
-        && set_contents_equal(&domain, &(rhs.domain));
+        && set_contents_equal(&domain, &(rhs.domain), false);
 }
 
 /**
@@ -55,7 +57,8 @@ namespace std {
 */
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
-       << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", domain: {";
+       << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
+       << var.pattern << ", domain: {";
     for(string word : var.domain) {
         os << word << ", ";
     }
@@ -78,6 +81,7 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
     this->origin_col = origin_col;
     this->length = length;
     this->dir = dir;
+    this->pattern = pattern;
     domain.clear();
 
     // populate domain
@@ -98,6 +102,7 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
     this->origin_col = origin_col;
     this->length = length;
     this->dir = dir;
+    this->pattern = "(created w/ testing constructor)";
     this->domain = domain;
 }
 

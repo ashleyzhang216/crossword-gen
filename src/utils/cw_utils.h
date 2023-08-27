@@ -63,25 +63,30 @@ struct assertion_failure_exception : public exception {
  * 
  * @param lhs ptr to lhs set
  * @param rhs ptr to rhs set
+ * @param debug_prints prints debug messages iff debug_prints == true
  * @returns true iff contents of lhs & rhs are identical
 */
 template <typename T> 
-inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<T>* rhs) {
+inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<T>* rhs, bool debug_prints) {
 
     stringstream ss;
     cw_utils* utils = new cw_utils("set_contents_equal()", VERBOSITY);
     bool result = true;
 
     if(lhs->size() != rhs->size()) {
-        ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
-        utils->print_msg(&ss, WARNING);
+        if(debug_prints) {
+            ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
+            utils->print_msg(&ss, WARNING);
+        }
         result = false;
     }
 
     for(const T& t : *lhs) {
         if(rhs->count(t) == 0) {
-            ss << "missing from rhs: " << t;
-            utils->print_msg(&ss, WARNING);
+            if(debug_prints) {
+                ss << "missing from rhs: " << t;
+                utils->print_msg(&ss, WARNING);
+            }
             result = false;
         }
     }
@@ -89,8 +94,10 @@ inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<
     // not necessary for correctivity checking, only for debug
     for(const T& t : *rhs) {
         if(lhs->count(t) == 0) {
-            ss << "missing from lhs: " << t;
-            utils->print_msg(&ss, WARNING);
+            if(debug_prints) {
+                ss << "missing from lhs: " << t;
+                utils->print_msg(&ss, WARNING);
+            }
             result = false;
         }
     }
@@ -125,7 +132,7 @@ inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >*
             result = false;
             continue;
         }
-        if(!set_contents_equal(&(rhs->at(pair.first)), &(pair.second))) {
+        if(!set_contents_equal(&(rhs->at(pair.first)), &(pair.second), false)) {
             ss << "set contents for key " << pair.first << " not equal";
             utils->print_msg(&ss, WARNING);
             result = false;

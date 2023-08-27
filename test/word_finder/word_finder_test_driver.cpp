@@ -51,5 +51,5 @@ bool word_finder_test_driver::test_word_tree_basic(string pattern, unordered_set
     for(string s : result) ss << s << ", ";
     utils->print_msg(&ss, DEBUG);
     
-    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result));
+    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result, true));
 }

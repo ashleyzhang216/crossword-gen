@@ -34,6 +34,7 @@ namespace cw_csp_data_types_ns {
         uint origin_col;              // 0-indexed
         uint length;                  // >= 0
         word_direction dir;           // direction of word of this var
+        string pattern;               // original pattern used to populate domain
         unordered_set<string> domain; // all possible words that fit
 
         // standard constructor for cw_csp

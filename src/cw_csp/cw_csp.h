@@ -51,15 +51,8 @@ namespace cw_csp_ns {
             shared_ptr<word_finder> finder = nullptr;
 
             // csp structures
-            // unordered_set<cw_variable>     variables;
-            // unordered_set<cw_constraint>   constraints;
-
             unordered_set<shared_ptr<cw_variable> >   variables;
             unordered_set<shared_ptr<cw_constraint> > constraints;
-
-            // ptrs to csp structures
-            // unordered_map<cw_variable,   shared_ptr<cw_variable> >   variable_ptrs;
-            // unordered_map<cw_constraint, shared_ptr<cw_constraint> > constraint_ptrs;
 
             // arc_dependencies[var_i] contains ptrs to all vars var_k in arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_variable> > > arc_dependencies;
