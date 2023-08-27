@@ -25,7 +25,8 @@ template bool set_contents_equal<cw_constraint>(
 
 template bool map_to_set_contents_equal(
     const unordered_map<cw_variable, unordered_set<cw_variable> >* lhs, 
-    const unordered_map<cw_variable, unordered_set<cw_variable> >* rhs
+    const unordered_map<cw_variable, unordered_set<cw_variable> >* rhs, 
+    bool debug_prints
 );
 
 // ############### cw_variable ###############

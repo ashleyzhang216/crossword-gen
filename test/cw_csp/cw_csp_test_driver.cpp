@@ -42,7 +42,7 @@ bool cw_csp_test_driver::test_constructor_empty(
 
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies, true));
 
     return result;
 }
@@ -75,7 +75,7 @@ bool cw_csp_test_driver::test_constructor_contents(
 
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies, true));
 
     return result;
 }
