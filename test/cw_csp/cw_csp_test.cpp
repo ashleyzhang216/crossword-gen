@@ -522,3 +522,113 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
                                << BLK << 'n' << BLK << BLK << BLK << BLK;
     REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
 }
+
+/**
+ * AC-3 test for cw_csp for proper domain pruning
+*/
+TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
+    cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_pruning");
+    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
+    const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
+    const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
+
+    // simple valid 2x2 crossword
+    unordered_set<cw_variable> vars_2_2 = {
+        cw_variable(0, 0, 2, VERTICAL,   {"at", "to"}),
+        cw_variable(1, 0, 2, HORIZONTAL, {"to", "on"}),
+    };
+    stringstream contents_2_2;
+    contents_2_2 << WCD << BLK 
+                 << WCD << WCD;
+    REQUIRE(dut->test_ac3(2, 2, contents_2_2.str(), dict_barebones_path, true, &vars_2_2));
+
+    // simple valid H-shaped 3x3 crossword
+    unordered_set<cw_variable> vars_3_3_h = {
+        cw_variable(0, 0, 3, VERTICAL,   {"ace", "bed", "cab", "can", "cat", "dab", "dan", "gap"}),
+        cw_variable(1, 0, 3, HORIZONTAL, {"cat", "can", "eta", "ace", "are"}),
+        cw_variable(0, 2, 3, VERTICAL,   {"eta", "and", "cab", "can", "cat", "dab", "dan", "gap", "bed"}),
+    };
+    stringstream contents_3_3_h;
+    contents_3_3_h << WCD << BLK << WCD 
+                   << WCD << WCD << WCD 
+                   << WCD << BLK << WCD;
+    REQUIRE(dut->test_ac3(3, 3, contents_3_3_h.str(), dict_simple_path, true, &vars_3_3_h));
+
+    // simple valid H-shaped 4x4 crossword
+    unordered_set<cw_variable> vars_4_4_h = {
+        cw_variable(0, 0, 4, VERTICAL,   {"atol", "atom", "caps", "cars", "halo", "knob", "know", "pant"}),
+        cw_variable(1, 0, 4, HORIZONTAL, {"tear", "tore", "tote", "trot", "atol", "near", "node"}),
+        cw_variable(0, 3, 4, VERTICAL,   {"trot", "troy", "been", "near", "pear", "tear", "atol", "atom", "plan"}),
+    };
+    stringstream contents_4_4_h;
+    contents_4_4_h << WCD << BLK << BLK << WCD 
+                   << WCD << WCD << WCD << WCD 
+                   << WCD << BLK << BLK << WCD 
+                   << WCD << BLK << BLK << WCD;
+    REQUIRE(dut->test_ac3(4, 4, contents_4_4_h.str(), dict_simple_path, true, &vars_4_4_h));
+
+    // 5x5 nytimes crossword 8/28/2023
+    unordered_set<cw_variable> vars_nytimes_8_28_23 = {
+        cw_variable(2, 0, 3, VERTICAL,   {"bmx"}),
+        cw_variable(0, 1, 5, VERTICAL,   {"broom"}),
+        cw_variable(0, 2, 5, VERTICAL,   {"leave"}),
+        cw_variable(0, 3, 5, VERTICAL,   {"eaten"}),
+        cw_variable(0, 4, 3, VERTICAL,   {"wds"}),
+        cw_variable(0, 1, 4, HORIZONTAL, {"blew"}),
+        cw_variable(1, 1, 4, HORIZONTAL, {"read"}),
+        cw_variable(2, 0, 5, HORIZONTAL, {"boats"}),
+        cw_variable(3, 0, 4, HORIZONTAL, {"move"}),
+        cw_variable(4, 0, 4, HORIZONTAL, {"xmen"}),
+    };
+    stringstream contents_nytimes_8_28_23;
+    contents_nytimes_8_28_23 << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << WCD << BLK;
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_8_28_23.str(), dict_nytimes_8_28_23, true, &vars_nytimes_8_28_23));
+
+    // 5x5 nytimes crossword 10/17/13
+    unordered_set<cw_variable> vars_nytimes_10_17_13 = {
+        cw_variable(0, 0, 4, VERTICAL,   {"doze"}),
+        cw_variable(2, 1, 3, VERTICAL,   {"eno"}),
+        cw_variable(0, 2, 5, VERTICAL,   {"cyber"}),
+        cw_variable(0, 3, 3, VERTICAL,   {"ear"}),
+        cw_variable(1, 4, 4, VERTICAL,   {"mayo"}),
+        cw_variable(0, 0, 4, HORIZONTAL, {"dice"}),
+        cw_variable(1, 2, 3, HORIZONTAL, {"yam"}),
+        cw_variable(2, 0, 5, HORIZONTAL, {"zebra"}),
+        cw_variable(3, 0, 3, HORIZONTAL, {"ene"}),
+        cw_variable(4, 1, 4, HORIZONTAL, {"oreo"}),
+    };
+    stringstream contents_nytimes_10_17_13;
+    contents_nytimes_10_17_13 << WCD << 'i' << WCD << WCD << BLK 
+                              << WCD << BLK << WCD << WCD << WCD
+                              << WCD << WCD << WCD << WCD << WCD 
+                              << WCD << WCD << WCD << BLK << WCD 
+                              << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_10_17_13.str(), dict_nytimes_10_17_13, true, &vars_nytimes_10_17_13));
+
+    // 5x5 nytimes crossword 2/3/17
+    unordered_set<cw_variable> vars_nytimes_2_3_17 = {
+        cw_variable(2, 0, 3, VERTICAL,   {"may"}),
+        cw_variable(1, 1, 4, VERTICAL,   {"sale"}),
+        cw_variable(0, 2, 5, VERTICAL,   {"april"}),
+        cw_variable(0, 3, 5, VERTICAL,   {"decal"}),
+        cw_variable(0, 4, 4, VERTICAL,   {"ochs"}),
+        cw_variable(0, 2, 3, HORIZONTAL, {"ado"}),
+        cw_variable(1, 1, 4, HORIZONTAL, {"spec"}),
+        cw_variable(2, 0, 5, HORIZONTAL, {"march"}),
+        cw_variable(3, 0, 5, HORIZONTAL, {"alias"}),
+        cw_variable(4, 0, 4, HORIZONTAL, {"yell"}),
+    };
+    stringstream contents_nytimes_2_3_17;
+    contents_nytimes_2_3_17 << BLK << BLK << 'a' << WCD << WCD 
+                            << BLK << WCD << WCD << WCD << WCD
+                            << WCD << WCD << WCD << WCD << WCD 
+                            << WCD << WCD << WCD << WCD << WCD 
+                            << WCD << WCD << WCD << WCD << BLK;
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, &vars_nytimes_2_3_17));
+}

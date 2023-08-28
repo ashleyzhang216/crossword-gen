@@ -34,7 +34,7 @@ namespace cw_csp_test_driver_ns {
 
             // csp ac3 tests
             bool test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result);
-            // bool test_ac3_domains(uint length, uint height, string contents, string filepath, unordered_set<cw_variable>* expected_variables);
+            bool test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables);
             
             // destructor
             ~cw_csp_test_driver() { delete dut; }

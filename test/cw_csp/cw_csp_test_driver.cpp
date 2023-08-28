@@ -105,3 +105,34 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
 
     return result;
 }
+
+/**
+ * @brief test for domain simplification of AC-3 algorithm
+ * 
+ * @param length the length of the crossword
+ * @param height the height of the crossword
+ * @param contents str representation of predefined crossword contents
+ * @param filepath relative filepath to dictionary of words file 
+ * @param expected_result expected validity of resulting CSP
+ * @param expected_variables ptr to expected contents of variables set after running AC-3
+*/
+bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables) {
+    stringstream dut_name;
+    dut_name << name << " test_ac3(): " << length << ", " << height;
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+
+    bool result = true;
+    unordered_set<cw_variable> original_variables = dut->get_variables();
+
+    result &= check_condition(dut_name.str() + " ac3 validity", expected_result == dut->ac3());
+    unordered_set<cw_variable> result_variables = dut->get_variables();
+    if(!expected_result) {
+        // invalid crosswords
+        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(&result_variables, &original_variables, true));
+    } else {
+        // valid crosswords
+        result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(&result_variables, expected_variables, true));
+    }
+
+    return result;
+}
