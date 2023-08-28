@@ -79,3 +79,29 @@ bool cw_csp_test_driver::test_constructor_contents(
 
     return result;
 }
+
+/**
+ * @brief simple test for ac3 algorithm to check if resulting CSP is valid or not
+ * 
+ * @param length the length of the crossword
+ * @param height the height of the crossword
+ * @param contents str representation of predefined crossword contents
+ * @param filepath relative filepath to dictionary of words file 
+ * @param expected_result expected validity of resulting CSP
+*/
+bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result) {
+    stringstream dut_name;
+    dut_name << name << " test_ac3_validity(): " << length << ", " << height;
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+
+    bool result = true;
+    unordered_set<cw_variable> original_variables = dut->get_variables();
+
+    result &= check_condition(dut_name.str() + " ac3 validity", expected_result == dut->ac3());
+    if(!expected_result) {
+        unordered_set<cw_variable> unchanged_variables = dut->get_variables();
+        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(&original_variables, &unchanged_variables, true));
+    }
+
+    return result;
+}

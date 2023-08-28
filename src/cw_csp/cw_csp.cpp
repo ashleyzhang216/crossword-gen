@@ -308,12 +308,19 @@ void cw_csp::initialize_csp() {
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
 bool cw_csp::ac3() {
+
+    ss << "starting AC-3 algorithm";
+    utils->print_msg(&ss, DEBUG);
+
     // constraints to be checked
     queue<shared_ptr<cw_constraint> > constraint_queue;
 
     // for O(1) lookup of queue contents to avoid duplicate constraints in queue
     // a constraint c is in constraints_in_queue iff c also in constraint_queue
     unordered_set<shared_ptr<cw_constraint> > constraints_in_queue;
+
+    ss << "initializing queue of " << constraints.size() << " constraints";
+    utils->print_msg(&ss, DEBUG);
 
     // initialize constraint_queue
     for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
@@ -345,18 +352,28 @@ bool cw_csp::ac3() {
         assert(constraints_in_queue.count(constr) > 0);
         constraints_in_queue.erase(constr);
 
+        ss << "considering constraint: " << *constr;
+        utils->print_msg(&ss, DEBUG);
+
         // prune invalid words in domain
         pruned_words = constr->prune_domain();
 
         // track pruned words for each var in case undo is needed if CSP becomes invalid
         for(string pruned_word : pruned_words) {
+            ss << "pruned word from domain: " << pruned_word;
+            utils->print_msg(&ss, DEBUG);
+
             pruned_domains[constr->lhs].insert(pruned_word);
         }
 
         // if domain was changed while pruning, add dependent arcs to constraint queue
-        if(pruned_words.size() == 0) {
+        if(pruned_words.size() > 0) {
             // check that CSP is still valid, i.e. var has non-empty domain
             if(constr->lhs->domain.size() == 0) {
+                
+                ss << "CSP became invalid, undo-ing pruning";
+                utils->print_msg(&ss, DEBUG);
+
                 // "undo" to re-add all pruned words to domain of each var if CSP becomes invalid
                 for(const auto& pair : pruned_domains) {
                     for(string pruned_word : pair.second) {
@@ -369,6 +386,9 @@ bool cw_csp::ac3() {
             // add dependent arcs to queue
             for(shared_ptr<cw_constraint> constr_ptr : arc_dependencies[constr->lhs]) {
                 if(constraints_in_queue.count(constr_ptr) == 0) {
+                    ss << "adding dependent constraint to queue: " << *constr_ptr;
+                    utils->print_msg(&ss, DEBUG);
+
                     constraint_queue.push(constr_ptr);
                     constraints_in_queue.insert(constr_ptr);
                 }
