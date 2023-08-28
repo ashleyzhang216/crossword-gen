@@ -65,6 +65,9 @@ namespace cw_csp_data_types_ns {
         
         // value constructor
         cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
+
+        // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
+        bool prune_domain(); 
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;

@@ -174,3 +174,26 @@ cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_varia
     this->lhs = lhs;
     this->rhs = rhs;
 }
+
+/**
+ * @brief AC-3 step to prune words in lhs domain without valid rhs words
+ * 
+ * @return true iff domain changed, i.e. 1+ word pruned
+*/
+bool cw_constraint::prune_domain() {
+    bool result = false;
+    unordered_set<string> pruned_words;
+
+    for(string word : lhs->domain) {
+        if(!rhs->has_letter_at_pos(word.at(lhs_index), rhs_index)) {
+            // queue word to be removed from lhs domain
+            pruned_words.insert(word);
+            result = true;
+        }
+    }
+
+    // remove words
+    for(string word : pruned_words) lhs->domain.erase(word);
+
+    return result;
+}
