@@ -43,6 +43,9 @@ namespace cw_csp_data_types_ns {
         // testing-only constructor
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<string> domain);
 
+        // for AC-3 based CSP reduction
+        bool has_letter_at_pos(const char& letter, const uint& letter_pos) const;
+
         bool operator==(const cw_variable& rhs) const;
     } cw_variable;
 

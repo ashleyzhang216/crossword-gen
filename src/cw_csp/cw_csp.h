@@ -34,13 +34,13 @@ namespace cw_csp_ns {
             cw_csp(string name, uint length, uint height, string contents, string filepath);
 
             // read-only getters for testing
-            shared_ptr   <word_finder>                                get_finder()           const { return finder;       }
+            shared_ptr   <word_finder>                                get_finder()           const { return finder; }
             unordered_set<cw_variable>                                get_variables()        const;
             unordered_set<cw_constraint>                              get_constraints()      const;
             unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
 
             // execute AC-3 algorithm to reduce CSP
-            void ac3();
+            bool ac3();
         
         protected:
             // helper func to populate variables & constraints

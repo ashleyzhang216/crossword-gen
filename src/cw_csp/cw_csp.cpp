@@ -304,8 +304,42 @@ void cw_csp::initialize_csp() {
 
 /**
  * @brief AC-3 algorithm to reduce this crossword CSP
+ * 
+ * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
-void cw_csp::ac3() {
-    // TODO: implement
+bool cw_csp::ac3() {
+    // constraints to be checked
+    queue<shared_ptr<cw_constraint> > constraint_queue;
 
+    // for O(1) lookup of queue contents to avoid duplicate constraints in queue
+    // a constraint c is in constraints_in_queue iff c also in constraint_queue
+    unordered_set<shared_ptr<cw_constraint> > constraints_in_queue;
+
+    // initialize constraint_queue
+    for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
+        constraint_queue.push(constraint_ptr);
+        constraints_in_queue.insert(constraint_ptr);
+    }
+
+    /**
+     * while constraint queue not empty
+     *      constr(Xi, Xj) = queue.pop()
+     *      bool changed = Xi.revise(Xj)
+     *      if changed
+     *          for dep_constraint in arc_dependencies(Xi)
+     *              if dep_constraint not in constraint queue
+     *                  add dep_constraint to constraint queue
+    */
+
+    // run AC-3 algo
+    shared_ptr<cw_constraint> constr;
+    while(!constraint_queue.empty()) {
+        // pop top constraint
+        constr = constraint_queue.front();
+        constraint_queue.pop();
+
+        // TODO: define revise() function for constraint struct
+    }
+
+    return true;
 }
