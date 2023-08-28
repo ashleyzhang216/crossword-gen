@@ -319,6 +319,10 @@ bool cw_csp::ac3() {
     // a constraint c is in constraints_in_queue iff c also in constraint_queue
     unordered_set<shared_ptr<cw_constraint> > constraints_in_queue;
 
+    // map from variable --> words pruned from its domain
+    // tracks pruned words to undo AC-3 if resulting CSP is invalid
+    unordered_map<shared_ptr<cw_variable>, unordered_set<string> > pruned_domains;
+
     ss << "initializing queue of " << constraints.size() << " constraints";
     utils->print_msg(&ss, DEBUG);
 
@@ -327,20 +331,6 @@ bool cw_csp::ac3() {
         constraint_queue.push(constraint_ptr);
         constraints_in_queue.insert(constraint_ptr);
     }
-
-    /**
-     * while constraint queue not empty
-     *      constr(Xi, Xj) = queue.pop()
-     *      bool changed = Xi.revise(Xj)
-     *      if changed
-     *          for dep_constraint in arc_dependencies(Xi)
-     *              if dep_constraint not in constraint queue
-     *                  add dep_constraint to constraint queue
-    */
-
-    // map from variable --> words pruned from its domain
-    // tracks pruned words to undo AC-3 if resulting CSP is invalid
-    unordered_map<shared_ptr<cw_variable>, unordered_set<string> > pruned_domains;
 
     // run AC-3 algo
     shared_ptr<cw_constraint> constr;
@@ -396,11 +386,6 @@ bool cw_csp::ac3() {
         }
     }
 
-    // double-check to verify CSP is still valid
-    // TODO: remove once robust tests are written to validate this function
-    for(shared_ptr<cw_variable> var_ptr : variables) {
-        assert(var_ptr->domain.size() > 0);
-    }
-
+    // running AC-3 to completion does not make CSP invalid
     return true;
 }
