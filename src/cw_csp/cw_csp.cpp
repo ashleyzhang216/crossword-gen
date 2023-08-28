@@ -303,7 +303,7 @@ void cw_csp::initialize_csp() {
 }
 
 /**
- * @brief AC-3 algorithm to reduce this crossword CSP
+ * @brief AC-3 algorithm to reduce CSP; does not changed CSP if running AC-3 to completion would result in an invalid CSP
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
@@ -331,14 +331,55 @@ bool cw_csp::ac3() {
      *                  add dep_constraint to constraint queue
     */
 
+    // map from variable --> words pruned from its domain
+    // tracks pruned words to undo AC-3 if resulting CSP is invalid
+    unordered_map<shared_ptr<cw_variable>, unordered_set<string> > pruned_domains;
+
     // run AC-3 algo
     shared_ptr<cw_constraint> constr;
+    unordered_set<string> pruned_words;
     while(!constraint_queue.empty()) {
         // pop top constraint
         constr = constraint_queue.front();
         constraint_queue.pop();
+        assert(constraints_in_queue.count(constr) > 0);
+        constraints_in_queue.erase(constr);
 
-        // TODO: define revise() function for constraint struct
+        // prune invalid words in domain
+        pruned_words = constr->prune_domain();
+
+        // track pruned words for each var in case undo is needed if CSP becomes invalid
+        for(string pruned_word : pruned_words) {
+            pruned_domains[constr->lhs].insert(pruned_word);
+        }
+
+        // if domain was changed while pruning, add dependent arcs to constraint queue
+        if(pruned_words.size() == 0) {
+            // check that CSP is still valid, i.e. var has non-empty domain
+            if(constr->lhs->domain.size() == 0) {
+                // "undo" to re-add all pruned words to domain of each var if CSP becomes invalid
+                for(const auto& pair : pruned_domains) {
+                    for(string pruned_word : pair.second) {
+                        pair.first->domain.insert(pruned_word);
+                    }
+                }
+                return false;
+            }
+
+            // add dependent arcs to queue
+            for(shared_ptr<cw_constraint> constr_ptr : arc_dependencies[constr->lhs]) {
+                if(constraints_in_queue.count(constr_ptr) == 0) {
+                    constraint_queue.push(constr_ptr);
+                    constraints_in_queue.insert(constr_ptr);
+                }
+            }
+        }
+    }
+
+    // double-check to verify CSP is still valid
+    // TODO: remove once robust tests are written to validate this function
+    for(shared_ptr<cw_variable> var_ptr : variables) {
+        assert(var_ptr->domain.size() > 0);
     }
 
     return true;
