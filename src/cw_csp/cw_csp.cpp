@@ -410,6 +410,16 @@ bool cw_csp::solved() const {
 }
 
 /**
+ * @brief getter for string representation of solved crossword to print
+*/
+string cw_csp::result() const {
+    assert(solved());
+    stringstream cw_ss;
+    cw_ss << *cw;
+    return cw_ss.str();
+}
+
+/**
  * @brief selects one unassigned var ptr in variables
  * 
  * @param strategy the selection strategy to use
@@ -440,6 +450,43 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
 }
 
 /**
+ * @brief overwrite all wildcards in cw puzzle with solved CSP values
+*/
+void cw_csp::overwrite_cw() {
+    // must solve CSP before overwriting
+    assert(solved());
+
+    // iterate across each variable to write onto cw
+    for(shared_ptr<cw_variable> var_ptr : variables) {
+        cw_variable var = *var_ptr;
+        if(var.dir == HORIZONTAL) {
+            for(uint letter = 0; letter < var.length; letter++) {
+                // this square must be wildcard or the same letter about to be written
+                assert(
+                    cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
+                    cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->at(letter)
+                );
+
+                // overwrite cw
+                cw->write_at(var.domain.begin()->at(letter), var.origin_row, var.origin_col + letter);
+            }
+        } else { // var.dir == VERTICAL
+            for(uint letter = 0; letter < var.length; letter++) {
+
+                // this square must be wildcard or the same letter about to be written
+                assert(
+                    cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
+                    cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->at(letter)
+                );
+
+                // overwrite cw
+                cw->write_at(var.domain.begin()->at(letter), var.origin_row + letter, var.origin_col);
+            }
+        }
+    }
+}
+
+/**
  * @brief solves this CSP using the given strategy
  * 
  * @param csp_strategy strategy to solve this CSP
@@ -449,7 +496,10 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
     switch(csp_strategy) {
         case BACKTRACKING: {
-                return solve_backtracking(var_strategy);
+                if(solve_backtracking(var_strategy)) {
+                    overwrite_cw();
+                    return true;
+                } else return false;
             } break;
         default: {
                 ss << "solve() got unknown strategy";

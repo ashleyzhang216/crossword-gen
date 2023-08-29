@@ -47,6 +47,8 @@ namespace cw_csp_ns {
 
             // check if CSP is solved
             bool solved() const;
+
+            string result() const;
         
         protected:
             // helper func to populate variables & constraints
@@ -54,6 +56,9 @@ namespace cw_csp_ns {
 
             // select next unassigned variable to explore
             shared_ptr<cw_variable> select_unassigned_var(var_selection_method strategy);
+
+            // function to overwrite cw when fully solved
+            void overwrite_cw();
 
             // use backtracking to solve CSP
             bool solve_backtracking(var_selection_method var_strategy);

@@ -632,3 +632,18 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                             << WCD << WCD << WCD << WCD << BLK;
     REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, &vars_nytimes_2_3_17));
 }
+
+/**
+ * simple backtracking solving test for cw_csp for valid/invalid checking
+*/
+TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") {
+    cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check");
+    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+
+    // simple valid 2x2 crossword
+    stringstream contents_2_2;
+    contents_2_2 << WCD << BLK 
+                 << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(2, 2, contents_2_2.str(), dict_barebones_path, true, true));
+}
