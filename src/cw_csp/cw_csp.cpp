@@ -410,19 +410,80 @@ bool cw_csp::solved() const {
 }
 
 /**
+ * @brief selects one unassigned var ptr in variables
+ * 
+ * @param strategy the selection strategy to use
+ * @return next unassigned shared_ptr<cw_variable> in variables to explore, nullptr if none remaining
+*/
+shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strategy) {
+    shared_ptr<cw_variable> result = nullptr;
+
+    switch(strategy) {
+        case MIN_REMAINING_VALUES: {
+                unsigned long min_num_values = ULONG_MAX;
+                for(shared_ptr<cw_variable> var_ptr : variables) {
+                    if(min_num_values == UINT_MAX || var_ptr->domain.size() < min_num_values) {
+                        min_num_values = var_ptr->domain.size();
+                        result = var_ptr;
+                    }
+                }
+            } break;
+        default: {
+                cw_utils* utils = new cw_utils("select_unassigned_var()", VERBOSITY);
+                stringstream ss;
+                ss << "got unknown var_selection_method";
+                utils->print_msg(&ss, ERROR);
+            } break;
+    }
+
+    return result;
+}
+
+/**
  * @brief solves this CSP using the given strategy
  * 
+ * @param csp_strategy strategy to solve this CSP
+ * @param var_strategy strategy to select next unassigned variable
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy strategy) {
-    switch(strategy) {
-        case BACKTRACKING:
-            // TODO: call backtracking
-            return true;
-        default:
-            ss << "solve() got unknown strategy";
-            utils->print_msg(&ss, ERROR);
-            return false;
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+    switch(csp_strategy) {
+        case BACKTRACKING: {
+                return solve_backtracking(var_strategy);
+            } break;
+        default: {
+                ss << "solve() got unknown strategy";
+                utils->print_msg(&ss, ERROR);
+                return false;
+            } break;
+    }
+
+    return false;
+}
+
+/**
+ * @brief use backtracking strategy to solve CSP
+ * 
+ * @param var_strategy strategy to use to select next unassigned variable 
+ * @return true iff successful
+*/
+bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
+    // base case
+    if(solved()) return true;
+
+    // select next variable
+    shared_ptr<cw_variable> next_var = select_unassigned_var(var_strategy);
+
+    // search all possible values
+    const unordered_set<string> domain_copy = next_var->domain;
+    for(string word : domain_copy) {
+        // assignment
+        next_var->domain = {word};
+
+        // if does not result in invalid CSP, recurse
+        if(ac3()) {
+            return solve_backtracking(var_strategy);
+        }
     }
 
     return false;

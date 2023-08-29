@@ -34,6 +34,11 @@ namespace cw_csp_data_types_ns {
         BACKTRACKING = 0,
     };
 
+    // to choose between variable selection method, when more are added in the future
+    enum var_selection_method {
+        MIN_REMAINING_VALUES = 0,
+    };
+
     // a variable in a constraint satisfaction problem
     typedef struct cw_variable {
         uint origin_row;              // 0-indexed

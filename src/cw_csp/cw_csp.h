@@ -43,7 +43,7 @@ namespace cw_csp_ns {
             bool ac3();
 
             // solve CSP
-            bool solve(csp_solving_strategy strategy);
+            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
 
             // check if CSP is solved
             bool solved() const;
@@ -51,6 +51,12 @@ namespace cw_csp_ns {
         protected:
             // helper func to populate variables & constraints
             void initialize_csp();
+
+            // select next unassigned variable to explore
+            shared_ptr<cw_variable> select_unassigned_var(var_selection_method strategy);
+
+            // use backtracking to solve CSP
+            bool solve_backtracking(var_selection_method var_strategy);
 
         private:
             // crossword to be solved
