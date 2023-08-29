@@ -196,3 +196,18 @@ unordered_set<string> cw_constraint::prune_domain() {
 
     return pruned_words;
 }
+
+/**
+ * @brief checks that constraint is satisfied, used by solved() in cw_csp
+ * 
+ * @return true iff constraint is satisfied
+*/
+bool cw_constraint::satisfied() const {
+    if(lhs->domain.size() != 1) return false;
+    if(rhs->domain.size() != 1) return false;
+
+    // since ac3() undoes invalid assignments, this should always be true
+    assert(lhs->domain.begin()->at(lhs_index) == rhs->domain.begin()->at(rhs_index));
+
+    return true;
+}

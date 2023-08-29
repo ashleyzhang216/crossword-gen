@@ -41,6 +41,12 @@ namespace cw_csp_ns {
 
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
+
+            // solve CSP
+            bool solve(csp_solving_strategy strategy);
+
+            // check if CSP is solved
+            bool solved() const;
         
         protected:
             // helper func to populate variables & constraints

@@ -23,9 +23,15 @@ namespace cw_csp_data_types_ns {
         VERTICAL   = 1,
     };
 
+    // for more interpretable prints
     const unordered_map<word_direction, string> word_dir_name = {
         {HORIZONTAL, "HORIZONTAL"},
         {VERTICAL, "VERTICAL"}
+    };
+
+    // to choose between solving strategies, when more are added in the future
+    enum csp_solving_strategy {
+        BACKTRACKING = 0,
     };
 
     // a variable in a constraint satisfaction problem
@@ -68,6 +74,9 @@ namespace cw_csp_data_types_ns {
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
         unordered_set<string> prune_domain(); 
+
+        // used by solved() in cw_csp to check that this constraint is satisfied
+        bool satisfied() const;
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;

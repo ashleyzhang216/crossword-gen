@@ -389,3 +389,41 @@ bool cw_csp::ac3() {
     // running AC-3 to completion does not make CSP invalid
     return true;
 }
+
+/**
+ * @brief checks if this CSP is solved, i.e. all variables have 1 value in domain & all constraints satisfied
+ * 
+ * @return true iff CSP is solved
+*/
+bool cw_csp::solved() const {
+    // check that all vars have one remaining domain value
+    for(shared_ptr<cw_variable> var_ptr : variables) {
+        if(var_ptr->domain.size() != 1) return false;
+    }
+
+    // check that all constraints satisfied
+    for(shared_ptr<cw_constraint> constr_ptr : constraints) {
+        if(!constr_ptr->satisfied()) return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief solves this CSP using the given strategy
+ * 
+ * @return true iff successful
+*/
+bool cw_csp::solve(csp_solving_strategy strategy) {
+    switch(strategy) {
+        case BACKTRACKING:
+            // TODO: call backtracking
+            return true;
+        default:
+            ss << "solve() got unknown strategy";
+            utils->print_msg(&ss, ERROR);
+            return false;
+    }
+
+    return false;
+}
