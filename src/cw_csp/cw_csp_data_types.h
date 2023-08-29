@@ -43,6 +43,9 @@ namespace cw_csp_data_types_ns {
         // testing-only constructor
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<string> domain);
 
+        // for AC-3 based CSP reduction
+        bool has_letter_at_pos(const char& letter, const uint& letter_pos) const;
+
         bool operator==(const cw_variable& rhs) const;
     } cw_variable;
 
@@ -62,6 +65,9 @@ namespace cw_csp_data_types_ns {
         
         // value constructor
         cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
+
+        // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
+        unordered_set<string> prune_domain(); 
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;

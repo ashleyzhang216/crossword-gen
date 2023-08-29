@@ -24,8 +24,8 @@ template bool set_contents_equal<cw_constraint>(
 // ############### map_to_set_contents_equal() ###############
 
 template bool map_to_set_contents_equal(
-    const unordered_map<cw_variable, unordered_set<cw_variable> >* lhs, 
-    const unordered_map<cw_variable, unordered_set<cw_variable> >* rhs, 
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >* lhs, 
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >* rhs, 
     bool debug_prints
 );
 
@@ -107,6 +107,29 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
     this->domain = domain;
 }
 
+/**
+ * @brief tests if this var contains a word that satisifes one constraint
+ * @param letter the letter a word in the domain must contain
+ * @param letter_pos the index at which the letter must appear in the word
+ * @return true iff this var contains 1+ word in its domain that contains letter at position letter_pos
+*/
+bool cw_variable::has_letter_at_pos(const char& letter, const uint& letter_pos) const {
+
+    stringstream ss;
+    cw_utils* utils = new cw_utils("satisfies_constraint()", VERBOSITY);
+
+    if(letter < 'a' || letter > 'z') {
+        ss << "unknown target letter: " << letter;
+        utils->print_msg(&ss, ERROR);
+    }
+
+    for(string word : domain) {
+        if(word.at(letter_pos) == letter) return true;
+    }
+
+    return false;
+}
+
 // ############### cw_constraint ###############
 
 /**
@@ -150,4 +173,26 @@ cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_varia
     this->rhs_index = rhs_index;
     this->lhs = lhs;
     this->rhs = rhs;
+}
+
+/**
+ * @brief AC-3 step to prune words in lhs domain without valid rhs words
+ * 
+ * @return set of words pruned. i.e. size() == 0 iff domain not change
+*/
+unordered_set<string> cw_constraint::prune_domain() {
+
+    // find words to prune from domain
+    unordered_set<string> pruned_words;
+    for(string word : lhs->domain) {
+        if(!rhs->has_letter_at_pos(word.at(lhs_index), rhs_index)) {
+            // queue word to be removed from lhs domain
+            pruned_words.insert(word);
+        }
+    }
+
+    // remove words
+    for(string word : pruned_words) lhs->domain.erase(word);
+
+    return pruned_words;
 }

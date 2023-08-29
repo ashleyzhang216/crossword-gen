@@ -34,10 +34,13 @@ namespace cw_csp_ns {
             cw_csp(string name, uint length, uint height, string contents, string filepath);
 
             // read-only getters for testing
-            shared_ptr   <word_finder>                              get_finder()           const { return finder;       }
-            unordered_set<cw_variable>                              get_variables()        const;
-            unordered_set<cw_constraint>                            get_constraints()      const;
-            unordered_map<cw_variable, unordered_set<cw_variable> > get_arc_dependencies() const;
+            shared_ptr   <word_finder>                                get_finder()           const { return finder; }
+            unordered_set<cw_variable>                                get_variables()        const;
+            unordered_set<cw_constraint>                              get_constraints()      const;
+            unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
+
+            // execute AC-3 algorithm to reduce CSP
+            bool ac3();
         
         protected:
             // helper func to populate variables & constraints
@@ -54,8 +57,8 @@ namespace cw_csp_ns {
             unordered_set<shared_ptr<cw_variable> >   variables;
             unordered_set<shared_ptr<cw_constraint> > constraints;
 
-            // arc_dependencies[var_i] contains ptrs to all vars var_k in arcs of the form (var_k, var_i) 
-            unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_variable> > > arc_dependencies;
+            // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
+            unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
 
     }; // cw_csp
 } // cw_csp_ns
