@@ -21,7 +21,7 @@
 #define MIN_WORD_LEN 2  // max length for a single word
 #define MAX_WORD_LEN 20 // max length for a single word
 #define WILDCARD '?'    // tile/pattern where any letter can go
-#define BLACK 'X'       // tile where no letter can be placed
+#define BLACK ' '       // tile where no letter can be placed
 #define WCD WILDCARD    // shorthand
 #define BLK BLACK       // shorthand
 

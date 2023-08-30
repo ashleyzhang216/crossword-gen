@@ -432,7 +432,7 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
         case MIN_REMAINING_VALUES: {
                 unsigned long min_num_values = ULONG_MAX;
                 for(shared_ptr<cw_variable> var_ptr : variables) {
-                    if(min_num_values == UINT_MAX || var_ptr->domain.size() < min_num_values) {
+                    if(var_ptr->domain.size() != 1 && (min_num_values == UINT_MAX || var_ptr->domain.size() < min_num_values)) {
                         min_num_values = var_ptr->domain.size();
                         result = var_ptr;
                     }
@@ -450,12 +450,9 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
 }
 
 /**
- * @brief overwrite all wildcards in cw puzzle with solved CSP values
+ * @brief overwrite wildcards in cw puzzle with solved CSP values
 */
 void cw_csp::overwrite_cw() {
-    // must solve CSP before overwriting
-    assert(solved());
-
     // iterate across each variable to write onto cw
     for(shared_ptr<cw_variable> var_ptr : variables) {
         cw_variable var = *var_ptr;
@@ -496,10 +493,7 @@ void cw_csp::overwrite_cw() {
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
     switch(csp_strategy) {
         case BACKTRACKING: {
-                if(solve_backtracking(var_strategy)) {
-                    overwrite_cw();
-                    return true;
-                } else return false;
+                return solve_backtracking(var_strategy);
             } break;
         default: {
                 ss << "solve() got unknown strategy";
@@ -518,21 +512,43 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * @return true iff successful
 */
 bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
+
+    ss << "entering solve_backtracking() with cw: " << *cw;
+    utils->print_msg(&ss, INFO);
+
     // base case
     if(solved()) return true;
 
     // select next variable
     shared_ptr<cw_variable> next_var = select_unassigned_var(var_strategy);
 
+    ss << "selected next var: " << *next_var;
+    utils->print_msg(&ss, INFO);
+
     // search all possible values
     const unordered_set<string> domain_copy = next_var->domain;
     for(string word : domain_copy) {
-        // assignment
-        next_var->domain = {word};
+        // avoid duplicate words
+        if(existing_words.count(word) == 0) {
+            // assignment
+            next_var->domain = {word};
+        
+            // if does not result in invalid CSP, recurse
+            if(ac3()) {
+                ss << "adding new word: " << word;
+                utils->print_msg(&ss, INFO);
 
-        // if does not result in invalid CSP, recurse
-        if(ac3()) {
-            return solve_backtracking(var_strategy);
+                // TODO: once a single word is added, it seems like AC3 simplifies everything down to a solved state
+                // must add constraint to enforce no repeats
+                // current existing_words is useless; get rid of it and implement cleaner solution
+
+                existing_words.insert(word);
+                overwrite_cw();
+                return solve_backtracking(var_strategy);
+            }
+        } else {
+            ss << "avoided duplicate word: " << word;
+            utils->print_msg(&ss, INFO);
         }
     }
 

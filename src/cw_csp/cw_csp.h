@@ -77,6 +77,9 @@ namespace cw_csp_ns {
             // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
 
+            // words already assigned to the crossword, used to avoid duplicates
+            unordered_set<string> existing_words;
+
     }; // cw_csp
 } // cw_csp_ns
 
