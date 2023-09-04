@@ -59,7 +59,7 @@ namespace std {
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
-       << var.pattern << ", domain: {";
+       << var.pattern << ", assigned: " << var.assigned << ", domain: {";
     for(string word : var.domain) {
         os << word << ", ";
     }

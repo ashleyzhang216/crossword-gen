@@ -7,7 +7,7 @@
 #include "cw_utils.h"
 
 #ifndef VERBOSITY_NUM
-verbosity_t VERBOSITY = INFO;
+verbosity_t VERBOSITY = DEBUG;
 #else
 verbosity_t VERBOSITY = (verbosity_t)VERBOSITY_NUM;
 #endif
@@ -35,10 +35,12 @@ bool cw_utils::print_msg(string s, verbosity_t verbosity) {
         switch(verbosity) {
         case FATAL:
             cerr << "Fatal Error: " << name << " " << s << endl;
+            throw assertion_failure_exception();   
             return false;
             break;
         case ERROR:
             cerr << "Error: " << name << " " << s << endl;
+            throw assertion_failure_exception();   
             return false;
             break;
         case WARNING:
