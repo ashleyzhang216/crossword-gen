@@ -635,13 +635,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
     ss << "selected next var: " << *next_var;
     utils->print_msg(&ss, DEBUG);
 
-    // check if var is invalid, i.e. not assigned AND (has domain of one already-assigned word OR empty domain)
-    if(!next_var->assigned && 
-        (
-            next_var->domain.size() == 0 || // empty domain
-            (next_var->domain.size() == 1 && assigned_words.count(*(next_var->domain.begin())) > 0) // already-assigned word is only val
-        )
-    ) {
+    // check if var is invalid, i.e. not assigned AND has domain of one already-assigned word
+    if(!next_var->assigned && (next_var->domain.size() == 1 && assigned_words.count(*(next_var->domain.begin())) > 0)) {
         return false;
     }
 

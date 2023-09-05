@@ -464,7 +464,7 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
 
     // ############### invalid crosswords ###############
 
-    // initially invalid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // invalid 6x7 crossword with complex intersections & mix of wildcards and letters
     stringstream contents_6_7_complex_invalid;
     contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << WCD << 'p' 
                                  << 't' << WCD << WCD << 'e' << BLK << WCD 
@@ -480,6 +480,13 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
     contents_2_2_invalid << WCD << BLK 
                          << WCD << 't';
     REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_invalid.str(), dict_barebones_path, false));
+
+    // initially invalid 4x3 crossword
+    stringstream contents_4_3_invalid;
+    contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(4, 3, contents_4_3_invalid.str(), dict_simple_path, false));
 
     // ############### valid crosswords ###############
 
@@ -783,6 +790,13 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
     REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_5_16_23.str(), dict_1000_with_nytimes_5_16_23, true, true));
 
     // ############### invalid crosswords ###############
+
+    // initially invalid 4x3 crossword
+    stringstream contents_4_3_invalid;
+    contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(4, 3, contents_4_3_invalid.str(), dict_1000, false, true));
 
     // empty 2x2 crossword, w/ barebones dict
     stringstream contents_2_2_empty;
