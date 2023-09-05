@@ -208,7 +208,8 @@ bool cw_constraint::satisfied() const {
     if(rhs->domain.size() != 1) return false;
 
     // since ac3() undoes invalid assignments, this should always be true
-    assert(lhs->domain.begin()->at(lhs_index) == rhs->domain.begin()->at(rhs_index));
+    assert(*(lhs->domain.begin()) != *(rhs->domain.begin())); // word inequality
+    assert(lhs->domain.begin()->at(lhs_index) == rhs->domain.begin()->at(rhs_index)); // letter equality
 
     return true;
 }
