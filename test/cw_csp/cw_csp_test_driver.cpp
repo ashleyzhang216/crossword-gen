@@ -24,6 +24,7 @@ cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name) {
  * @param expected_variables ptr to expected contents of variables set after initialization
  * @param expected_constraints ptr to expected contents of constraints set after initialization
  * @param expected_arc_dependencies expected dereferenced contents of arc dependencies map after initialization
+ * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_empty(
     uint length, uint height, string filepath,
@@ -57,6 +58,7 @@ bool cw_csp_test_driver::test_constructor_empty(
  * @param expected_variables ptr to expected contents of variables set after initialization
  * @param expected_constraints ptr to expected contents of constraints set after initialization
  * @param expected_arc_dependencies expected dereferenced contents of arc dependencies map after initialization
+ * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_contents(
     uint length, uint height, string contents, string filepath,
@@ -88,6 +90,7 @@ bool cw_csp_test_driver::test_constructor_contents(
  * @param contents str representation of predefined crossword contents
  * @param filepath relative filepath to dictionary of words file 
  * @param expected_result expected validity of resulting CSP
+ * @return true iff successful
 */
 bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result) {
     stringstream dut_name;
@@ -115,6 +118,7 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
  * @param filepath relative filepath to dictionary of words file 
  * @param expected_result expected validity of resulting CSP
  * @param expected_variables ptr to expected contents of variables set after running AC-3
+ * @return true iff successful
 */
 bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables) {
     stringstream dut_name;
@@ -134,5 +138,30 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
         result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(&result_variables, expected_variables, true));
     }
 
+    return result;
+}
+
+/**
+ * @brief test for if solving CSP with backtracking is possible
+ * 
+ * @param length the length of the crossword
+ * @param height the height of the crossword
+ * @param contents str representation of predefined crossword contents
+ * @param filepath relative filepath to dictionary of words file 
+ * @param expected_result expected validity of solving the crossword
+ * @param do_print if true, print the resulting solved crossword
+ * @return true iff successful
+*/
+bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print) {
+    stringstream dut_name;
+    dut_name << name << " test_backtracking_validity(): " << length << ", " << height;
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+    stringstream cw_result;
+
+    bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
+    if(result && expected_result && do_print) {
+        cw_result << dut->result();
+        utils->print_msg(&cw_result, INFO);
+    }
     return result;
 }

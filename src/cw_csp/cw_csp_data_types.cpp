@@ -59,7 +59,7 @@ namespace std {
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
-       << var.pattern << ", domain: {";
+       << var.pattern << ", assigned: " << var.assigned << ", domain: {";
     for(string word : var.domain) {
         os << word << ", ";
     }
@@ -108,23 +108,24 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
 }
 
 /**
- * @brief tests if this var contains a word that satisifes one constraint
- * @param letter the letter a word in the domain must contain
+ * @brief tests if this var contains a word that satisifes one cw equality constraint and isn't the same word
+ * @param param_word the other word to compare to
+ * @param param_letter_pos index of the letter in param_word that this domain must contain
  * @param letter_pos the index at which the letter must appear in the word
  * @return true iff this var contains 1+ word in its domain that contains letter at position letter_pos
 */
-bool cw_variable::has_letter_at_pos(const char& letter, const uint& letter_pos) const {
+bool cw_variable::can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const {
 
     stringstream ss;
     cw_utils* utils = new cw_utils("satisfies_constraint()", VERBOSITY);
-
-    if(letter < 'a' || letter > 'z') {
-        ss << "unknown target letter: " << letter;
+    
+    if(param_word.at(param_letter_pos) < 'a' || param_word.at(param_letter_pos) > 'z') {
+        ss << "unknown target letter: " << param_word.at(param_letter_pos);
         utils->print_msg(&ss, ERROR);
     }
 
     for(string word : domain) {
-        if(word.at(letter_pos) == letter) return true;
+        if(word != param_word && word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
     }
 
     return false;
@@ -185,7 +186,7 @@ unordered_set<string> cw_constraint::prune_domain() {
     // find words to prune from domain
     unordered_set<string> pruned_words;
     for(string word : lhs->domain) {
-        if(!rhs->has_letter_at_pos(word.at(lhs_index), rhs_index)) {
+        if(!rhs->can_satisfy_constraint(word, lhs_index, rhs_index)) {
             // queue word to be removed from lhs domain
             pruned_words.insert(word);
         }
@@ -195,4 +196,20 @@ unordered_set<string> cw_constraint::prune_domain() {
     for(string word : pruned_words) lhs->domain.erase(word);
 
     return pruned_words;
+}
+
+/**
+ * @brief checks that constraint is satisfied, used by solved() in cw_csp
+ * 
+ * @return true iff constraint is satisfied
+*/
+bool cw_constraint::satisfied() const {
+    if(lhs->domain.size() != 1) return false;
+    if(rhs->domain.size() != 1) return false;
+
+    // since ac3() undoes invalid assignments, this should always be true
+    assert(*(lhs->domain.begin()) != *(rhs->domain.begin())); // word inequality
+    assert(lhs->domain.begin()->at(lhs_index) == rhs->domain.begin()->at(rhs_index)); // letter equality
+
+    return true;
 }

@@ -464,7 +464,7 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
 
     // ############### invalid crosswords ###############
 
-    // initially invalid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // invalid 6x7 crossword with complex intersections & mix of wildcards and letters
     stringstream contents_6_7_complex_invalid;
     contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << WCD << 'p' 
                                  << 't' << WCD << WCD << 'e' << BLK << WCD 
@@ -481,12 +481,12 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
                          << WCD << 't';
     REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_invalid.str(), dict_barebones_path, false));
 
-    // simple invalid blank 3x3 crossword
-    stringstream contents_3_3_blank_invalid;
-    contents_3_3_blank_invalid << WCD << BLK << WCD 
-                               << WCD << WCD << WCD 
-                               << WCD << BLK << WCD;
-    REQUIRE(dut->test_ac3_validity(3, 3, contents_3_3_blank_invalid.str(), dict_barebones_path, true));
+    // initially invalid 4x3 crossword
+    stringstream contents_4_3_invalid;
+    contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(4, 3, contents_4_3_invalid.str(), dict_simple_path, false));
 
     // ############### valid crosswords ###############
 
@@ -517,10 +517,53 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
                                << 't' << WCD << WCD << 'e' << BLK << BLK 
                                << WCD << BLK << BLK << WCD << WCD << WCD 
                                << WCD << BLK << WCD << BLK << WCD << BLK 
-                               << BLK << BLK << 'a' << BLK << 'o' << BLK 
+                               << BLK << BLK << WCD << BLK << 'o' << BLK 
                                << WCD << 'a' << 't' << BLK << WCD << BLK 
                                << BLK << 'n' << BLK << BLK << BLK << BLK;
     REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
+}
+
+/**
+ * simple AC-3 test for cw_csp for constraint duplicate word prevention
+*/
+TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates],[quick]") {
+    cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_constraint_duplicates");
+    const string dict_single_word = "cw_csp/data/dict_single_word.txt";
+    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+
+    // ############### valid crosswords ###############
+
+    // simple crossword that requires duplicates
+    stringstream contents_2_2_duplicate_invalid;
+    contents_2_2_duplicate_invalid << WCD << WCD
+                                   << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_duplicate_invalid.str(), dict_single_word, false));
+
+    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // forces two words to both be 'cat', but is allowed because they don't intersect
+    stringstream contents_6_7_complex_valid;
+    contents_6_7_complex_valid << WCD << BLK << BLK << WCD << BLK << 'p' 
+                               << 't' << WCD << WCD << 'e' << BLK << BLK 
+                               << WCD << BLK << BLK << WCD << WCD << WCD 
+                               << WCD << BLK << WCD << BLK << BLK << BLK 
+                               << BLK << BLK << WCD << BLK << WCD << WCD 
+                               << WCD << 'a' << 't' << BLK << BLK << BLK 
+                               << BLK << 'n' << BLK << WCD << 'a' << 't';
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
+
+    // ############### invalid crosswords ###############
+
+    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // forces two intersecting words to both be 'cat', which is not allowed
+    stringstream contents_6_7_complex_invalid;
+    contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << BLK << 'p' 
+                                 << 't' << WCD << WCD << 'e' << BLK << BLK 
+                                 << WCD << BLK << BLK << WCD << WCD << WCD 
+                                 << WCD << BLK << WCD << BLK << WCD << BLK 
+                                 << BLK << BLK << 'a' << BLK << 'o' << BLK 
+                                 << WCD << 'a' << 't' << BLK << WCD << BLK 
+                                 << BLK << 'n' << BLK << BLK << BLK << BLK;
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_invalid.str(), dict_simple_path, false));
 }
 
 /**
@@ -533,7 +576,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
     const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
     const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
-
+    
     // simple valid 2x2 crossword
     unordered_set<cw_variable> vars_2_2 = {
         cw_variable(0, 0, 2, VERTICAL,   {"at", "to"}),
@@ -631,4 +674,224 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                             << WCD << WCD << WCD << WCD << WCD 
                             << WCD << WCD << WCD << WCD << BLK;
     REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, &vars_nytimes_2_3_17));
+}
+
+/**
+ * simple backtracking solving test for cw_csp for valid/invalid checking
+*/
+TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") {
+    cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check");
+    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const string dict_1000 = "cw_csp/data/words_top1000.txt";
+    const string dict_1000_with_nytimes_5_16_23 = "cw_csp/data/words_top1000_with_nytimes_5_16_23.txt";
+    const string dict_1000_with_nytimes_1_14_22 = "cw_csp/data/words_top1000_with_nytimes_1_14_22.txt";
+    const string dict_1000_with_nytimes_1_13_22 = "cw_csp/data/words_top1000_with_nytimes_1_13_22.txt";
+    const string dict_1000_with_nytimes_1_12_22 = "cw_csp/data/words_top1000_with_nytimes_1_12_22.txt";
+    const string dict_1000_with_nytimes_1_11_22 = "cw_csp/data/words_top1000_with_nytimes_1_11_22.txt";
+    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
+    const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
+    const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
+
+    // ############### valid crosswords ###############
+
+    // simple valid 2x2 crossword
+    stringstream contents_2_2;
+    contents_2_2 << WCD << BLK 
+                 << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(2, 2, contents_2_2.str(), dict_barebones_path, true, true));
+
+    // 5x5 nytimes crossword 8/28/2023
+    stringstream contents_nytimes_8_28_23;
+    contents_nytimes_8_28_23 << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << WCD << BLK;
+    REQUIRE(dut->test_backtracking_validity(5, 5, contents_nytimes_8_28_23.str(), dict_nytimes_8_28_23, true, true));
+
+    // 5x5 nytimes crossword 10/17/13
+    stringstream contents_nytimes_10_17_13;
+    contents_nytimes_10_17_13 << WCD << WCD << WCD << WCD << BLK 
+                              << WCD << BLK << WCD << WCD << WCD
+                              << WCD << WCD << WCD << WCD << WCD 
+                              << WCD << WCD << WCD << BLK << WCD 
+                              << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(5, 5, contents_nytimes_10_17_13.str(), dict_nytimes_10_17_13, true, true));
+
+    // 5x5 nytimes crossword 2/3/17
+    stringstream contents_nytimes_2_3_17;
+    contents_nytimes_2_3_17 << BLK << BLK << WCD << WCD << WCD 
+                            << BLK << WCD << WCD << WCD << WCD
+                            << WCD << WCD << WCD << WCD << WCD 
+                            << WCD << WCD << WCD << WCD << WCD 
+                            << WCD << WCD << WCD << WCD << BLK;
+    REQUIRE(dut->test_backtracking_validity(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, true));
+
+    // empty 3x3 crossword
+    stringstream contents_3_3_empty;
+    contents_3_3_empty << WCD << WCD << WCD 
+                       << WCD << WCD << WCD 
+                       << WCD << WCD << WCD ;
+    REQUIRE(dut->test_backtracking_validity(3, 3, contents_3_3_empty.str(), dict_1000, true, true));
+
+    // 3x3 donut crossword
+    stringstream contents_3_3_donut;
+    contents_3_3_donut << WCD << WCD << WCD 
+                       << WCD << BLK << WCD 
+                       << WCD << WCD << WCD ;
+    REQUIRE(dut->test_backtracking_validity(3, 3, contents_3_3_donut.str(), dict_1000, true, true));
+
+    // empty 4x3 crossword
+    stringstream contents_4_3_empty;
+    contents_4_3_empty << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD; 
+    REQUIRE(dut->test_backtracking_validity(4, 3, contents_4_3_empty.str(), dict_1000, true, true));
+
+    // 4x4 donut crossword
+    stringstream contents_4_4_donut;
+    contents_4_4_donut << WCD << WCD << WCD << WCD 
+                       << WCD << BLK << BLK << WCD 
+                       << WCD << BLK << BLK << WCD
+                       << WCD << WCD << WCD << WCD; 
+    REQUIRE(dut->test_backtracking_validity(4, 4, contents_4_4_donut.str(), dict_1000, true, true));
+
+    // 4x4 diamond crossword
+    stringstream contents_4_4_diamond;
+    contents_4_4_diamond << BLK << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD
+                         << WCD << WCD << WCD << BLK; 
+    REQUIRE(dut->test_backtracking_validity(4, 4, contents_4_4_diamond.str(), dict_1000, true, true));
+
+    // 5x5 diamond crossword
+    stringstream contents_5_5_diamond;
+    contents_5_5_diamond << BLK << BLK << BLK << WCD << WCD 
+                         << BLK << BLK << WCD << WCD << WCD 
+                         << BLK << WCD << WCD << WCD << BLK 
+                         << WCD << WCD << WCD << BLK << BLK 
+                         << WCD << WCD << BLK << BLK << BLK;
+    REQUIRE(dut->test_backtracking_validity(5, 5, contents_5_5_diamond.str(), dict_1000, true, true));
+
+    // 15x15 nytimes crossword 5/16/23
+    stringstream contents_nytimes_5_16_23;
+    contents_nytimes_5_16_23 << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << BLK
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_5_16_23.str(), dict_1000_with_nytimes_5_16_23, true, true));
+
+    // 15x15 nytimes crossword 1/14/22
+    stringstream contents_nytimes_1_14_22;
+    contents_nytimes_1_14_22 << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_14_22.str(), dict_1000_with_nytimes_1_14_22, true, true));
+
+    // 15x15 nytimes crossword 1/13/22
+    stringstream contents_nytimes_1_13_22;
+    contents_nytimes_1_13_22 << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_13_22.str(), dict_1000_with_nytimes_1_13_22, true, true));
+
+    // 15x15 nytimes crossword 1/12/22
+    stringstream contents_nytimes_1_12_22;
+    contents_nytimes_1_12_22 << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_12_22.str(), dict_1000_with_nytimes_1_12_22, true, true));
+
+    // 15x15 nytimes crossword 1/11/22
+    stringstream contents_nytimes_1_11_22;
+    contents_nytimes_1_11_22 << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_11_22.str(), dict_1000_with_nytimes_1_11_22, true, true));
+
+    // ############### invalid crosswords ###############
+
+    // initially invalid 4x3 crossword
+    stringstream contents_4_3_invalid;
+    contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(4, 3, contents_4_3_invalid.str(), dict_1000, false, true));
+
+    // empty 2x2 crossword, w/ barebones dict
+    stringstream contents_2_2_empty;
+    contents_2_2_empty << WCD << WCD 
+                       << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(2, 2, contents_2_2_empty.str(), dict_barebones_path, false, true));
+
+    // 3x3 donut crossword, w/ barebones dict
+    REQUIRE(dut->test_backtracking_validity(3, 3, contents_3_3_donut.str(), dict_barebones_path, false, true));
+
+    // empty 4x4 crossword
+    stringstream contents_4_4_empty;
+    contents_4_4_empty << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(4, 4, contents_4_4_empty.str(), dict_1000, false, true));
 }

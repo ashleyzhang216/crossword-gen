@@ -35,6 +35,9 @@ namespace cw_csp_test_driver_ns {
             // csp ac3 tests
             bool test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result);
             bool test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables);
+
+            // csp solving w/ backtracking test
+            bool test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print);
             
             // destructor
             ~cw_csp_test_driver() { delete dut; }

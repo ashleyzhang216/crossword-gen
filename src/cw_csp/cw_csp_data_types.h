@@ -23,9 +23,20 @@ namespace cw_csp_data_types_ns {
         VERTICAL   = 1,
     };
 
+    // for more interpretable prints
     const unordered_map<word_direction, string> word_dir_name = {
         {HORIZONTAL, "HORIZONTAL"},
         {VERTICAL, "VERTICAL"}
+    };
+
+    // to choose between solving strategies, when more are added in the future
+    enum csp_solving_strategy {
+        BACKTRACKING = 0,
+    };
+
+    // to choose between variable selection method, when more are added in the future
+    enum var_selection_method {
+        MIN_REMAINING_VALUES = 0,
     };
 
     // a variable in a constraint satisfaction problem
@@ -36,6 +47,7 @@ namespace cw_csp_data_types_ns {
         word_direction dir;           // direction of word of this var
         string pattern;               // original pattern used to populate domain
         unordered_set<string> domain; // all possible words that fit
+        bool assigned = false;        // true iff assigned to single value --> domain.size() == 1
 
         // standard constructor for cw_csp
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, shared_ptr<word_finder> finder);
@@ -44,7 +56,7 @@ namespace cw_csp_data_types_ns {
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<string> domain);
 
         // for AC-3 based CSP reduction
-        bool has_letter_at_pos(const char& letter, const uint& letter_pos) const;
+        bool can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const;
 
         bool operator==(const cw_variable& rhs) const;
     } cw_variable;
@@ -68,6 +80,9 @@ namespace cw_csp_data_types_ns {
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
         unordered_set<string> prune_domain(); 
+
+        // used by solved() in cw_csp to check that this constraint is satisfied
+        bool satisfied() const;
         
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;

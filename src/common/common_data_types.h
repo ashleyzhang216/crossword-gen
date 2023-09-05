@@ -13,6 +13,8 @@
 #include <exception>
 #include <vector>
 #include <queue>
+#include <stack>
+#include <tuple>
 #include <string>
 #include <fstream>
 #include <unordered_set>
@@ -21,7 +23,7 @@
 #define MIN_WORD_LEN 2  // max length for a single word
 #define MAX_WORD_LEN 20 // max length for a single word
 #define WILDCARD '?'    // tile/pattern where any letter can go
-#define BLACK 'X'       // tile where no letter can be placed
+#define BLACK ' '       // tile where no letter can be placed
 #define WCD WILDCARD    // shorthand
 #define BLK BLACK       // shorthand
 
@@ -33,6 +35,8 @@ using std::string;
 using std::stringstream;
 using std::vector;
 using std::queue;
+using std::stack;
+using std::tuple;
 using std::ifstream;
 using std::ostream;
 using std::unordered_set;
