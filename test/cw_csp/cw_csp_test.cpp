@@ -684,6 +684,10 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
     const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
     const string dict_1000 = "cw_csp/data/words_top1000.txt";
     const string dict_1000_with_nytimes_5_16_23 = "cw_csp/data/words_top1000_with_nytimes_5_16_23.txt";
+    const string dict_1000_with_nytimes_1_14_22 = "cw_csp/data/words_top1000_with_nytimes_1_14_22.txt";
+    const string dict_1000_with_nytimes_1_13_22 = "cw_csp/data/words_top1000_with_nytimes_1_13_22.txt";
+    const string dict_1000_with_nytimes_1_12_22 = "cw_csp/data/words_top1000_with_nytimes_1_12_22.txt";
+    const string dict_1000_with_nytimes_1_11_22 = "cw_csp/data/words_top1000_with_nytimes_1_11_22.txt";
     const string dict_simple_path = "cw_csp/data/dict_simple.txt";
     const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
     const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
@@ -788,6 +792,82 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
                              << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
                              << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD;
     REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_5_16_23.str(), dict_1000_with_nytimes_5_16_23, true, true));
+
+    // 15x15 nytimes crossword 1/14/22
+    stringstream contents_nytimes_1_14_22;
+    contents_nytimes_1_14_22 << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_14_22.str(), dict_1000_with_nytimes_1_14_22, true, true));
+
+    // 15x15 nytimes crossword 1/13/22
+    stringstream contents_nytimes_1_13_22;
+    contents_nytimes_1_13_22 << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD 
+                             << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_13_22.str(), dict_1000_with_nytimes_1_13_22, true, true));
+
+    // 15x15 nytimes crossword 1/12/22
+    stringstream contents_nytimes_1_12_22;
+    contents_nytimes_1_12_22 << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << WCD << BLK << BLK << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_12_22.str(), dict_1000_with_nytimes_1_12_22, true, true));
+
+    // 15x15 nytimes crossword 1/11/22
+    stringstream contents_nytimes_1_11_22;
+    contents_nytimes_1_11_22 << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << BLK << BLK << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK << BLK << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << WCD << BLK << BLK << BLK << WCD << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD 
+                             << BLK << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << BLK 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD 
+                             << WCD << WCD << WCD << WCD << WCD << BLK << WCD << WCD << WCD << BLK << WCD << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_backtracking_validity(15, 15, contents_nytimes_1_11_22.str(), dict_1000_with_nytimes_1_11_22, true, true));
 
     // ############### invalid crosswords ###############
 
