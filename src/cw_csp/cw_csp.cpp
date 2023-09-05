@@ -323,9 +323,6 @@ bool cw_csp::ac3() {
     // tracks pruned words to undo AC-3 if resulting CSP is invalid
     unordered_map<shared_ptr<cw_variable>, unordered_set<string> > pruned_domains;
 
-    // words that AC-3 assigned to variables by proxy of 1 remaining domain value
-    unordered_set<string> newly_assigned_words;
-
     // initialize constraint_queue
     for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
         constraint_queue.push(constraint_ptr);
@@ -347,81 +344,24 @@ bool cw_csp::ac3() {
 
         // track pruned words for each var in case undo is needed if CSP becomes invalid
         for(string pruned_word : pruned_words) {
-            // ss << "pruned word from domain: " << pruned_word;
-            // utils->print_msg(&ss, DEBUG);
-
             pruned_domains[constr->lhs].insert(pruned_word);
         }
-
-        /*
-        // prune duplicate words and track in case undo is needed if CSP becomes invalid
-        if(!constr->lhs->assigned) {
-            // if var is not assigned
-
-            // remove duplicates of assigned words
-            for(string duplicate_word : assigned_words) {
-                if(constr->lhs->domain.count(duplicate_word) > 0) {
-                    
-                    // ss << "pruning duplicate assigned word: " << duplicate_word;
-                    // utils->print_msg(&ss, DEBUG);
-
-                    constr->lhs->domain.erase(duplicate_word);
-                    pruned_domains[constr->lhs].insert(duplicate_word);
-                    pruned_words.insert(duplicate_word);
-                }
-            }
-
-            // remove duplicates of newly assigned words
-            for(string duplicate_word : newly_assigned_words) {
-                if(constr->lhs->domain.count(duplicate_word) > 0) {
-
-                    ss << "pruning duplicate newly assigned word: " << duplicate_word;
-                    utils->print_msg(&ss, DEBUG);
-
-                    constr->lhs->domain.erase(duplicate_word);
-                    pruned_domains[constr->lhs].insert(duplicate_word);
-                    pruned_words.insert(duplicate_word);
-                }
-            }
-        }
-        */
         
         // if domain was changed while pruning, add dependent arcs to constraint queue
         if(pruned_words.size() > 0) {
             if(constr->lhs->domain.size() == 0) {
                 // CSP is now invalid, i.e. var has empty domain
             
-                ss << "CSP became invalid";
+                ss << "CSP became invalid, undo-ing pruning";
                 utils->print_msg(&ss, DEBUG);
-                /*
-                // "undo" to re-add all pruned words to domain of each var if CSP becomes invalid
-                for(const auto& pair : pruned_domains) {
-                    // amend assigned label if it became assigned via 1 value remaining
-                    if(pair.second.size() > 0 && pair.first->domain.size() == 1) {
-                        pair.first->assigned = false;
-                    }
 
-                    // re-add pruned words
-                    for(string pruned_word : pair.second) {
-                        pair.first->domain.insert(pruned_word);
-                    }
-                }
-                */
-
+                // save record of all domain values pruned
                 prev_pruned_domains.push(pruned_domains);
 
+                // undo pruning
                 undo_ac3();
-
                 return false;
-            } /*else if(constr->lhs->domain.size() == 1) {
-                // var assigned a value by proxy of having one remaining domain value
-
-                ss << "ac3() assigned new word: " << *(constr->lhs->domain.begin()) << " for var: " << *(constr->lhs);
-                utils->print_msg(&ss, DEBUG);
-
-                newly_assigned_words.insert(*(constr->lhs->domain.begin()));
-                constr->lhs->assigned = true;
-            }*/
+            }
 
             // add dependent arcs to queue
             for(shared_ptr<cw_constraint> constr_ptr : arc_dependencies[constr->lhs]) {
@@ -433,9 +373,8 @@ bool cw_csp::ac3() {
         }
     }
 
-    // resulting CSP is valid, new var assignments are valid and made permanent
-    //assigned_words.insert(newly_assigned_words.begin(), newly_assigned_words.end());
 
+    // save record of all domain values pruned
     prev_pruned_domains.push(pruned_domains);
 
     // running AC-3 to completion does not make CSP invalid
@@ -567,6 +506,9 @@ void cw_csp::undo_overwrite_cw() {
  * 
  * @param strategy the selection strategy to use
  * @return next unassigned shared_ptr<cw_variable> in variables to explore, nullptr if none remaining
+ * 
+ * TODO: currently always selects empty/single-valued vars first due to MIN_REMAINING_VALUES being only strategy, 
+ *       this helps backtracking detect invalid assignments asap but this method needs to change if new strategy added
 */
 shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strategy) {
     shared_ptr<cw_variable> result = nullptr;
@@ -635,7 +577,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
     ss << "selected next var: " << *next_var;
     utils->print_msg(&ss, DEBUG);
 
-    // check if var is invalid, i.e. not assigned AND has domain of one already-assigned word
+    // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
     if(!next_var->assigned && (next_var->domain.size() == 1 && assigned_words.count(*(next_var->domain.begin())) > 0)) {
         return false;
     }
@@ -658,23 +600,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
                 ss << "adding new word: " << word << " to var: " << *next_var;
                 utils->print_msg(&ss, DEBUG);
 
-                // TODO: once a single word is added, it seems like AC3 simplifies everything down to a solved state
-                // must add constraint to enforce no repeats
-                // current assigned_words is useless; get rid of it and implement cleaner solution
-
+                // add to crossword assignment
                 overwrite_cw();
                 if(solve_backtracking(var_strategy)) return true;
                 undo_overwrite_cw();
-                undo_ac3(); // AC-3 undo automatic if ac3() returns false
-
-                // TODO: the bug is that IF this returns false, then the ac3 is never actually undo'd. 
-                // need to create stack<hashmaps<variable, hashset<words> > > of pruned domains
-                // also need to create undo_ac3() function to pop top of that stack and undo it
-
-                // also, to fix duplicates:
-                // POSSIBLY: keep the assigned bool in variable. drop all duplicate prevention in ac3
-                // when new variable selected in backtracking, if it has domain size 1 and that word is already assigned, return false
-                // this doesn't work too well if not using min remaining values heuristic tho
+                undo_ac3(); // AC-3 undo automatic iff ac3() returns false
             } 
 
             ss << "word failed: " << word;

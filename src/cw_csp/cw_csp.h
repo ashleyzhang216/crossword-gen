@@ -45,9 +45,6 @@ namespace cw_csp_ns {
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
 
-            // undo previous call of ac3() due to invalid CSP or backtracking
-            void undo_ac3();
-
             // check if CSP is solved
             bool solved() const;
 
@@ -60,6 +57,9 @@ namespace cw_csp_ns {
 
             // select next unassigned variable to explore
             shared_ptr<cw_variable> select_unassigned_var(var_selection_method strategy);
+
+            // undo previous call of ac3() due to invalid CSP or backtracking
+            void undo_ac3();
 
             // function to overwrite cw with progress
             void overwrite_cw();
@@ -87,7 +87,7 @@ namespace cw_csp_ns {
             // previous domain pruned from each variable during calls to ac3()
             stack<unordered_map<shared_ptr<cw_variable>, unordered_set<string> > > prev_pruned_domains;
 
-            // previous tiles overwritten during call to overwrite_cw()
+            // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
             stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 
 
             // words already assigned to the crossword, used to avoid duplicates
