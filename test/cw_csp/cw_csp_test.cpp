@@ -510,26 +510,54 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
                                << 't' << WCD << WCD << 'e' << BLK << BLK 
                                << WCD << BLK << BLK << WCD << WCD << WCD 
                                << WCD << BLK << WCD << BLK << WCD << BLK 
-                               << BLK << BLK << 'a' << BLK << 'o' << BLK 
+                               << BLK << BLK << WCD << BLK << 'o' << BLK 
                                << WCD << 'a' << 't' << BLK << WCD << BLK 
                                << BLK << 'n' << BLK << BLK << BLK << BLK;
     REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
 }
 
 /**
- * simple AC-3 test for cw_csp for duplicate word prevention
- * TODO: should this pass? perhaps uncomment when word inequality constraint added
+ * simple AC-3 test for cw_csp for constraint duplicate word prevention
 */
-// TEST_CASE("cw_csp ac3_valid_check_duplicates", "[cw_csp],[ac3],[duplicates],[quick]") {
-//     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_check_duplicates");
-//     const string dict_single_word = "cw_csp/data/dict_single_word.txt";
+TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates],[quick]") {
+    cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_constraint_duplicates");
+    const string dict_single_word = "cw_csp/data/dict_single_word.txt";
+    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
 
-//     // simple crossword that requires duplicates
-//     stringstream contents_2_2_duplicate_invalid;
-//     contents_2_2_duplicate_invalid << WCD << WCD
-//                                    << WCD << WCD;
-//     REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_duplicate_invalid.str(), dict_single_word, false));
-// }
+    // ############### valid crosswords ###############
+
+    // simple crossword that requires duplicates
+    stringstream contents_2_2_duplicate_invalid;
+    contents_2_2_duplicate_invalid << WCD << WCD
+                                   << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_duplicate_invalid.str(), dict_single_word, false));
+
+    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // forces two words to both be 'cat', but is allowed because they don't intersect
+    stringstream contents_6_7_complex_valid;
+    contents_6_7_complex_valid << WCD << BLK << BLK << WCD << BLK << 'p' 
+                               << 't' << WCD << WCD << 'e' << BLK << BLK 
+                               << WCD << BLK << BLK << WCD << WCD << WCD 
+                               << WCD << BLK << WCD << BLK << BLK << BLK 
+                               << BLK << BLK << WCD << BLK << WCD << WCD 
+                               << WCD << 'a' << 't' << BLK << BLK << BLK 
+                               << BLK << 'n' << BLK << WCD << 'a' << 't';
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
+
+    // ############### invalid crosswords ###############
+
+    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
+    // forces two intersecting words to both be 'cat', which is not allowed
+    stringstream contents_6_7_complex_invalid;
+    contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << BLK << 'p' 
+                                 << 't' << WCD << WCD << 'e' << BLK << BLK 
+                                 << WCD << BLK << BLK << WCD << WCD << WCD 
+                                 << WCD << BLK << WCD << BLK << WCD << BLK 
+                                 << BLK << BLK << 'a' << BLK << 'o' << BLK 
+                                 << WCD << 'a' << 't' << BLK << WCD << BLK 
+                                 << BLK << 'n' << BLK << BLK << BLK << BLK;
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_invalid.str(), dict_simple_path, false));
+}
 
 /**
  * AC-3 test for cw_csp for proper domain pruning
@@ -541,7 +569,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
     const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
     const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
-
+    
     // simple valid 2x2 crossword
     unordered_set<cw_variable> vars_2_2 = {
         cw_variable(0, 0, 2, VERTICAL,   {"at", "to"}),
