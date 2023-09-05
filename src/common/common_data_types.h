@@ -13,6 +13,8 @@
 #include <exception>
 #include <vector>
 #include <queue>
+#include <stack>
+#include <tuple>
 #include <string>
 #include <fstream>
 #include <unordered_set>
@@ -33,6 +35,8 @@ using std::string;
 using std::stringstream;
 using std::vector;
 using std::queue;
+using std::stack;
+using std::tuple;
 using std::ifstream;
 using std::ostream;
 using std::unordered_set;

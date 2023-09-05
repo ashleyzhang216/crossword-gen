@@ -159,7 +159,7 @@ bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, st
     stringstream cw_result;
 
     bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
-    if(result && do_print) {
+    if(result && expected_result && do_print) {
         cw_result << dut->result();
         utils->print_msg(&cw_result, INFO);
     }

@@ -303,7 +303,7 @@ void cw_csp::initialize_csp() {
 }
 
 /**
- * @brief AC-3 algorithm to reduce CSP; does not changed CSP if running AC-3 to completion would result in an invalid CSP
+ * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
@@ -325,9 +325,6 @@ bool cw_csp::ac3() {
 
     // words that AC-3 assigned to variables by proxy of 1 remaining domain value
     unordered_set<string> newly_assigned_words;
-
-    ss << "initializing queue of " << constraints.size() << " constraints";
-    utils->print_msg(&ss, DEBUG);
 
     // initialize constraint_queue
     for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
@@ -356,6 +353,7 @@ bool cw_csp::ac3() {
             pruned_domains[constr->lhs].insert(pruned_word);
         }
 
+        /*
         // prune duplicate words and track in case undo is needed if CSP becomes invalid
         if(!constr->lhs->assigned) {
             // if var is not assigned
@@ -386,15 +384,16 @@ bool cw_csp::ac3() {
                 }
             }
         }
+        */
         
         // if domain was changed while pruning, add dependent arcs to constraint queue
         if(pruned_words.size() > 0) {
             if(constr->lhs->domain.size() == 0) {
                 // CSP is now invalid, i.e. var has empty domain
-
-                ss << "CSP became invalid, undo-ing pruning";
+            
+                ss << "CSP became invalid";
                 utils->print_msg(&ss, DEBUG);
-
+                /*
                 // "undo" to re-add all pruned words to domain of each var if CSP becomes invalid
                 for(const auto& pair : pruned_domains) {
                     // amend assigned label if it became assigned via 1 value remaining
@@ -407,8 +406,14 @@ bool cw_csp::ac3() {
                         pair.first->domain.insert(pruned_word);
                     }
                 }
+                */
+
+                prev_pruned_domains.push(pruned_domains);
+
+                undo_ac3();
+
                 return false;
-            } else if(constr->lhs->domain.size() == 1) {
+            } /*else if(constr->lhs->domain.size() == 1) {
                 // var assigned a value by proxy of having one remaining domain value
 
                 ss << "ac3() assigned new word: " << *(constr->lhs->domain.begin()) << " for var: " << *(constr->lhs);
@@ -416,7 +421,7 @@ bool cw_csp::ac3() {
 
                 newly_assigned_words.insert(*(constr->lhs->domain.begin()));
                 constr->lhs->assigned = true;
-            }
+            }*/
 
             // add dependent arcs to queue
             for(shared_ptr<cw_constraint> constr_ptr : arc_dependencies[constr->lhs]) {
@@ -429,10 +434,27 @@ bool cw_csp::ac3() {
     }
 
     // resulting CSP is valid, new var assignments are valid and made permanent
-    assigned_words.insert(newly_assigned_words.begin(), newly_assigned_words.end());
+    //assigned_words.insert(newly_assigned_words.begin(), newly_assigned_words.end());
+
+    prev_pruned_domains.push(pruned_domains);
 
     // running AC-3 to completion does not make CSP invalid
     return true;
+}
+
+/**
+ * @brief undo domain pruning from previous call of AC-3 algorithm
+*/
+void cw_csp::undo_ac3() {
+    assert(prev_pruned_domains.size() > 0);
+
+    for(const auto& pair : prev_pruned_domains.top()) {
+        // re-add pruned words
+        for(string pruned_word : pair.second) {
+            pair.first->domain.insert(pruned_word);
+        }
+    }
+    prev_pruned_domains.pop();
 }
 
 /**
@@ -441,14 +463,18 @@ bool cw_csp::ac3() {
  * @return true iff CSP is solved
 */
 bool cw_csp::solved() const {
-    // used to track duplicates
-    unordered_set<string> existing_words;
 
-    // check that all vars have one remaining domain value
+    unordered_set<string> used_words;
+
+    // check that all vars have one remaining domain value & satisfied
     for(shared_ptr<cw_variable> var_ptr : variables) {
+        // check that all vars satisifed w/ one domain value
         if(var_ptr->domain.size() != 1) return false;
-        if(existing_words.count(*(var_ptr->domain.begin())) > 0) return false;
-        existing_words.insert(*(var_ptr->domain.begin()));
+        if(!var_ptr->assigned) return false;
+
+        // check that domain value is unique
+        if(used_words.count(*(var_ptr->domain.begin())) > 0) return false;
+        used_words.insert(*(var_ptr->domain.begin()));
     }
 
     // check that all constraints satisfied
@@ -470,6 +496,73 @@ string cw_csp::result() const {
 }
 
 /**
+ * @brief overwrite wildcards in cw puzzle with progress so far
+ */
+void cw_csp::overwrite_cw() {
+
+    // used to track overwritten chars for undo-ing later
+    vector<tuple<char, uint, uint> > overwritten_tiles;
+
+    // iterate across each variable to write onto cw
+    for(shared_ptr<cw_variable> var_ptr : variables) {
+        // only write assigned variables
+        if(var_ptr->assigned) {
+            cw_variable var = *var_ptr;
+            if(var.dir == HORIZONTAL) {
+                for(uint letter = 0; letter < var.length; letter++) {
+                    // this square must be wildcard or the same letter about to be written
+                    assert(
+                        cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
+                        cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->at(letter)
+                    );
+
+                    // if this will actually overwrite a wildcard
+                    if(cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD) {
+                        // record overwritting
+                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row, var.origin_col + letter));
+
+                        // overwrite cw
+                        cw->write_at(var.domain.begin()->at(letter), var.origin_row, var.origin_col + letter);
+                    }
+                }
+            } else { // var.dir == VERTICAL
+                for(uint letter = 0; letter < var.length; letter++) {
+
+                    // this square must be wildcard or the same letter about to be written
+                    assert(
+                        cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
+                        cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->at(letter)
+                    );
+
+                    // if this will actually overwrite a wildcard
+                    if(cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD) {
+                        // record overwriting
+                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row + letter, var.origin_col));
+
+                        // overwrite cw
+                        cw->write_at(var.domain.begin()->at(letter), var.origin_row + letter, var.origin_col);
+                    }
+                }
+            }
+        }
+    }
+
+    prev_overwritten_tiles.push(overwritten_tiles);
+}
+
+/**
+ * @brief undo previous call to overwrite_cw()
+*/
+void cw_csp::undo_overwrite_cw() {
+    assert(prev_overwritten_tiles.size() > 0);
+
+    for(const auto& tuple : prev_overwritten_tiles.top()) {
+        cw->write_at(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+    }
+    prev_overwritten_tiles.pop();
+}
+
+/**
  * @brief selects one unassigned var ptr in variables
  * 
  * @param strategy the selection strategy to use
@@ -483,7 +576,7 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
                 unsigned long min_num_values = ULONG_MAX;
                 for(shared_ptr<cw_variable> var_ptr : variables) {
                     // if this variable is unassigned AND (no other variable selected OR has fewer remaining values in domain)
-                    if(!var_ptr->assigned && (min_num_values == UINT_MAX || var_ptr->domain.size() < min_num_values)) {
+                    if(!var_ptr->assigned && (min_num_values == ULONG_MAX || var_ptr->domain.size() < min_num_values)) {
                         min_num_values = var_ptr->domain.size();
                         result = var_ptr;
                     }
@@ -498,43 +591,6 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
     }
 
     return result;
-}
-
-/**
- * @brief overwrite wildcards in cw puzzle with solved CSP values
-*/
-void cw_csp::overwrite_cw() {
-    // iterate across each variable to write onto cw
-    for(shared_ptr<cw_variable> var_ptr : variables) {
-        // only write assigned variables
-        if(var_ptr->domain.size() == 1) {
-            cw_variable var = *var_ptr;
-            if(var.dir == HORIZONTAL) {
-                for(uint letter = 0; letter < var.length; letter++) {
-                    // this square must be wildcard or the same letter about to be written
-                    assert(
-                        cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
-                        cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->at(letter)
-                    );
-
-                    // overwrite cw
-                    cw->write_at(var.domain.begin()->at(letter), var.origin_row, var.origin_col + letter);
-                }
-            } else { // var.dir == VERTICAL
-                for(uint letter = 0; letter < var.length; letter++) {
-
-                    // this square must be wildcard or the same letter about to be written
-                    assert(
-                        cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
-                        cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->at(letter)
-                    );
-
-                    // overwrite cw
-                    cw->write_at(var.domain.begin()->at(letter), var.origin_row + letter, var.origin_col);
-                }
-            }
-        }
-    }
 }
 
 /**
@@ -568,7 +624,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
 
     ss << "entering solve_backtracking() with cw: " << *cw;
-    utils->print_msg(&ss, INFO);
+    utils->print_msg(&ss, DEBUG);
 
     // base case
     if(solved()) return true;
@@ -577,7 +633,17 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
     shared_ptr<cw_variable> next_var = select_unassigned_var(var_strategy);
 
     ss << "selected next var: " << *next_var;
-    utils->print_msg(&ss, INFO);
+    utils->print_msg(&ss, DEBUG);
+
+    // check if var is invalid, i.e. not assigned AND (has domain of one already-assigned word OR empty domain)
+    if(!next_var->assigned && 
+        (
+            next_var->domain.size() == 0 || // empty domain
+            (next_var->domain.size() == 1 && assigned_words.count(*(next_var->domain.begin())) > 0) // already-assigned word is only val
+        )
+    ) {
+        return false;
+    }
 
     // search all possible values
     const unordered_set<string> domain_copy = next_var->domain;
@@ -589,10 +655,13 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
             next_var->assigned = true;
             assigned_words.insert(word);
 
+            ss << "trying new word: " << word;
+            utils->print_msg(&ss, DEBUG);
+
             // if does not result in invalid CSP, recurse
             if(ac3()) {
                 ss << "adding new word: " << word << " to var: " << *next_var;
-                utils->print_msg(&ss, INFO);
+                utils->print_msg(&ss, DEBUG);
 
                 // TODO: once a single word is added, it seems like AC3 simplifies everything down to a solved state
                 // must add constraint to enforce no repeats
@@ -600,6 +669,9 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
 
                 overwrite_cw();
                 if(solve_backtracking(var_strategy)) return true;
+                undo_overwrite_cw();
+                undo_ac3(); // AC-3 undo automatic if ac3() returns false
+
                 // TODO: the bug is that IF this returns false, then the ac3 is never actually undo'd. 
                 // need to create stack<hashmaps<variable, hashset<words> > > of pruned domains
                 // also need to create undo_ac3() function to pop top of that stack and undo it
@@ -610,12 +682,15 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
                 // this doesn't work too well if not using min remaining values heuristic tho
             } 
 
+            ss << "word failed: " << word;
+            utils->print_msg(&ss, DEBUG);
+
             // undo assignment
-            assigned_words.erase(word);
             next_var->assigned = false;
+            assigned_words.erase(word);
         } else {
             ss << "avoided duplicate word: " << word;
-            utils->print_msg(&ss, INFO);
+            utils->print_msg(&ss, DEBUG);
         }
     }
 

@@ -7,10 +7,12 @@
 #include "cw_utils.h"
 
 #ifndef VERBOSITY_NUM
-verbosity_t VERBOSITY = DEBUG;
+verbosity_t VERBOSITY = INFO;
 #else
 verbosity_t VERBOSITY = (verbosity_t)VERBOSITY_NUM;
 #endif
+
+// TODO: declare global verbosities for each module for easier debug print parsing
 
 /**
  * @brief construct new utils object

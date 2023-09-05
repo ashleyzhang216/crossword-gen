@@ -647,13 +647,14 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check");
     const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
-    const string dict_full = "cw_csp/data/words_top1000.txt";
+    const string dict_1000 = "cw_csp/data/words_top1000.txt";
     const string dict_simple_path = "cw_csp/data/dict_simple.txt";
     const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
     const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
     const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
 
-    /*
+    // ############### valid crosswords ###############
+
     // simple valid 2x2 crossword
     stringstream contents_2_2;
     contents_2_2 << WCD << BLK 
@@ -686,22 +687,28 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
                             << WCD << WCD << WCD << WCD << WCD 
                             << WCD << WCD << WCD << WCD << BLK;
     REQUIRE(dut->test_backtracking_validity(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, true));
-    */
 
     // empty 3x3 crossword
     stringstream contents_3_3_empty;
     contents_3_3_empty << WCD << WCD << WCD 
                        << WCD << WCD << WCD 
                        << WCD << WCD << WCD ;
-    REQUIRE(dut->test_backtracking_validity(3, 3, contents_3_3_empty.str(), dict_full, true, true));
+    REQUIRE(dut->test_backtracking_validity(3, 3, contents_3_3_empty.str(), dict_1000, true, true));
 
-    /*
+    // empty 4x4 crossword
+    stringstream contents_4_3_empty;
+    contents_4_3_empty << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD 
+                       << WCD << WCD << WCD << WCD; 
+    REQUIRE(dut->test_backtracking_validity(4, 3, contents_4_3_empty.str(), dict_1000, true, true));
+
+    // ############### invalid crosswords ###############
+
     // empty 4x4 crossword
     stringstream contents_4_4_empty;
     contents_4_4_empty << WCD << WCD << WCD << WCD 
                        << WCD << WCD << WCD << WCD 
                        << WCD << WCD << WCD << WCD 
                        << WCD << WCD << WCD << WCD;
-    REQUIRE(dut->test_backtracking_validity(4, 4, contents_4_4_empty.str(), dict_full, true, true));
-    */
+    REQUIRE(dut->test_backtracking_validity(4, 4, contents_4_4_empty.str(), dict_1000, false, true));
 }
