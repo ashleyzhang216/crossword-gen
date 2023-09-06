@@ -1,27 +1,23 @@
 # ==================================================================
 # Author: Ashley Zhang (ayz27@cornell.edu)
-# Date:   8/13/2023
-# Description: test script to build project w/ Makefile and test
+# Date:   9/6/2023
+# Description: build script to build tool w/ Makefile and run
 # ==================================================================
 
 BUILDDIR="build"
-TESTFILE="cw_test_driver"
-
-echo "Running crossword test"
+MAINFILE="cwgen"
 
 # soft clean
 rm -rf ${BUILDDIR}
 mkdir ${BUILDDIR}
 
-# buildc
-echo "Building"
+# build
 make
 
 # clean up
-echo "Moving build files"
 mv *.o ${BUILDDIR}
-mv ${TESTFILE} ${BUILDDIR}
+mv ${MAINFILE} ${BUILDDIR}
 
 # run
 echo "Running"
-${BUILDDIR}/${TESTFILE} -s $1
+${BUILDDIR}/${MAINFILE} $1 $2 $3
