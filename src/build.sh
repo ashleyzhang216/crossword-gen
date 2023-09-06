@@ -6,18 +6,18 @@
 
 BUILDDIR="build"
 MAINFILE="cw_gen"
+LOGFILE="buildlog"
 
 # soft clean
 rm -rf ${BUILDDIR}
 mkdir ${BUILDDIR}
 
 # build
-make
+make > ${BUILDDIR}/${LOGFILE}.txt
 
 # clean up
 mv *.o ${BUILDDIR}
 mv ${MAINFILE} ${BUILDDIR}
 
 # run
-echo "Running"
 ${BUILDDIR}/${MAINFILE} $1 $2 $3

@@ -19,7 +19,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
     // open file
     this->file_addr = file_addr;
     word_file.open(file_addr);
-    assert(word_file.is_open());
+    assert_m(word_file.is_open(), "could not open file " + file_addr);
 
     // initialize word tree
     word_tree = new letter_node(true, false, '_');
@@ -33,6 +33,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
 
         // add to word tree if of valid size
         if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+            // TODO: check that this word only contains letters, & convert all uppercase to lowercase
             add_word_to_tree(word_tree, word, 0);
         } 
     }

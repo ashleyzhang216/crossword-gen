@@ -62,6 +62,7 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		\
 		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen.h \
+		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen_data_types.h \
 		$(SRC_DIR)/$(CWGEN_DIR)/cxxopts.hpp \
 
 $(BIN) : $(OFILES)
