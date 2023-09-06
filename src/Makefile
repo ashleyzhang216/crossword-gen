@@ -13,7 +13,7 @@ COMMON_DIR=common
 WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
-CWGEN_DIR=cw_gen
+CWGEN_DIR=cli
 
 # g++ settings
 D = -D
@@ -22,7 +22,7 @@ CPPFLAGS += -pipe
 CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -std=c++17 $(DEFINES)
 INC=-I$(SRC_DIR)
 
-BIN = cwgen
+BIN = cw_gen
 
 all : $(BIN)
 

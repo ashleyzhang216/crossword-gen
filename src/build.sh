@@ -5,7 +5,7 @@
 # ==================================================================
 
 BUILDDIR="build"
-MAINFILE="cwgen"
+MAINFILE="cw_gen"
 
 # soft clean
 rm -rf ${BUILDDIR}
