@@ -47,6 +47,9 @@ namespace word_finder_ns {
             // hashset of all defined words for O(1) validity checking
             unordered_set<string> word_set;
 
+            // helper to check if word is legal
+            string parse_word(string word);
+
             // helper to insert words into word_tree upon initialization
             void add_word_to_tree(letter_node* node, string word, uint pos);
 

@@ -28,12 +28,14 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
     string word;
     while(getline(word_file, word))
     {
-        // add to hashset of all words
-        word_set.insert(word);
+        // check for validity & convert uppercase, remove dashes, etc.
+        word = parse_word(word);
 
-        // add to word tree if of valid size
-        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
-            // TODO: check that this word only contains letters, & convert all uppercase to lowercase
+        // add to word set & tree if of valid size
+        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN && word != "") {
+            // add to hashset of all words
+            word_set.insert(word);
+
             add_word_to_tree(word_tree, word, 0);
         } 
     }
@@ -66,6 +68,31 @@ void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
 word_finder::~word_finder() {
     word_tree->~letter_node();
     delete word_tree;
+}
+
+/**
+ * @brief helper for constructor to test validity for and parse words
+ * 
+ * @param word the word to test
+ * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, spaces; "" otherwise
+*/
+string word_finder::parse_word(string word) {
+    stringstream word_ss;
+    for(char c : word) {
+        if(c >= 'a' && c <= 'z') {
+            // valid lowercase letters, do nothing
+            word_ss << c;
+        } else if(c >= 'A' && c <= 'Z') {
+            // valid uppercase letters, convert to lowercase
+            word_ss << (char)(c + 'a' - 'A');
+        } else if(c == '-' || c == '\'' || c == ' ') {
+            // remove dashes/apostrophes/spaces, do nothing
+        } else {
+            // invalid word, contains unknown character
+            return "";
+        }
+    }
+    return word_ss.str();
 }
 
 /**

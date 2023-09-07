@@ -39,7 +39,6 @@ string cw_gen::squash_options(vector<string> options) {
 void cw_gen::build() {
     switch(grid_type) {
         case GRID_NONE:
-            cout << "using dict: " << dict_path[dict] << endl;
             csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict]);
             break;
         case GRID_CONTENTS:
@@ -58,7 +57,7 @@ void cw_gen::build() {
 }
 
 /**
- * @brief main function using cxxopts to generate crosswords
+ * @brief main function using command line interface w/ cxxopts to generate crosswords
 */
 int main(int argc, char** argv) {
     

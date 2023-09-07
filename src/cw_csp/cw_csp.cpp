@@ -543,6 +543,9 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
  * @return true iff successful
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+    // base case for initially invalid crosswords
+    if(!ac3()) return false;
+
     switch(csp_strategy) {
         case BACKTRACKING: {
                 return solve_backtracking(var_strategy);
@@ -584,6 +587,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
 
     // search all possible values
     const unordered_set<string> domain_copy = next_var->domain;
+
+    // currently this using some arbitrary order, TODO: optimize by sorting by word frequency or something
     for(string word : domain_copy) {
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {

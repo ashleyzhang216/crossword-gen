@@ -50,7 +50,7 @@ TEST_CASE("word_finder word_set-basic", "[word_finder],[quick]") {
  * basic test to check word_set for barebone dictionary
 */
 TEST_CASE("word_finder word_tree-basic", "[word_finder],[quick]") {
-    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_set-basic", "word_finder/data/dict_barebones.txt");
+    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_tree-basic", "word_finder/data/dict_barebones.txt");
     
     unordered_map<string, unordered_set<string> > test_cases = {
         {"ab", {"ab"}},
@@ -75,4 +75,51 @@ TEST_CASE("word_finder word_tree-basic", "[word_finder],[quick]") {
     for(auto& pair : test_cases) {
         REQUIRE(driver->test_word_tree_basic(pair.first, pair.second));
     }
+}
+
+/**
+ * test to prune out words with invalid characters, convert uppercase to lowercase, & remove dashes
+*/
+TEST_CASE("word_finder parsing-invalid", "[word_finder],[quick]") {
+    word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-parsing-invalid", "word_finder/data/words_top3000_with_invalids.txt");
+
+    unordered_set<string> valid = {
+        "african",
+        "africanamerican",
+        "am",
+        "american",
+        "email",
+        "longterm",
+        "mmhmm",
+        "socalled",
+        "aids",
+        "arab",
+        "asian",
+        "bible",
+        "ceo",
+        "nt",
+        "supervalid"
+    };
+    unordered_set<string> invalid = {
+        "invålid",
+        "super valid",
+        "notaword!",
+        "notaword",
+        "dont@ddme",
+        "{edgecase}",
+        "n't",
+        "African",
+        "African-American",
+        "AIDS",
+        "AM",
+        "American",
+        "Arab",
+        "Asian",
+        "Bible",
+        "CEO",
+        "I", // below min length
+        "i", // below min length
+    };
+
+    REQUIRE(driver->test_word_set_basic(valid, invalid));
 }
