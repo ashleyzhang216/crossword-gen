@@ -139,7 +139,8 @@ int main(int argc, char** argv) {
             }
             for(char c : contents) {
                 if(c != BLACK && c != WILDCARD && (c < 'a' || c > 'z')) {
-
+                    cout << "got illegal char in contents: " << c << ", all chars should be a lowercase letter, a wildcard (\"" << WILDCARD << "\"), or a black tile (\"" << BLACK << "\")" << endl;
+                    exit(1);
                 }
             }
             cwgen->set_contents(contents);
