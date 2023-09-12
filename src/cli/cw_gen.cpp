@@ -66,21 +66,21 @@ int main(int argc, char** argv) {
 
     // key: param name, value: set of allowed param values
     unordered_map<string, vector<string> > param_vals = {
-        {"dict", {"top1000", "top3000", "top10000", "all"}},
+        {"dict", {"top1000", "top3000", "top10000", "crossfire", "all"}},
         {"pattern", {"empty"}},
         {"verbosity", {"fatal", "error", "warning", "info", "debug"}}
     };
 
     // because this one is very long
     stringstream contents_desc;
-    contents_desc << "Puzzle grid contents (cannot be used if pattern also specified)" 
+    contents_desc << "Puzzle grid contents (cannot be used if pattern also specified) " 
                   << "from top left to bottom right by row, all lowercase, in quotes. wildcard is: \"" 
                   << WILDCARD << "\", black is: \"" << BLACK << "\"";
 
     options.add_options()
         ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("5,5"))
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
-        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top3000"))
+        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top10000"))
         ("p,pattern",   "Puzzle grid pattern: " + cw_gen::squash_options(param_vals["pattern"]), cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("h,help",      "Print usage")

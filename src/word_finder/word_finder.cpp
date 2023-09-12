@@ -74,7 +74,7 @@ word_finder::~word_finder() {
  * @brief helper for constructor to test validity for and parse words
  * 
  * @param word the word to test
- * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, spaces; "" otherwise
+ * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces; "" otherwise
 */
 string word_finder::parse_word(string word) {
     stringstream word_ss;
@@ -85,8 +85,8 @@ string word_finder::parse_word(string word) {
         } else if(c >= 'A' && c <= 'Z') {
             // valid uppercase letters, convert to lowercase
             word_ss << (char)(c + 'a' - 'A');
-        } else if(c == '-' || c == '\'' || c == ' ') {
-            // remove dashes/apostrophes/spaces, do nothing
+        } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
+            // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
         } else {
             // invalid word, contains unknown character
             return "";

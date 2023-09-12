@@ -27,6 +27,7 @@ namespace cw_gen_data_types_ns {
         {"top1000",  "data/words_top1000.txt"},
         {"top3000",  "data/words_top3000.txt"},
         {"top10000", "data/words_top10000.txt"},
+        {"crossfire", "data/crossfire_default.txt"},
         {"all",      "data/words_alpha.txt"},
     };
 
