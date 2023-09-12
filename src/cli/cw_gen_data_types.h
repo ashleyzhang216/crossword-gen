@@ -39,6 +39,7 @@ namespace cw_gen_data_types_ns {
         string dict;
     } cw_example_t;
 
+    // data for example crosswords for CLI
     unordered_map<string, cw_example_t> examples_map = {
         {"empty", {
             .length = 5,

@@ -50,6 +50,9 @@ namespace cw_csp_ns {
 
             // get string representation of solved cw for printing when solved() == true
             string result() const;
+
+            // destructor, automatically destructs raii objects
+            ~cw_csp() {}
         
         protected:
             // helper func to populate variables & constraints

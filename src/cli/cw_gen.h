@@ -53,6 +53,9 @@ namespace cw_gen_ns {
             // return result after running solve()
             string result() { assert(csp->solved()); return csp->result(); }
 
+            // destructor, automatically destructs raii objects
+            ~cw_gen() {}
+
         private:
             // crossword constraint satisfaction problem to solve
             unique_ptr<cw_csp> csp = nullptr;

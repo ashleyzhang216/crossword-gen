@@ -161,14 +161,11 @@ int main(int argc, char** argv) {
     cwgen->build();
     if(cwgen->solve()) {
         cout << "found crossword: " << cwgen->result() << endl;
-        exit(0);
     } else {
         cout << "no valid crossword generated for the given parameters; " 
              << "try an example, or use different dimensions, grid contents, or dictionary" << endl;
         exit(1);
     }
 
-    // when program is allowed to reach here, it segfaults
-    // TODO: investigate why it segfaults
     return 0;
 }
