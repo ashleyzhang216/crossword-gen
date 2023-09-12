@@ -36,8 +36,7 @@ namespace cw_gen_ns {
             // these all must be set before creation of cw_csp
             void set_dimensions(uint length, uint height) { this->length = length; this->height = height; }
             void set_dict(string dict) { this->dict = dict; }
-            void set_contents(string contents) { this->contents = contents; grid_type = GRID_CONTENTS; }
-            void set_pattern(string pattern) { this->pattern = pattern; grid_type = GRID_PATTERN; }
+            void set_contents(string contents) { this->contents = contents; has_grid_contents = true; }
 
             // for checking legal length of contents
             uint num_tiles() { return this->length * this->height; }
@@ -59,7 +58,7 @@ namespace cw_gen_ns {
             unique_ptr<cw_csp> csp = nullptr;
             
             // method to populate contents field when instantiating cw_csp
-            grid_population_method_t grid_type = GRID_NONE;
+            bool has_grid_contents = false;
 
             // cw puzzle dimensions
             uint length = 0;
@@ -70,9 +69,6 @@ namespace cw_gen_ns {
 
             // contents to populate crossword grid with
             string contents;
-
-            // pattern name to create grid with
-            string pattern;
     }; // cw_gen
 } // cw_gen_ns
 

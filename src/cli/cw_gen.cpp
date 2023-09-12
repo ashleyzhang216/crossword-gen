@@ -37,22 +37,10 @@ string cw_gen::squash_options(vector<string> options) {
  * @brief build cw_csp after all params set
 */
 void cw_gen::build() {
-    switch(grid_type) {
-        case GRID_NONE:
-            csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict]);
-            break;
-        case GRID_CONTENTS:
-            csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict]);
-            break;
-        case GRID_PATTERN:
-            // TODO: implement
-            cout << "pattern grid population unimplemented, exiting" << endl;
-            exit(1);
-            break;
-        default:
-            cout << "build() got unknown grid_type: " << grid_type << endl;
-            exit(1);
-            break;
+    if(has_grid_contents) {
+        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict]);
+    } else {
+        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict]);
     }
 }
 
@@ -67,102 +55,104 @@ int main(int argc, char** argv) {
     // key: param name, value: set of allowed param values
     unordered_map<string, vector<string> > param_vals = {
         {"dict", {"top1000", "top3000", "top10000", "crossfire", "all"}},
-        {"pattern", {"empty"}},
+        {"example", {"empty", "cross", "bridge", "stairs", "donut", "crosshair1", "crosshair2"}},
         {"verbosity", {"fatal", "error", "warning", "info", "debug"}}
     };
 
-    // because this one is very long
-    stringstream contents_desc;
-    contents_desc << "Puzzle grid contents (cannot be used if pattern also specified) " 
-                  << "from top left to bottom right by row, all lowercase, in quotes. wildcard is: \"" 
+    // because these are very long
+    stringstream contents_desc, examples_desc;
+    contents_desc << "Puzzle grid contents from top left to bottom right by row, all lowercase, in quotes. wildcard is: \"" 
                   << WILDCARD << "\", black is: \"" << BLACK << "\"";
+    examples_desc << "Example crossword puzzles (overrides size/contents/dict): " << cw_gen::squash_options(param_vals["example"]);
 
     options.add_options()
-        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("5,5"))
+        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("4,4"))
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
         ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top10000"))
-        ("p,pattern",   "Puzzle grid pattern: " + cw_gen::squash_options(param_vals["pattern"]), cxxopts::value<string>())
+        ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("h,help",      "Print usage")
         ;
 
     auto result = options.parse(argc, argv);
 
+    // ############### no args specified ###############
+
+    if(!result.count("help") && !result.count("size") && !result.count("contents") && !result.count("dict") && !result.count("example") && !result.count("verbosity")) {
+        cout << "Error: no args specified. Try running with arg \"-h\" for help or with arg \"-e [";
+        for(uint i = 0; i < param_vals["example"].size(); i++) {
+            cout << param_vals["example"][i];
+            if(i != param_vals["example"].size() - 1) cout << "|";
+        }
+        cout << "]\" to generate an example crossword" << endl;
+        exit(1);
+    }
+
     // ############### help ###############
 
-    // print help msg if specified or if no args provided
-    if(result.count("help") || 
-        (!result.count("size") && !result.count("contents") && !result.count("dict") && !result.count("pattern") && !result.count("verbosity"))
-    ) {
+    // print help msg if specified
+    if(result.count("help")) {
         cout << options.help() << endl;
         exit(0);
     }
 
-    // ############### size ###############
+    // ############### example ###############
 
-    vector<uint> dimensions = result["size"].as<vector<uint>>();
-    if(dimensions.size() != 2) {
-        cout << "got unknown number of size dimensions (" << dimensions.size() << "), should be 2" << endl;
-        exit(1);
-    }
-    // cout << "set dimension size: " << dimensions[0] << ", " << dimensions[1] << endl; // debug
-    cwgen->set_dimensions(dimensions[0], dimensions[1]);
-
-    // ############### dictionary ###############
-
-    string dict = result["dict"].as<string>();
-    if(std::find(param_vals["dict"].begin(), param_vals["dict"].end(), dict) == param_vals["dict"].end()) {
-        cout << "got invalid dictionary option " << dict << ", allowed: " << cw_gen::squash_options(param_vals["dict"]);
-        exit(1);
-    }
-    // cout << "set dictionary: " << dict << endl; // debug
-    cwgen->set_dict(dict);
-
-    // ############### contents & pattern exclusitivity ###############
-
-    // contents & pattern cannot both be set
-    if(result.count("contents") && result.count("pattern")) {
-        cout << "got illegal specification of both contents and pattern params" << endl;
-        exit(1);
-    }
-
-    // ############### contents ###############
-
-    if(result.count("contents")) {
-        string contents = result["contents"].as<string>();
-        if(contents.size() != cwgen->num_tiles()) {
-            cout << "got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen->num_tiles() << endl;
+    if(result.count("example")) {
+        string example = result["example"].as<string>();
+        if(std::find(param_vals["example"].begin(), param_vals["example"].end(), example) == param_vals["example"].end()) {
+            cout << "got invalid example option " << example << ", allowed: " << cw_gen::squash_options(param_vals["example"]) << endl;
             exit(1);
         }
-        for(char c : contents) {
-            if(c != BLACK && c != WILDCARD && (c < 'a' || c > 'z')) {
 
+        cwgen->set_dimensions(examples_map[example].length, examples_map[example].height);
+        cwgen->set_dict(examples_map[example].dict);
+        cwgen->set_contents(examples_map[example].contents);
+    } else {
+        // non-example, use user-specified size/dict/contents
+
+        // ############### size ###############
+
+        vector<uint> dimensions = result["size"].as<vector<uint>>();
+        if(dimensions.size() != 2) {
+            cout << "got unknown number of size dimensions (" << dimensions.size() << "), should be 2" << endl;
+            exit(1);
+        }
+        cwgen->set_dimensions(dimensions[0], dimensions[1]);
+
+        // ############### dictionary ###############
+
+        string dict = result["dict"].as<string>();
+        if(std::find(param_vals["dict"].begin(), param_vals["dict"].end(), dict) == param_vals["dict"].end()) {
+            cout << "got invalid dictionary option " << dict << ", allowed: " << cw_gen::squash_options(param_vals["dict"]) << endl;
+            exit(1);
+        }
+        cwgen->set_dict(dict);
+
+        // ############### contents ###############
+
+        if(result.count("contents")) {
+            string contents = result["contents"].as<string>();
+            if(contents.size() != cwgen->num_tiles()) {
+                cout << "got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen->num_tiles() << endl;
+                exit(1);
             }
-        }
-        // cout << "set contents: " << contents << endl; // debug
-        cwgen->set_contents(contents);
-    }
+            for(char c : contents) {
+                if(c != BLACK && c != WILDCARD && (c < 'a' || c > 'z')) {
 
-    // ############### pattern ###############
-
-    if(result.count("pattern")) {
-        string pattern = result["pattern"].as<string>();
-        if(std::find(param_vals["pattern"].begin(), param_vals["pattern"].end(), pattern) == param_vals["pattern"].end()) {
-            cout << "got invalid pattern option " << pattern << ", allowed " << cw_gen::squash_options(param_vals["pattern"]);
-            exit(1);
+                }
+            }
+            cwgen->set_contents(contents);
         }
-        // cout << "set pattern: " << pattern << endl; // debug
-        cwgen->set_pattern(pattern);
     }
 
     // ############### verbosity ###############
 
     string verbosity = result["verbosity"].as<string>();
     if(std::find(param_vals["verbosity"].begin(), param_vals["verbosity"].end(), verbosity) == param_vals["verbosity"].end()) {
-        cout << "got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]);
+        cout << "got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
         exit(1);
     }
-    // cout << "set verbosity: " << verbosity << endl; // debug
     VERBOSITY = verbosity_map[verbosity];
 
     // ############### cw_csp solving ###############
@@ -173,7 +163,7 @@ int main(int argc, char** argv) {
         exit(0);
     } else {
         cout << "no valid crossword generated for the given parameters; " 
-             << "try different dimensions, grid contents/pattern, or dictionary" << endl;
+             << "try an example, or use different dimensions, grid contents, or dictionary" << endl;
         exit(1);
     }
 
