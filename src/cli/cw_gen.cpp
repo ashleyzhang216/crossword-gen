@@ -76,18 +76,6 @@ int main(int argc, char** argv) {
 
     auto result = options.parse(argc, argv);
 
-    // ############### no args specified ###############
-
-    if(!result.count("help") && !result.count("size") && !result.count("contents") && !result.count("dict") && !result.count("example") && !result.count("verbosity")) {
-        cout << "Error: no args specified. Try running with arg \"-h\" for help or with arg \"-e [";
-        for(uint i = 0; i < param_vals["example"].size(); i++) {
-            cout << param_vals["example"][i];
-            if(i != param_vals["example"].size() - 1) cout << "|";
-        }
-        cout << "]\" to generate an example crossword" << endl;
-        exit(1);
-    }
-
     // ############### help ###############
 
     // print help msg if specified
