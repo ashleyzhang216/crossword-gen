@@ -40,7 +40,7 @@ namespace cw_csp_ns {
             unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
 
             // solve CSP
-            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
+            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, bool print_progress_bar);
 
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
@@ -71,7 +71,7 @@ namespace cw_csp_ns {
             void undo_overwrite_cw();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy);
+            bool solve_backtracking(var_selection_method var_strategy, bool print_progress_bar);
 
         private:
             // crossword to be solved

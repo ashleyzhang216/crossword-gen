@@ -15,7 +15,7 @@
 #include "../word_finder/word_finder.h"
 #include "cw_gen_data_types.h"
 #include "cxxopts.hpp"
-
+#include <thread>
 using namespace common_parent_ns;
 using namespace common_data_types_ns;
 using namespace crossword_ns;
@@ -48,7 +48,7 @@ namespace cw_gen_ns {
             void build();
 
             // attempt to solve crossword puzzle, return true iff successful
-            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES) && csp->solved(); }
+            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES, true) && csp->solved(); }
 
             // return result after running solve()
             string result() { assert(csp->solved()); return csp->result(); }
