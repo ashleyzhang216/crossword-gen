@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     examples_desc << "Example crossword puzzles (overrides size/contents/dict): " << cw_gen::squash_options(param_vals["example"]);
 
     options.add_options()
-        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("4,4"))
+        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<int>>()->default_value("4,4"))
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
         ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top10000"))
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     if(result.count("example")) {
         string example = result["example"].as<string>();
         if(std::find(param_vals["example"].begin(), param_vals["example"].end(), example) == param_vals["example"].end()) {
-            cout << "got invalid example option " << example << ", allowed: " << cw_gen::squash_options(param_vals["example"]) << endl;
+            cout << "Error: got invalid example option " << example << ", allowed: " << cw_gen::squash_options(param_vals["example"]) << endl;
             exit(1);
         }
 
@@ -101,18 +101,25 @@ int main(int argc, char** argv) {
 
         // ############### size ###############
 
-        vector<uint> dimensions = result["size"].as<vector<uint>>();
+        vector<int> dimensions = result["size"].as<vector<int>>();
         if(dimensions.size() != 2) {
-            cout << "got unknown number of size dimensions (" << dimensions.size() << "), should be 2" << endl;
+            cout << "Error: got unknown number of size dimensions (" << dimensions.size() << "), should be 2" << endl;
             exit(1);
         }
-        cwgen->set_dimensions(dimensions[0], dimensions[1]);
+        if(dimensions[0] <= 0 || dimensions[1] <= 0) {
+            cout << "Error: crossword dimensions must be positive and non-zero" << endl;
+            exit(1);
+        } else if(dimensions[0] == 1 && dimensions[1] == 1) {
+            cout << "Error: 1x1 crossword contains no valid words, word min len = " << MIN_WORD_LEN << endl;
+            exit(1);
+        }
+        cwgen->set_dimensions((uint)dimensions[0], (uint)dimensions[1]);
 
         // ############### dictionary ###############
 
         string dict = result["dict"].as<string>();
         if(std::find(param_vals["dict"].begin(), param_vals["dict"].end(), dict) == param_vals["dict"].end()) {
-            cout << "got invalid dictionary option " << dict << ", allowed: " << cw_gen::squash_options(param_vals["dict"]) << endl;
+            cout << "Error: got invalid dictionary option " << dict << ", allowed: " << cw_gen::squash_options(param_vals["dict"]) << endl;
             exit(1);
         }
         cwgen->set_dict(dict);
@@ -122,12 +129,12 @@ int main(int argc, char** argv) {
         if(result.count("contents")) {
             string contents = result["contents"].as<string>();
             if(contents.size() != cwgen->num_tiles()) {
-                cout << "got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen->num_tiles() << endl;
+                cout << "Error: got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen->num_tiles() << endl;
                 exit(1);
             }
             for(char c : contents) {
                 if(c != BLACK && c != WILDCARD && (c < 'a' || c > 'z')) {
-                    cout << "got illegal char in contents: " << c << ", all chars should be a lowercase letter, a wildcard (\"" << WILDCARD << "\"), or a black tile (\"" << BLACK << "\")" << endl;
+                    cout << "Error: got illegal char in contents: " << c << ", all chars should be a lowercase letter, a wildcard (\"" << WILDCARD << "\"), or a black tile (\"" << BLACK << "\")" << endl;
                     exit(1);
                 }
             }
@@ -139,7 +146,7 @@ int main(int argc, char** argv) {
 
     string verbosity = result["verbosity"].as<string>();
     if(std::find(param_vals["verbosity"].begin(), param_vals["verbosity"].end(), verbosity) == param_vals["verbosity"].end()) {
-        cout << "got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
+        cout << "Error: got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
         exit(1);
     }
     VERBOSITY = verbosity_map[verbosity];
@@ -150,8 +157,8 @@ int main(int argc, char** argv) {
     if(cwgen->solve()) {
         cout << "found crossword: " << cwgen->result() << endl;
     } else {
-        cout << "no valid crossword generated for the given parameters; " 
-             << "try an example, or use different dimensions, grid contents, or dictionary" << endl;
+        cout << "Error: no valid crossword generated for the given parameters. " 
+             << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;
         exit(1);
     }
 
