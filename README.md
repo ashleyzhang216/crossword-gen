@@ -1,5 +1,7 @@
 # crossword-gen
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) ![Version: 1.0](https://img.shields.io/badge/Version-1.0-blue)
+
 `cw_gen` lets you generate crossword puzzles by specifying a word list and a grid to fill in.
 
 ![Animated terminal gif to illustrate generation of example crosswords](assets/example.gif)
