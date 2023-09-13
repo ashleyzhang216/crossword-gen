@@ -37,6 +37,7 @@ namespace cw_gen_ns {
             void set_dimensions(uint length, uint height) { this->length = length; this->height = height; }
             void set_dict(string dict) { this->dict = dict; }
             void set_contents(string contents) { this->contents = contents; has_grid_contents = true; }
+            void enable_progress_bar() { display_progress_bar = true; }
 
             // for checking legal length of contents
             uint num_tiles() { return this->length * this->height; }
@@ -48,7 +49,7 @@ namespace cw_gen_ns {
             void build();
 
             // attempt to solve crossword puzzle, return true iff successful
-            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES, true) && csp->solved(); }
+            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES, display_progress_bar) && csp->solved(); }
 
             // return result after running solve()
             string result() { assert(csp->solved()); return csp->result(); }
@@ -72,6 +73,9 @@ namespace cw_gen_ns {
 
             // contents to populate crossword grid with
             string contents;
+
+            // whether to display progress bar or not
+            bool display_progress_bar = false;
     }; // cw_gen
 } // cw_gen_ns
 

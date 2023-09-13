@@ -57,6 +57,12 @@ Please note that all options are optional but must not conflict with each other 
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------|--------|---------|
 | -v, --verbosity arg | Minimum verbosity for print statements. Possible options in decreasing level are `fatal`, `error`, `warning`, `info`, and `debug`. | string | `fatal` |
 
+### `progress bar`
+
+| Option         | Description                                                                                                                                              | Type | Default |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|------|---------|
+| -p, --progress | Enable progress bar; useful when generating larger crossword puzzles with longer runtimes. Disabled by default unless `-p` or `--progress` is specified. | none | none    |
+
 ### `help`
 
 | Option     | Description                                                        | Type | Default |

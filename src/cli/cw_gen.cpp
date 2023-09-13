@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
         ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top10000"))
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
+        ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
         ("h,help",      "Print usage")
         ;
 
@@ -150,6 +151,12 @@ int main(int argc, char** argv) {
         exit(1);
     }
     VERBOSITY = verbosity_map[verbosity];
+
+    // ############### progress bar ###############
+
+    if(result.count("progress")) {
+        cwgen->enable_progress_bar();
+    }
 
     // ############### cw_csp solving ###############
 
