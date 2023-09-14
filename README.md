@@ -10,10 +10,9 @@
 
 ![Animated terminal gif to illustrate building of project](assets/build.gif)
 
-The unix binary is already included at `src/cw_gen`. To be re-build, navigate to the `src/` directory and run the build script:
+The unix binary is already included as `cw_gen`. To be re-build, run the build script:
 
 ```bash 
-cd src
 sh build.sh
 ```
 
@@ -22,16 +21,14 @@ sh build.sh
 ![Animated terminal gif to illustrate generation of crosswords with user parameters](assets/demo.gif)
 
 ```bash
-cd src
 ./cw_gen [OPTIONS]
 ```
-Please note that all options are optional but must not conflict with each other if multiple are used, i.e. grid contents string length must match the puzzle size specified. Since generation is purely via heuristics without randomness, re-generating a crossword with the same parameters is likely to return the same output, especially if not many valid solutions for those parameters exist. 
 
 ### 🧩 `size`
 
 | Option         | Description                                                                                                  | Type    | Default |
 |----------------|--------------------------------------------------------------------------------------------------------------|---------|---------|
-| `-s` | Dimensions of the crossword to be generated, in the format `columns,rows`.  Size must be greater than size 1x1. Large sizes may take several minutes or more to solve, especially if a large dictionary is used, or if difficult or no grid contents are specified. | int,int | `4,4`     |
+| `-s` | Dimensions of the crossword to be generated, in the format `columns,rows`.  Size must be greater than 1x1. Large sizes may take several minutes or more to solve, especially if a large dictionary is used, or if difficult or no grid contents are specified. | int,int | `4,4`     |
 
 ### 📝 `grid contents`
 
@@ -68,6 +65,8 @@ Please note that all options are optional but must not conflict with each other 
 | Option     | Description                                                        | Type | Default |
 |------------|--------------------------------------------------------------------|------|---------|
 | `-h` | Print usage to display a summary of all options, their usage, and descriptions. | none | none    |
+
+Since generation is done purely via heuristics without randomness, re-generating a crossword with the same parameters is likely to return the same output, especially if not many valid solutions for those parameters exist. Also please note that if used, the grid contents string length must match the puzzle size or the default 4x4 puzzle size if none is specified. 
 
 ## ✅ Tests
 
