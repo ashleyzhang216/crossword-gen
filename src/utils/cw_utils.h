@@ -53,7 +53,7 @@ struct assertion_failure_exception : public exception {
 #undef assert_m
 #define assert_m(x, msg)                                                                                \
     if(!(x)) {                                                                                          \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
+        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
             << msg << endl;                                                                             \
         throw assertion_failure_exception();                                                            \
     } 

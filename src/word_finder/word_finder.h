@@ -31,8 +31,8 @@ namespace word_finder_ns {
             // find all words that match a pattern
             void find_matches(unordered_set<string>* matches, string pattern);
 
-            // destructor
-            ~word_finder();
+            // destructor, automatically destructs raii objects
+            ~word_finder() {}
 
         private:
             // file that this object read from
@@ -42,16 +42,19 @@ namespace word_finder_ns {
             ifstream word_file;
 
             // tree of all words
-            letter_node* word_tree;
+            shared_ptr<letter_node> word_tree;
 
             // hashset of all defined words for O(1) validity checking
             unordered_set<string> word_set;
 
+            // helper to check if word is legal
+            string parse_word(string word);
+
             // helper to insert words into word_tree upon initialization
-            void add_word_to_tree(letter_node* node, string word, uint pos);
+            void add_word_to_tree(shared_ptr<letter_node> node, string word, uint pos);
 
             // helper to traverse word_tree for finding all words that fit a pattern
-            void traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, letter_node* node, string fragment);
+            void traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, shared_ptr<letter_node> node, string fragment);
     };
 }
 

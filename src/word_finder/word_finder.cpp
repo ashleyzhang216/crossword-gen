@@ -19,20 +19,23 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
     // open file
     this->file_addr = file_addr;
     word_file.open(file_addr);
-    assert(word_file.is_open());
+    assert_m(word_file.is_open(), "could not open file " + file_addr);
 
     // initialize word tree
-    word_tree = new letter_node(true, false, '_');
+    word_tree = make_shared<letter_node>(true, false, '_');
 
     // parse word file
     string word;
     while(getline(word_file, word))
     {
-        // add to hashset of all words
-        word_set.insert(word);
+        // check for validity & convert uppercase, remove dashes, etc.
+        word = parse_word(word);
 
-        // add to word tree if of valid size
-        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+        // add to word set & tree if of valid size
+        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN && word != "") {
+            // add to hashset of all words
+            word_set.insert(word);
+
             add_word_to_tree(word_tree, word, 0);
         } 
     }
@@ -60,11 +63,28 @@ void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
 }
 
 /**
- * @brief destructor for word_finder
+ * @brief helper for constructor to test validity for and parse words
+ * 
+ * @param word the word to test
+ * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces; "" otherwise
 */
-word_finder::~word_finder() {
-    word_tree->~letter_node();
-    delete word_tree;
+string word_finder::parse_word(string word) {
+    stringstream word_ss;
+    for(char c : word) {
+        if(c >= 'a' && c <= 'z') {
+            // valid lowercase letters, do nothing
+            word_ss << c;
+        } else if(c >= 'A' && c <= 'Z') {
+            // valid uppercase letters, convert to lowercase
+            word_ss << (char)(c + 'a' - 'A');
+        } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
+            // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
+        } else {
+            // invalid word, contains unknown character
+            return "";
+        }
+    }
+    return word_ss.str();
 }
 
 /**
@@ -74,7 +94,7 @@ word_finder::~word_finder() {
  * @param word the word to add
  * @param pos index of next letter to add to tree
 */
-void word_finder::add_word_to_tree(letter_node* node, string word, uint pos) {
+void word_finder::add_word_to_tree(shared_ptr<letter_node> node, string word, uint pos) {
     
     // all letters added to tree
     if(pos >= word.size()) {
@@ -84,7 +104,7 @@ void word_finder::add_word_to_tree(letter_node* node, string word, uint pos) {
 
     // create child node if it doesn't exist yet
     if(node->next.find(word.at(pos)) == node->next.end()) {
-        node->next.insert({word.at(pos), new letter_node(false, false, word.at(pos))});
+        node->next.insert({word.at(pos), make_shared<letter_node>(false, false, word.at(pos))});
     } 
 
     // recurse to next letter
@@ -102,7 +122,7 @@ void word_finder::add_word_to_tree(letter_node* node, string word, uint pos) {
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void word_finder::traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, letter_node* node, string fragment) {
+void word_finder::traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, shared_ptr<letter_node> node, string fragment) {
 
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;

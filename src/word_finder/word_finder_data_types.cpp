@@ -18,13 +18,3 @@ letter_node::letter_node(bool is_head, bool valid, char letter) {
     this->valid = valid;
     this->letter = letter;
 }
-
-/**
- * @brief destructor for letter_node, needs to delete children
-*/
-letter_node::~letter_node() {
-    for(const auto& pair : next) {
-        pair.second->~letter_node();
-        delete pair.second;
-    }
-}

@@ -540,12 +540,16 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
  * 
  * @param csp_strategy strategy to solve this CSP
  * @param var_strategy strategy to select next unassigned variable
+ * @param print_progress_bar true for prod to avoid printing during testing
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, bool print_progress_bar) {
+    // base case for initially invalid crosswords
+    if(!ac3()) return false;
+
     switch(csp_strategy) {
         case BACKTRACKING: {
-                return solve_backtracking(var_strategy);
+                return solve_backtracking(var_strategy, print_progress_bar);
             } break;
         default: {
                 ss << "solve() got unknown strategy";
@@ -561,9 +565,10 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * @brief use backtracking strategy to solve CSP
  * 
  * @param var_strategy strategy to use to select next unassigned variable 
+ * @param print_progress_bar true for top level call in prod to avoid printing during testing
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
+bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_progress_bar) {
 
     ss << "entering solve_backtracking() with cw: " << *cw;
     utils->print_msg(&ss, DEBUG);
@@ -582,9 +587,26 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
         return false;
     }
 
+    // only initialize if this is top level solve_backtracking() call in prod
+    unique_ptr<progress_bar> bar = nullptr;
+    double prev_progress = 0.0;
+    if(print_progress_bar) {
+        bar = make_unique<progress_bar>(cout, 100u, "Searching", '#', '.');
+    }
+
     // search all possible values
     const unordered_set<string> domain_copy = next_var->domain;
+    int words_searched = 0;
+
+    // currently this using some arbitrary order, TODO: optimize by sorting by word frequency or something
     for(string word : domain_copy) {
+        
+        // update progress bar if 1% more of progress made
+        if(print_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
+            prev_progress += 0.01;
+            bar->write(prev_progress);
+        }
+
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
             // assignment
@@ -602,7 +624,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
 
                 // add to crossword assignment
                 overwrite_cw();
-                if(solve_backtracking(var_strategy)) return true;
+                if(solve_backtracking(var_strategy, false)) return true;
                 undo_overwrite_cw();
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
             } 
@@ -617,7 +639,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy) {
             ss << "avoided duplicate word: " << word;
             utils->print_msg(&ss, DEBUG);
         }
+
+        // another word eliminated
+        words_searched++;
     }
 
+    // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
     return false;
 }
