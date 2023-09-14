@@ -10,7 +10,7 @@
 
 ![Animated terminal gif to illustrate building of project](assets/build.gif)
 
-The unix binary is already included as `cw_gen`. To be re-build, run the build script:
+The unix binary is already included as `cw_gen`. To re-build, run the build script:
 
 ```bash 
 sh build.sh
