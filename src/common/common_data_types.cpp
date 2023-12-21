@@ -9,6 +9,13 @@
 using namespace common_data_types_ns;
 
 /**
+ * @brief equality operator for crossword word options
+*/
+bool word_t::operator==(const word_t& rhs) const {
+    return word == rhs.word;
+}
+
+/**
  * @brief progress bar constructor, starts printing a new bar upon initialization
  * 
  * @param os ostream to print to

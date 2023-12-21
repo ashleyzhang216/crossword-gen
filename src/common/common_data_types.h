@@ -51,6 +51,23 @@ using std::make_unique;
 
 namespace common_data_types_ns {
     /**
+     * @brief struct to represent possible cw words & extra heuristics for prioritization
+    */
+    typedef struct word_t {
+        // contents of this word
+        string word;
+
+        // decimal frequency of word, if provided
+        double freq;
+
+        // # of times word appears, if provided
+        long count;
+
+        // equality operator
+        bool operator==(const word_t& rhs) const;
+    } word_t;
+
+    /**
      * @brief progress bar to print cw search progress
      * implementation largely borrowed from https://codereview.stackexchange.com/a/186537
     */
