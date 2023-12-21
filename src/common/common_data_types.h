@@ -63,6 +63,11 @@ namespace common_data_types_ns {
         // # of times word appears, if provided
         long count;
 
+        // constructors
+        word_t(string w) : word(w), freq(0), count(0) {}
+        word_t(string w, double f) : word(w), freq(f), count(0) {}
+        word_t(string w, long c) : word(w), freq(0), count(c) {}
+
         // equality operator
         bool operator==(const word_t& rhs) const;
     } word_t;
@@ -93,5 +98,13 @@ namespace common_data_types_ns {
     };
     
 } // common_data_types_ns
+
+/**
+ * hash function declarations in global scope
+*/
+template <>
+struct hash<common_data_types_ns::word_t> {
+    size_t operator()(const common_data_types_ns::word_t& w) const;
+};
 
 #endif // COMMON_DATA_TYPES_H

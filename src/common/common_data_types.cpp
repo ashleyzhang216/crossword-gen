@@ -16,6 +16,13 @@ bool word_t::operator==(const word_t& rhs) const {
 }
 
 /**
+ * @brief hash function for word_t
+*/
+size_t hash<word_t>::operator()(const word_t& w) const {
+    return hash<string>{}(w.word);
+}
+
+/**
  * @brief progress bar constructor, starts printing a new bar upon initialization
  * 
  * @param os ostream to print to
