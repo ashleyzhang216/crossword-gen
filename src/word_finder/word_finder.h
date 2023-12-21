@@ -44,8 +44,8 @@ namespace word_finder_ns {
             // tree of all words
             shared_ptr<letter_node> word_tree;
 
-            // hashset of all defined words for O(1) validity checking
-            unordered_set<string> word_set;
+            // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
+            unordered_map<string, word_t> word_map;
 
             // helper to check if word is legal
             string parse_word(string word);

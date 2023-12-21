@@ -34,7 +34,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
         // add to word set & tree if of valid size
         if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN && word != "") {
             // add to hashset of all words
-            word_set.insert(word);
+            word_map.insert({word, word_t(word)}); // TODO: add heuristics to constructor
 
             add_word_to_tree(word_tree, word, 0);
         } 
@@ -49,7 +49,7 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
  * @return true iff word is a valid word
 */
 bool word_finder::is_word(string word) {
-    return word_set.count(word) > 0;
+    return word_map.count(word) > 0;
 }
 
 /**
