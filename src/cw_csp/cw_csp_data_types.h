@@ -57,8 +57,11 @@ namespace cw_csp_data_types_ns {
 
         // for AC-3 based CSP reduction
         bool can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const;
-
+        
+        // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
+
+        // size_t operator()(const cw_variable &var) const;
     } cw_variable;
 
     // operator to print out cw_variable for debug
@@ -84,6 +87,7 @@ namespace cw_csp_data_types_ns {
         // used by solved() in cw_csp to check that this constraint is satisfied
         bool satisfied() const;
         
+        // equality operator, TODO: is this needed?
         bool operator==(const cw_constraint& rhs) const;
     } cw_constraint;
 
@@ -93,18 +97,16 @@ namespace cw_csp_data_types_ns {
 } // cw_csp_data_types_ns
 
 /**
- * hash function declarations in std for brevity
+ * hash function declarations in global scope
 */
-namespace std {
-    template <>
-    struct hash<cw_csp_data_types_ns::cw_variable> {
-        size_t operator()(const cw_csp_data_types_ns::cw_variable& var) const;
-    };
+template <>
+struct hash<cw_csp_data_types_ns::cw_variable> {
+    size_t operator()(const cw_csp_data_types_ns::cw_variable& var) const;
+};
 
-    template <>
-    struct hash<cw_csp_data_types_ns::cw_constraint> {
-        size_t operator()(const cw_csp_data_types_ns::cw_constraint& var) const;
-    };
-}
+template <>
+struct hash<cw_csp_data_types_ns::cw_constraint> {
+    size_t operator()(const cw_csp_data_types_ns::cw_constraint& var) const;
+};
 
 #endif // CW_CSP_DATA_TYPES_H
