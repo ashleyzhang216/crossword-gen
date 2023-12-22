@@ -58,7 +58,7 @@ bool word_finder::is_word(string word) {
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
 */
-void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
+void word_finder::find_matches(unordered_set<word_t>* matches, string& pattern) {
     traverse_to_find_matches(matches, pattern, 0, word_tree, "");
 }
 
@@ -68,7 +68,7 @@ void word_finder::find_matches(unordered_set<string>* matches, string pattern) {
  * @param word the word to test
  * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces; "" otherwise
 */
-string word_finder::parse_word(string word) {
+string word_finder::parse_word(string& word) {
     stringstream word_ss;
     for(char c : word) {
         if(c >= 'a' && c <= 'z') {
@@ -76,7 +76,7 @@ string word_finder::parse_word(string word) {
             word_ss << c;
         } else if(c >= 'A' && c <= 'Z') {
             // valid uppercase letters, convert to lowercase
-            word_ss << (char)(c + 'a' - 'A');
+            word_ss << (char)(c + 'a' - 'A'); // TODO: should this be static_cast<char> ?
         } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
             // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
         } else {
@@ -94,7 +94,7 @@ string word_finder::parse_word(string word) {
  * @param word the word to add
  * @param pos index of next letter to add to tree
 */
-void word_finder::add_word_to_tree(shared_ptr<letter_node> node, string word, uint pos) {
+void word_finder::add_word_to_tree(shared_ptr<letter_node> node, string& word, uint pos) {
     
     // all letters added to tree
     if(pos >= word.size()) {
@@ -122,7 +122,7 @@ void word_finder::add_word_to_tree(shared_ptr<letter_node> node, string word, ui
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void word_finder::traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, shared_ptr<letter_node> node, string fragment) {
+void word_finder::traverse_to_find_matches(unordered_set<word_t>* matches, string& pattern, uint pos, shared_ptr<letter_node> node, string fragment) {
 
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
@@ -134,7 +134,9 @@ void word_finder::traverse_to_find_matches(unordered_set<string>* matches, strin
         ss << "pattern fully matched, valid check: " << node->valid;
         utils->print_msg(&ss, DEBUG);
 
-        if(node->valid) matches->insert(fragment);
+        if(node->valid) { 
+            matches->insert(word_map.at(fragment));
+        }
         return;
     }
 

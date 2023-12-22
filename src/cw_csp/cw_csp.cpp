@@ -321,7 +321,7 @@ bool cw_csp::ac3() {
 
     // map from variable --> words pruned from its domain
     // tracks pruned words to undo AC-3 if resulting CSP is invalid
-    unordered_map<shared_ptr<cw_variable>, unordered_set<string> > pruned_domains;
+    unordered_map<shared_ptr<cw_variable>, unordered_set<word_t> > pruned_domains;
 
     // initialize constraint_queue
     for(shared_ptr<cw_constraint> constraint_ptr : constraints) {
@@ -331,7 +331,7 @@ bool cw_csp::ac3() {
 
     // run AC-3 algo
     shared_ptr<cw_constraint> constr;
-    unordered_set<string> pruned_words;
+    unordered_set<word_t> pruned_words;
     while(!constraint_queue.empty()) {
         // pop top constraint
         constr = constraint_queue.front();
@@ -343,7 +343,7 @@ bool cw_csp::ac3() {
         pruned_words = constr->prune_domain();
 
         // track pruned words for each var in case undo is needed if CSP becomes invalid
-        for(string pruned_word : pruned_words) {
+        for(word_t pruned_word : pruned_words) {
             pruned_domains[constr->lhs].insert(pruned_word);
         }
         
@@ -373,7 +373,6 @@ bool cw_csp::ac3() {
         }
     }
 
-
     // save record of all domain values pruned
     prev_pruned_domains.push(pruned_domains);
 
@@ -389,7 +388,7 @@ void cw_csp::undo_ac3() {
 
     for(const auto& pair : prev_pruned_domains.top()) {
         // re-add pruned words
-        for(string pruned_word : pair.second) {
+        for(word_t pruned_word : pair.second) {
             pair.first->domain.insert(pruned_word);
         }
     }
@@ -403,7 +402,7 @@ void cw_csp::undo_ac3() {
 */
 bool cw_csp::solved() const {
 
-    unordered_set<string> used_words;
+    unordered_set<word_t> used_words;
 
     // check that all vars have one remaining domain value & satisfied
     for(shared_ptr<cw_variable> var_ptr : variables) {
@@ -452,7 +451,7 @@ void cw_csp::overwrite_cw() {
                     // this square must be wildcard or the same letter about to be written
                     assert(
                         cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
-                        cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->at(letter)
+                        cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
@@ -461,7 +460,7 @@ void cw_csp::overwrite_cw() {
                         overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row, var.origin_col + letter));
 
                         // overwrite cw
-                        cw->write_at(var.domain.begin()->at(letter), var.origin_row, var.origin_col + letter);
+                        cw->write_at(var.domain.begin()->word.at(letter), var.origin_row, var.origin_col + letter);
                     }
                 }
             } else { // var.dir == VERTICAL
@@ -470,7 +469,7 @@ void cw_csp::overwrite_cw() {
                     // this square must be wildcard or the same letter about to be written
                     assert(
                         cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
-                        cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->at(letter)
+                        cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
@@ -479,7 +478,7 @@ void cw_csp::overwrite_cw() {
                         overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row + letter, var.origin_col));
 
                         // overwrite cw
-                        cw->write_at(var.domain.begin()->at(letter), var.origin_row + letter, var.origin_col);
+                        cw->write_at(var.domain.begin()->word.at(letter), var.origin_row + letter, var.origin_col);
                     }
                 }
             }
@@ -595,11 +594,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_pr
     }
 
     // search all possible values
-    const unordered_set<string> domain_copy = next_var->domain;
+    const unordered_set<word_t> domain_copy = next_var->domain;
     int words_searched = 0;
 
     // currently this using some arbitrary order, TODO: optimize by sorting by word frequency or something
-    for(string word : domain_copy) {
+    for(word_t word : domain_copy) {
         
         // update progress bar if 1% more of progress made
         if(print_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
@@ -610,7 +609,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_pr
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
             // assignment
-            next_var->domain = {word};
+            next_var->domain = {word}; // TODO: perhaps use std::swap here
             next_var->assigned = true;
             assigned_words.insert(word);
 

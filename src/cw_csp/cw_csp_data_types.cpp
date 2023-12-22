@@ -58,8 +58,8 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
        << var.pattern << ", assigned: " << var.assigned << ", domain: {";
-    for(string word : var.domain) {
-        os << word << ", ";
+    for(word_t w : var.domain) {
+        os << w.word << ", ";
     }
     os << "}";
     return os;
@@ -96,7 +96,7 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
  * @param dir direction of this var
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<string> domain) {
+cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) {
     this->origin_row = origin_row;
     this->origin_col = origin_col;
     this->length = length;
@@ -122,8 +122,8 @@ bool cw_variable::can_satisfy_constraint(const string& param_word, const uint& p
         utils->print_msg(&ss, ERROR);
     }
 
-    for(string word : domain) {
-        if(word != param_word && word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
+    for(word_t w : domain) {
+        if(w.word != param_word && w.word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
     }
 
     return false;
@@ -177,19 +177,19 @@ cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_varia
  * 
  * @return set of words pruned. i.e. size() == 0 iff domain not change
 */
-unordered_set<string> cw_constraint::prune_domain() {
+unordered_set<word_t> cw_constraint::prune_domain() {
 
     // find words to prune from domain
-    unordered_set<string> pruned_words;
-    for(string word : lhs->domain) {
-        if(!rhs->can_satisfy_constraint(word, lhs_index, rhs_index)) {
+    unordered_set<word_t> pruned_words;
+    for(word_t w : lhs->domain) {
+        if(!rhs->can_satisfy_constraint(w.word, lhs_index, rhs_index)) {
             // queue word to be removed from lhs domain
-            pruned_words.insert(word);
+            pruned_words.insert(w);
         }
     }
 
     // remove words
-    for(string word : pruned_words) lhs->domain.erase(word);
+    for(word_t w : pruned_words) lhs->domain.erase(w);
 
     return pruned_words;
 }
@@ -205,7 +205,7 @@ bool cw_constraint::satisfied() const {
 
     // since ac3() undoes invalid assignments, this should always be true
     assert(*(lhs->domain.begin()) != *(rhs->domain.begin())); // word inequality
-    assert(lhs->domain.begin()->at(lhs_index) == rhs->domain.begin()->at(rhs_index)); // letter equality
+    assert(lhs->domain.begin()->word.at(lhs_index) == rhs->domain.begin()->word.at(rhs_index)); // letter equality
 
     return true;
 }

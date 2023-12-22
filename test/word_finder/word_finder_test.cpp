@@ -52,24 +52,24 @@ TEST_CASE("word_finder word_set-basic", "[word_finder],[quick]") {
 TEST_CASE("word_finder word_tree-basic", "[word_finder],[quick]") {
     word_finder_test_driver *driver = new word_finder_test_driver("word_finder_test_driver-word_tree-basic", "word_finder/data/dict_barebones.txt");
     
-    unordered_map<string, unordered_set<string> > test_cases = {
-        {"ab", {"ab"}},
-        {"cat", {"cat"}},
-        {"hello", {"hello"}},
+    unordered_map<string, unordered_set<word_t> > test_cases = {
+        {"ab", {word_t("ab")}},
+        {"cat", {word_t("cat")}},
+        {"hello", {word_t("hello")}},
         {"x", {}},
         {"?", {}},
-        {"??", {"ab"}},
-        {"?????", {"hello"}},
+        {"??", {word_t("ab")}},
+        {"?????", {word_t("hello")}},
         {"hell", {}},
         {"ac", {}},
-        {"???", {"ace", "and", "cat", "cab", "can", "cup", "cub", "dan", "dab"}},
-        {"c?b", {"cab", "cub"}},
-        {"?u?", {"cup", "cub"}},
-        {"ca?", {"cat", "cab", "can"}},
-        {"??b", {"cab", "cub", "dab"}},
-        {"?a?", {"cat", "cab", "can", "dan", "dab"}},
-        {"ace", {"ace"}},
-        {"?ace???", {"racecar"}},
+        {"???", {word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}},
+        {"c?b", {word_t("cab"), word_t("cub")}},
+        {"?u?", {word_t("cup"), word_t("cub")}},
+        {"ca?", {word_t("cat"), word_t("cab"), word_t("can")}},
+        {"??b", {word_t("cab"), word_t("cub"), word_t("dab")}},
+        {"?a?", {word_t("cat"), word_t("cab"), word_t("can"), word_t("dan"), word_t("dab")}},
+        {"ace", {word_t("ace")}},
+        {"?ace???", {word_t("racecar")}},
     };
 
     for(auto& pair : test_cases) {

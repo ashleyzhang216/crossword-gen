@@ -63,13 +63,17 @@ namespace common_data_types_ns {
         // # of times word appears, if provided
         long count;
 
-        // constructors
+        // basic constructors
         word_t(string w) : word(w), freq(0), count(0) {}
         word_t(string w, double f) : word(w), freq(f), count(0) {}
         word_t(string w, long c) : word(w), freq(0), count(c) {}
 
-        // equality operator
-        bool operator==(const word_t& rhs) const;
+        // for printing
+        friend ostream& operator<<(ostream& os, const word_t& cw);
+
+        // equality operators
+        bool operator==(const word_t& rhs) const { return word == rhs.word; }
+        bool operator!=(const word_t& rhs) const { return word != rhs.word; }
     } word_t;
 
     /**

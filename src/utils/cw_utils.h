@@ -9,6 +9,8 @@
 
 #include "../common/common_data_types.h"
 
+using namespace common_data_types_ns;
+
 // verbosity levels
 typedef enum {
     FATAL = 0,
@@ -59,7 +61,7 @@ struct assertion_failure_exception : public exception {
     } 
 
 /**
- * @brief template function to compare contents of hashsets for testing
+ * @brief template function to compare contents of hashsets for testing, T must have << operator defined
  * 
  * @param lhs ptr to lhs set
  * @param rhs ptr to rhs set

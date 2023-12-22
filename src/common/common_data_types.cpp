@@ -9,10 +9,11 @@
 using namespace common_data_types_ns;
 
 /**
- * @brief equality operator for crossword word options
+ * @brief operator to print word candidates for testing
 */
-bool word_t::operator==(const word_t& rhs) const {
-    return word == rhs.word;
+ostream& common_data_types_ns::operator<<(ostream& os, const word_t& w) {
+    os << w.word;
+    return os;
 }
 
 /**
