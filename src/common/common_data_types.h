@@ -63,10 +63,17 @@ namespace common_data_types_ns {
         // # of times word appears, if provided
         long count;
 
+        // word score from curated crossword lists, if provided
+        int score;
+
+        // optional word hint/description to assist with writing clues, if provided
+        string descr; 
+
         // basic constructors
-        word_t(string w) : word(w), freq(0), count(0) {}
-        word_t(string w, double f) : word(w), freq(f), count(0) {}
-        word_t(string w, long c) : word(w), freq(0), count(c) {}
+        word_t(string w, string d = "")           : word(w), freq(0), count(0), score(0), descr(d) {}
+        word_t(string w, double f, string d = "") : word(w), freq(f), count(0), score(0), descr(d) {}
+        word_t(string w, long c, string d = "")   : word(w), freq(0), count(c), score(0), descr(d) {}
+        word_t(string w, int s, string d = "")    : word(w), freq(0), count(0), score(s), descr(d) {}
 
         // for printing
         friend ostream& operator<<(ostream& os, const word_t& cw);
