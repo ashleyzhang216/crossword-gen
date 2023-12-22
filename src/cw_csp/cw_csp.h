@@ -88,13 +88,13 @@ namespace cw_csp_ns {
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
 
             // previous domain pruned from each variable during calls to ac3()
-            stack<unordered_map<shared_ptr<cw_variable>, unordered_set<string> > > prev_pruned_domains;
+            stack<unordered_map<shared_ptr<cw_variable>, unordered_set<word_t> > > prev_pruned_domains;
 
             // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
             stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 
 
             // words already assigned to the crossword, used to avoid duplicates
-            unordered_set<string> assigned_words;
+            unordered_set<word_t> assigned_words;
 
     }; // cw_csp
 } // cw_csp_ns

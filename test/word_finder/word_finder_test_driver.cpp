@@ -43,12 +43,12 @@ bool word_finder_test_driver::test_word_set_basic(unordered_set<string> valid, u
  * @param ground_truth expected output of find_matches() from word_finder
  * @return true iff successful
 */
-bool word_finder_test_driver::test_word_tree_basic(string pattern, unordered_set<string> ground_truth) {
-    unordered_set<string> result;
+bool word_finder_test_driver::test_word_tree_basic(string pattern, unordered_set<word_t> ground_truth) {
+    unordered_set<word_t> result;
     dut->find_matches(&result, pattern);
     
     ss << "actual output: ";
-    for(string s : result) ss << s << ", ";
+    for(word_t w : result) ss << w.word << ", ";
     utils->print_msg(&ss, DEBUG);
     
     return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result, true));

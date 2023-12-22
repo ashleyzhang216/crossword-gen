@@ -9,6 +9,21 @@
 using namespace common_data_types_ns;
 
 /**
+ * @brief operator to print word candidates for testing
+*/
+ostream& common_data_types_ns::operator<<(ostream& os, const word_t& w) {
+    os << w.word;
+    return os;
+}
+
+/**
+ * @brief hash function for word_t
+*/
+size_t hash<word_t>::operator()(const word_t& w) const {
+    return hash<string>{}(w.word);
+}
+
+/**
  * @brief progress bar constructor, starts printing a new bar upon initialization
  * 
  * @param os ostream to print to

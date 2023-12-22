@@ -51,6 +51,39 @@ using std::make_unique;
 
 namespace common_data_types_ns {
     /**
+     * @brief struct to represent possible cw words & extra heuristics for prioritization
+    */
+    struct word_t {
+        // contents of this word
+        string word;
+
+        // decimal frequency of word, if provided
+        double freq;
+
+        // # of times word appears, if provided
+        long count;
+
+        // word score from curated crossword lists, if provided
+        int score;
+
+        // optional word hint/description to assist with writing clues, if provided
+        string descr; 
+
+        // basic constructors
+        word_t(string w, string d = "")           : word(w), freq(0), count(0), score(0), descr(d) {}
+        word_t(string w, double f, string d = "") : word(w), freq(f), count(0), score(0), descr(d) {}
+        word_t(string w, long c, string d = "")   : word(w), freq(0), count(c), score(0), descr(d) {}
+        word_t(string w, int s, string d = "")    : word(w), freq(0), count(0), score(s), descr(d) {}
+
+        // for printing
+        friend ostream& operator<<(ostream& os, const word_t& cw);
+
+        // equality operators
+        bool operator==(const word_t& rhs) const { return word == rhs.word; }
+        bool operator!=(const word_t& rhs) const { return word != rhs.word; }
+    };
+
+    /**
      * @brief progress bar to print cw search progress
      * implementation largely borrowed from https://codereview.stackexchange.com/a/186537
     */
@@ -76,5 +109,13 @@ namespace common_data_types_ns {
     };
     
 } // common_data_types_ns
+
+/**
+ * hash function declarations in global scope
+*/
+template <>
+struct hash<common_data_types_ns::word_t> {
+    size_t operator()(const common_data_types_ns::word_t& w) const;
+};
 
 #endif // COMMON_DATA_TYPES_H

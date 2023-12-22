@@ -9,14 +9,16 @@
 
 #include "../common/common_data_types.h"
 
+using namespace common_data_types_ns;
+
 // verbosity levels
-typedef enum {
+enum verbosity_t {
     FATAL = 0,
     ERROR = 1,
     WARNING = 2, 
     INFO = 3,
     DEBUG = 4
-} verbosity_t;
+};
 
 // global verbosity
 extern verbosity_t VERBOSITY;
@@ -59,7 +61,7 @@ struct assertion_failure_exception : public exception {
     } 
 
 /**
- * @brief template function to compare contents of hashsets for testing
+ * @brief template function to compare contents of hashsets for testing, T must have << operator defined
  * 
  * @param lhs ptr to lhs set
  * @param rhs ptr to rhs set

@@ -22,7 +22,7 @@ namespace word_finder_test_driver_ns {
             bool test_word_set_basic(unordered_set<string> valid, unordered_set<string> invalid);
 
             // basic directed test for word_tree
-            bool test_word_tree_basic(string pattern, unordered_set<string> ground_truth);
+            bool test_word_tree_basic(string pattern, unordered_set<word_t> ground_truth);
 
             // destructor
             ~word_finder_test_driver() { delete dut; }

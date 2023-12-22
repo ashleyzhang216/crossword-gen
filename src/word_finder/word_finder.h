@@ -29,7 +29,7 @@ namespace word_finder_ns {
             bool is_word(string word);
 
             // find all words that match a pattern
-            void find_matches(unordered_set<string>* matches, string pattern);
+            void find_matches(unordered_set<word_t>* matches, string& pattern);
 
             // destructor, automatically destructs raii objects
             ~word_finder() {}
@@ -44,17 +44,17 @@ namespace word_finder_ns {
             // tree of all words
             shared_ptr<letter_node> word_tree;
 
-            // hashset of all defined words for O(1) validity checking
-            unordered_set<string> word_set;
+            // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
+            unordered_map<string, word_t> word_map;
 
             // helper to check if word is legal
-            string parse_word(string word);
+            string parse_word(string& word);
 
             // helper to insert words into word_tree upon initialization
-            void add_word_to_tree(shared_ptr<letter_node> node, string word, uint pos);
+            void add_word_to_tree(shared_ptr<letter_node> node, string& word, uint pos);
 
             // helper to traverse word_tree for finding all words that fit a pattern
-            void traverse_to_find_matches(unordered_set<string>* matches, string pattern, uint pos, shared_ptr<letter_node> node, string fragment);
+            void traverse_to_find_matches(unordered_set<word_t>* matches, string& pattern, uint pos, shared_ptr<letter_node> node, string fragment);
     };
 }
 
