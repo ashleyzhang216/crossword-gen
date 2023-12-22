@@ -12,13 +12,13 @@
 using namespace common_data_types_ns;
 
 // verbosity levels
-typedef enum {
+enum verbosity_t {
     FATAL = 0,
     ERROR = 1,
     WARNING = 2, 
     INFO = 3,
     DEBUG = 4
-} verbosity_t;
+};
 
 // global verbosity
 extern verbosity_t VERBOSITY;

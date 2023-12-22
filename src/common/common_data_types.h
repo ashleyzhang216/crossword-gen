@@ -53,7 +53,7 @@ namespace common_data_types_ns {
     /**
      * @brief struct to represent possible cw words & extra heuristics for prioritization
     */
-    typedef struct word_t {
+    struct word_t {
         // contents of this word
         string word;
 
@@ -81,7 +81,7 @@ namespace common_data_types_ns {
         // equality operators
         bool operator==(const word_t& rhs) const { return word == rhs.word; }
         bool operator!=(const word_t& rhs) const { return word != rhs.word; }
-    } word_t;
+    };
 
     /**
      * @brief progress bar to print cw search progress

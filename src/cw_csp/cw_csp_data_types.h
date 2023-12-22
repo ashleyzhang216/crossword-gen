@@ -40,7 +40,7 @@ namespace cw_csp_data_types_ns {
     };
 
     // a variable in a constraint satisfaction problem
-    typedef struct cw_variable {
+    struct cw_variable {
         uint origin_row;              // 0-indexed
         uint origin_col;              // 0-indexed
         uint length;                  // >= 0
@@ -60,14 +60,14 @@ namespace cw_csp_data_types_ns {
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
-    } cw_variable;
+    };
 
     // operator to print out cw_variable for debug
     ostream& operator<<(ostream& os, const cw_variable& var);
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
-    typedef struct cw_constraint {
+    struct cw_constraint {
         uint lhs_index; // index of shared letter in lhs
         uint rhs_index; // index of shared letter in rhs
         shared_ptr<cw_variable> lhs = nullptr;
@@ -87,7 +87,7 @@ namespace cw_csp_data_types_ns {
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_constraint& rhs) const;
-    } cw_constraint;
+    };
 
     // operator to print out cw_constraint for debug
     ostream& operator<<(ostream& os, const cw_constraint& var);

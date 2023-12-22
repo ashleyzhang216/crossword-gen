@@ -23,10 +23,10 @@ namespace crossword_data_types_ns {
     cw_tile_type char_to_tile_type(const char& c);
 
     // representation of one cw tile
-    typedef struct cw_tile {
+    struct cw_tile {
         cw_tile_type type; // type/status of tile
         char c;            // WILDCARD iff type == TILE_EMPTY, BLACK iff type == TILE_BLACK
-    } cw_tile;
+    };
 
 } // crossword_data_types_ns
 
