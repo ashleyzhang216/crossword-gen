@@ -1,3 +1,4 @@
 https://www.spreadthewordlist.com/wordlist
 https://www.facebook.com/groups/1515117638602016/permalink/2997721820341583
 https://raw.githubusercontent.com/Crossword-Nexus/collaborative-word-list/main/xwordlist.dict
+https://www.kaggle.com/datasets/rtatman/english-word-frequency/data
