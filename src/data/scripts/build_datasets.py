@@ -10,6 +10,7 @@ WORD_FILES = [
     "xwordlist.txt",
     "crossfire_default.txt"
 ]
+BAD_WORDS_FILE = "bad_words.txt"
 OUTPUT_FILE = "word_data.json"
 
 # read word frequency data, return as dict of word -> count
@@ -21,7 +22,7 @@ def get_word_freq():
 
 # reads word files with lines of format WORD;SCORE, adds to word_scores dict
 # adds all valid scores to all_score_list to create score frequency graph
-def read_word_file(filename, word_scores, all_score_list):
+def read_word_file(filename, word_scores, bad_words, all_score_list):
     with open(get_abs_path(filename, "raw"), 'r') as file:
         lines = [line.strip() for line in file.readlines()]
 
@@ -31,7 +32,10 @@ def read_word_file(filename, word_scores, all_score_list):
 
             valid, word = filter_word(word)
 
-            if valid:
+            # filters out valid words if any bad word is a substring in it
+            # overly aggressive filtering but should ensure no slurs/bad words appear
+            # ex: without this, 'faggots' would be allowed, which is clearly offensive
+            if valid and not any(bad_word in word for bad_word in bad_words):
                 if word in word_scores:
                     word_scores[word] = max(word_scores[word], score)
                 else:
@@ -39,14 +43,21 @@ def read_word_file(filename, word_scores, all_score_list):
 
                 all_score_list.append(score)
 
+# returns dict of all bad words to exclude
+def read_bad_words_file(filename):
+    with open(get_abs_path(filename, "raw"), 'r') as file:
+        lines = [filter_word(line.strip())[1] for line in file.readlines()]
+        return set(lines)
+
 # returns dataframe containing word data, and list of all word scores
 def parse_data():
     freq_dict = get_word_freq()
+    bad_words = read_bad_words_file(BAD_WORDS_FILE)
 
     all_score_list = []
     word_scores = {}
     for file in WORD_FILES:
-        read_word_file(file, word_scores, all_score_list)
+        read_word_file(file, word_scores, bad_words, all_score_list)
     
     data = [(word, score, freq_dict[word] if word in freq_dict else 0) for word, score in word_scores.items()]
     df = pd.DataFrame(data, columns=['Word', 'Score', 'Frequency'])

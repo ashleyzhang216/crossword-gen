@@ -14,7 +14,7 @@ def filter_word(word):
     word = word.translate(str.maketrans('', '', string.punctuation))
 
     if not word.isalpha():
-        return False, None
+        return False, word
 
     return True, word
 
