@@ -27,10 +27,6 @@ def plot_number_frequency(numbers):
     
     plt.figure(figsize=(12, 6))
     plt.bar(numbers, counts, color='skyblue')
-
-    plt.xlabel('Number')
-    plt.ylabel('Frequency')
-    plt.title('Frequency of Numbers')
     plt.xticks(rotation=45)  
     
     plt.tight_layout()

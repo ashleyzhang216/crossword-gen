@@ -22,7 +22,7 @@ def get_word_freq():
 
 # reads word files with lines of format WORD;SCORE, adds to word_scores dict
 # adds all valid scores to all_score_list to create score frequency graph
-def read_word_file(filename, word_scores, bad_words, all_score_list):
+def read_word_file(filename, word_scores, bad_words, all_score_list, all_word_lengths):
     with open(get_abs_path(filename, "raw"), 'r') as file:
         lines = [line.strip() for line in file.readlines()]
 
@@ -40,6 +40,7 @@ def read_word_file(filename, word_scores, bad_words, all_score_list):
                     word_scores[word] = max(word_scores[word], score)
                 else:
                     word_scores[word] = score
+                    all_word_lengths.append(len(word))
 
                 all_score_list.append(score)
 
@@ -55,16 +56,17 @@ def parse_data():
     bad_words = read_bad_words_file(BAD_WORDS_FILE)
 
     all_score_list = []
+    all_word_lengths = []
     word_scores = {}
     for file in WORD_FILES:
-        read_word_file(file, word_scores, bad_words, all_score_list)
+        read_word_file(file, word_scores, bad_words, all_score_list, all_word_lengths)
     
     data = [(word, score, freq_dict[word] if word in freq_dict else 0) for word, score in word_scores.items()]
     df = pd.DataFrame(data, columns=['Word', 'Score', 'Frequency'])
     df = df.sort_values(by=['Score', 'Frequency'], ascending=[False, False])
     df = df.reset_index(drop=True)
 
-    return df, all_score_list
+    return df, all_score_list, all_word_lengths
 
 # generate output json files
 def generate_outputs(df):
@@ -73,12 +75,12 @@ def generate_outputs(df):
         file.write(json_str)
 
 def main():
-    df, all_score_list = parse_data()
+    df, all_score_list, all_word_lengths = parse_data()
     generate_outputs(df)
 
     print(df.head())
     print(df.shape)
-    plot_number_frequency(all_score_list)
+    plot_number_frequency(all_word_lengths)
 
 if __name__ == "__main__":
     main()
