@@ -1,3 +1,9 @@
+# ==================================================================
+# Author: Ashley Zhang (ayz27@cornell.edu)
+# Date:   12/23/2023
+# Description: one-time script to parse raw data and output json format datasets
+# ==================================================================
+
 import pandas as pd
 from helpers import get_abs_path, filter_word, plot_number_frequency
 

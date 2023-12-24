@@ -1,3 +1,9 @@
+# ==================================================================
+# Author: Ashley Zhang (ayz27@cornell.edu)
+# Date:   12/23/2023
+# Description: helper functions for build_datasets.py
+# ==================================================================
+
 import os
 import string
 import matplotlib.pyplot as plt
