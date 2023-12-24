@@ -19,7 +19,7 @@ def filter_word(word):
     return True, word
 
 # creates bar graph of score frequencies
-def plot_number_frequency(numbers):
+def plot_number_frequency(numbers, title):
     number_counts = Counter(numbers)
     
     numbers = list(number_counts.keys())
@@ -27,6 +27,8 @@ def plot_number_frequency(numbers):
     
     plt.figure(figsize=(12, 6))
     plt.bar(numbers, counts, color='skyblue')
+
+    plt.title(title)
     plt.xticks(rotation=45)  
     
     plt.tight_layout()
