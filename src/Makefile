@@ -54,6 +54,7 @@ HFILES = \
 		\
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder.h \
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder_data_types.h \
+		$(SRC_DIR)/$(WORDFINDER_DIR)/json.hpp \
 		\
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword.h \
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword_data_types.h \
