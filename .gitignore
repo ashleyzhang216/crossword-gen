@@ -38,3 +38,7 @@
 *.o
 test/build
 src/build
+
+# python
+src/data/scripts/__pycache__
+*.pyc
