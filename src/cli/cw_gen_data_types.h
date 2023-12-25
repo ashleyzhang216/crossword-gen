@@ -24,11 +24,11 @@ namespace cw_gen_data_types_ns {
 
     // map from dictionary name to path where it is located
     unordered_map<string, string> dict_path = {
-        {"top1000",  "src/data/words_top1000.txt"},
-        {"top3000",  "src/data/words_top3000.txt"},
-        {"top10000", "src/data/words_top10000.txt"},
-        {"crossfire", "src/data/crossfire_default.txt"},
-        {"all",      "src/data/words_alpha.txt"},
+        {"top1000",   "src/data/unscored/words_top1000.txt"},
+        {"top3000",   "src/data/unscored/words_top3000.txt"},
+        {"top10000",  "src/data/unscored/words_top10000.txt"},
+        {"crossfire", "src/data/unscored/crossfire_default.txt"},
+        {"all",       "src/data/unscored/words_alpha.txt"},
     };
 
     // preset examples
