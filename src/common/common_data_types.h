@@ -70,10 +70,12 @@ namespace common_data_types_ns {
         string descr; 
 
         // basic constructors
-        word_t(string w, string d = "")           : word(w), freq(0), count(0), score(0), descr(d) {}
-        word_t(string w, double f, string d = "") : word(w), freq(f), count(0), score(0), descr(d) {}
-        word_t(string w, long c, string d = "")   : word(w), freq(0), count(c), score(0), descr(d) {}
-        word_t(string w, int s, string d = "")    : word(w), freq(0), count(0), score(s), descr(d) {}
+        word_t(string w, string d = "")                  : word(w), freq(0), count(0), score(0), descr(d) {}
+        word_t(string w, double f, string d = "")        : word(w), freq(f), count(0), score(0), descr(d) {}
+        word_t(string w, long c, string d = "")          : word(w), freq(0), count(c), score(0), descr(d) {}
+        word_t(string w, int s, string d = "")           : word(w), freq(0), count(0), score(s), descr(d) {}
+        word_t(string w, int s, long c, string d = "")   : word(w), freq(0), count(c), score(s), descr(d) {}
+        word_t(string w, int s, double f, string d = "") : word(w), freq(f), count(0), score(s), descr(d) {}
 
         // for printing
         friend ostream& operator<<(ostream& os, const word_t& cw);
