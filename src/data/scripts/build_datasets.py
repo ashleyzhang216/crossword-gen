@@ -8,20 +8,19 @@ import pandas as pd
 from helpers import get_abs_path, filter_word, plot_number_frequency
 
 # data files
-FREQ_FILE = "unigram_freq.csv"
+FREQ_FILE = "unigram_freq.csv" # https://www.kaggle.com/datasets/rtatman/english-word-frequency/data
 WORD_FILES = [
-    "Broda List 03.2020 trimmed by Diehl.txt",
-    "CLUED list to share ranked.txt",
-    "spreadthewordlist.txt",
-    "xwordlist.txt",
-    "crossfire_default.txt"
+    "Broda List 03.2020 trimmed by Diehl.txt", # https://www.facebook.com/groups/1515117638602016/permalink/2997721820341583
+    "CLUED list to share ranked.txt", # https://www.facebook.com/groups/1515117638602016/permalink/1811192232327887
+    "spreadthewordlist.txt", # https://www.spreadthewordlist.com/wordlist
+    "xwordlist.txt", # https://raw.githubusercontent.com/Crossword-Nexus/collaborative-word-list/main/xwordlist.dict
+    "crossfire_default.txt" # crossfire software
 ]
-BAD_WORDS_FILE = "bad_words.txt"
+BAD_WORDS_FILE = "bad_words.txt" # https://data.world/wordlists/dirty-naughty-obscene-and-otherwise-bad-words-in-english
 OUTPUT_FILE = "word_data.json"
 TARGET_DATA_SIZES = [(1000, "small"), (5000, "medium"), (10000, "large"), (50000, "xlarge"), (None, "all")]
 
 # read word frequency data, return as dict of word -> count
-# https://www.kaggle.com/datasets/rtatman/english-word-frequency/data
 def get_word_freq():
     df = pd.read_csv(get_abs_path(FREQ_FILE, "raw"), sep=',')
     dict = df.set_index("word").to_dict()["count"]
