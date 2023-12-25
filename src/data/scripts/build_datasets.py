@@ -5,7 +5,7 @@
 # ==================================================================
 
 import pandas as pd
-from helpers import get_abs_path, filter_word, plot_number_frequency
+from helpers import get_abs_path, filter_word, target_ratio, plot_number_frequency
 
 # data files
 FREQ_FILE = "unigram_freq.csv" # https://www.kaggle.com/datasets/rtatman/english-word-frequency/data
@@ -18,7 +18,9 @@ WORD_FILES = [
 ]
 BAD_WORDS_FILE = "bad_words.txt" # https://data.world/wordlists/dirty-naughty-obscene-and-otherwise-bad-words-in-english
 OUTPUT_FILE = "word_data.json"
-TARGET_DATA_SIZES = [(1000, "small"), (5000, "medium"), (10000, "large"), (50000, "xlarge"), (None, "all")]
+TARGET_DATA_SIZES = [(1000, "small"), (5000, "medium"), (10000, "large"), (50000, "xlarge"), (100000, "giant"), (None, "all")]
+DISPLAY_SCORE_DISTR = False
+DISPLAY_LENGTH_DISTR = False
 
 # read word frequency data, return as dict of word -> count
 def get_word_freq():
@@ -56,22 +58,22 @@ def read_bad_words_file():
         lines = [filter_word(line.strip())[1] for line in file.readlines()]
         return set(lines)
 
-# cuts words of each length while maintaining the ratio of total LETTERS in words of each length
-def filter_top_words_by_letter(df, target_ratio):
+# cap max # of words of each length as if all letters assigned to words of this length
+# adds intended bias towards more words of shorter lengths in distribution
+def cap_max_words_per_letter(df, target_ratio):
     total_letters = df['Word'].str.len().sum()
 
-    target_letters = total_letters * target_ratio
     filtered_dfs = []
     for length, group_df in df.groupby(df['Word'].str.len()):
         group_df = group_df.sort_values(by=['Score', 'Frequency'], ascending=[False, False])
-        group_letters = length * len(group_df)
-        num_rows = int(len(group_df) * target_letters / group_letters)
+        num_rows = int(total_letters * target_ratio / length) # allows more words for smaller lengths
         filtered_df = group_df.head(num_rows)
         filtered_dfs.append(filtered_df)
     return pd.concat(filtered_dfs)
 
-# scales distribution from filter_top_words_by_letter() by maintaining the ratio of WORDS of each length
-def filter_top_words_by_words(df, target_ratio):
+# scales distribution to ensure size compliance by maintaining the ratio of words of each length
+# rescale_letter_distribution
+def rescale_letter_distribution(df, target_ratio):
     filtered_dfs = []
     for length, group_df in df.groupby(df['Word'].str.len()):
         group_df = group_df.sort_values(by=['Score', 'Frequency'], ascending=[False, False])
@@ -91,24 +93,21 @@ def parse_data(target_size):
     for file in WORD_FILES:
         read_word_file(file, word_scores, bad_words, all_score_list, all_word_lengths)
     
-    target_ratio = float(target_size) / len(word_scores) if target_size else 1
     data = [(word, score, freq_dict[word] if word in freq_dict else 0) for word, score in word_scores.items()]
     df = pd.DataFrame(data, columns=['Word', 'Score', 'Frequency'])
-    df = filter_top_words_by_letter(df, target_ratio)
-    new_target_ratio = float(target_size) / df.shape[0] if target_size else 1
-    df = filter_top_words_by_words(df, new_target_ratio)
+
+    df = cap_max_words_per_letter(df, target_ratio(target_size, df.shape[0]))
+    df = rescale_letter_distribution(df, target_ratio(target_size, df.shape[0]))
     df = df.sort_values(by=['Score', 'Frequency'], ascending=[False, False])
     df = df.reset_index(drop=True)
  
     score_list = df['Score'].tolist()
     word_lengths = df['Word'].str.len().tolist()
 
-    print("target_size: ", target_size, ", actual size: ", df.shape[0])
-
     return df, score_list, word_lengths
 
-# generate output json files
-def generate_outputs(df, size_name):
+# generate output json file
+def generate_output(df, size_name):
     json_str = df.set_index('Word').to_json(orient='index', indent=4)
     with open(get_abs_path("data_" + size_name + ".json", "."), 'w') as file:
         file.write(json_str)
@@ -117,8 +116,9 @@ def generate_outputs(df, size_name):
 def main():
     for (target_size, size_name) in TARGET_DATA_SIZES:
         df, score_list, word_lengths = parse_data(target_size)
-        generate_outputs(df, size_name)
-        # plot_number_frequency(word_lengths, target_size)
+        generate_output(df, size_name)
+        plot_number_frequency(DISPLAY_SCORE_DISTR, score_list, "scores for target " + str(target_size) + ", actual " + str(df.shape[0]))
+        plot_number_frequency(DISPLAY_LENGTH_DISTR, word_lengths, "lengths for target " + str(target_size) + ", actual " + str(df.shape[0]))
 
 if __name__ == "__main__":
     main()

@@ -24,18 +24,23 @@ def filter_word(word):
 
     return True, word
 
-# creates bar graph of score frequencies
-def plot_number_frequency(numbers, title):
-    number_counts = Counter(numbers)
-    
-    numbers = list(number_counts.keys())
-    counts = list(number_counts.values())
-    
-    plt.figure(figsize=(12, 6))
-    plt.bar(numbers, counts, color='skyblue')
+# ratio of letters or words to keep
+def target_ratio(target_size, real_size):
+    return float(target_size) / real_size if target_size else 1
 
-    plt.title(title)
-    plt.xticks(rotation=45)  
-    
-    plt.tight_layout()
-    plt.show()
+# creates bar graph of score frequencies
+def plot_number_frequency(do_graph, numbers, title):
+    if do_graph:
+        number_counts = Counter(numbers)
+        
+        numbers = list(number_counts.keys())
+        counts = list(number_counts.values())
+        
+        plt.figure(figsize=(12, 6))
+        plt.bar(numbers, counts, color='skyblue')
+
+        plt.title(title)
+        plt.xticks(rotation=45)  
+        
+        plt.tight_layout()
+        plt.show()
