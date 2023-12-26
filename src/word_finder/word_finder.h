@@ -38,9 +38,6 @@ namespace word_finder_ns {
             // file that this object read from
             string file_addr;
 
-            // for processing input txt file
-            ifstream word_file;
-
             // tree of all words
             shared_ptr<letter_node> word_tree;
 
@@ -48,13 +45,16 @@ namespace word_finder_ns {
             unordered_map<string, word_t> word_map;
 
             // helper to check if word is legal
-            string parse_word(string& word);
+            string parse_word(const string& word);
 
             // helper to insert words into word_tree upon initialization
             void add_word_to_tree(shared_ptr<letter_node> node, string& word, uint pos);
 
             // helper to traverse word_tree for finding all words that fit a pattern
             void traverse_to_find_matches(unordered_set<word_t>* matches, string& pattern, uint pos, shared_ptr<letter_node> node, string fragment);
+
+            // helper for word_finder constructor to detect file type
+            bool has_suffix(const string& str, const string& suffix);
     };
 }
 
