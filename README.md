@@ -40,7 +40,7 @@ sh build.sh
 
 | Option        | Description                                                                                                                                                                                                                                                                                   | Type   | Default    |
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|------------|
-| `-d` | Word list to use. Possible options from smallest to largest are `top1000`, `top3000`, `top10000`, `crossfire`, and `all`.  Larger dictionaries are more effective for finding solutions for larger puzzles at the cost of likely increased runtime and possibly more unfamiliar words chosen. | string | `top10000` |
+| `-d` | Word list to use. Possible options from smallest to largest are `small`, `medium`, `large`, `xlarge`, `giant`, and `all`.  Larger dictionaries are more effective for finding solutions for larger puzzles at the cost of likely increased runtime and possibly more unfamiliar words chosen. | string | `xlarge` |
 
 ### 📋 `examples`
 
