@@ -13,6 +13,7 @@ COMMON_DIR=common
 WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
+CWTRIE_DIR=cw_trie
 CWGEN_DIR=cli
 
 # g++ settings
@@ -44,6 +45,9 @@ OFILES = \
 		cw_csp.o \
 		cw_csp_data_types.o \
 		\
+		cw_trie.o \
+		cw_trie_data_types.o \
+		\
 		cw_gen.o \
 
 # full path of all header files to build
@@ -61,6 +65,9 @@ HFILES = \
 		\
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp.h \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
+		\
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie.h \
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie_data_types.h \
 		\
 		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen.h \
 		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen_data_types.h \

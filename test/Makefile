@@ -14,6 +14,7 @@ COMMON_DIR=common
 WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
+CWTRIE_DIR=cw_trie
 
 # test dirs
 CATCH_DIR=catch
@@ -53,6 +54,11 @@ OFILES = \
 		cw_csp_test.o \
 		cw_csp_test_driver.o \
 		\
+		cw_trie.o \
+		cw_trie_data_types.o \
+		cw_trie_test.o \
+		cw_trie_test_driver.o \
+		\
 		cw_test_driver.o \
 
 # full path of all header files to build
@@ -73,6 +79,10 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp.h \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		$(TEST_DIR)/$(CWCSP_DIR)/cw_csp_test_driver.h \
+		\
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie.h \
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie_data_types.h \
+		$(TEST_DIR)/$(CWTRIE_DIR)/cw_trie_test_driver.h \
 		\
 		$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \
 
