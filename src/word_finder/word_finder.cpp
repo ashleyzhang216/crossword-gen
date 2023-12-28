@@ -50,8 +50,8 @@ word_finder::word_finder(string name, string file_addr) : common_parent(name) {
 
         string word;
         for(const auto& [item, data] : j.items()) {
-            // only strips newline character, since incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
-            word = parse_word(item);
+            // no need for parse_word() since incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
+            word = item;
 
             if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
                 // add to hashset of all words
