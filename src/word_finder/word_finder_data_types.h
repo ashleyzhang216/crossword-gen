@@ -8,8 +8,10 @@
 #define WORD_FINDER_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
+#include "json.hpp"
 
 using namespace common_data_types_ns;
+using json = nlohmann::json;
 
 namespace word_finder_data_types_ns {
     

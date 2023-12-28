@@ -15,7 +15,7 @@
 #include "../word_finder/word_finder.h"
 #include "cw_gen_data_types.h"
 #include "cxxopts.hpp"
-#include <thread>
+
 using namespace common_parent_ns;
 using namespace common_data_types_ns;
 using namespace crossword_ns;

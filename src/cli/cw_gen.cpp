@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
     // key: param name, value: set of allowed param values
     unordered_map<string, vector<string> > param_vals = {
-        {"dict", {"top1000", "top3000", "top10000", "crossfire", "all"}},
+        {"dict", {"small", "medium", "large", "xlarge", "giant", "all"}},
         {"example", {"empty", "cross", "bridge", "stairs", "donut", "crosshair1", "crosshair2"}},
         {"verbosity", {"fatal", "error", "warning", "info", "debug"}}
     };
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     options.add_options()
         ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<int>>()->default_value("4,4"))
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
-        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("top10000"))
+        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("xlarge"))
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())

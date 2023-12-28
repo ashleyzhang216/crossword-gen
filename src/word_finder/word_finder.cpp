@@ -12,34 +12,61 @@ using namespace word_finder_ns;
  * @brief constructor for word_finder block
  * 
  * @param name the name of this block
- * @param file_addr full filepath to word file 
+ * @param file_addr full filepath to word file, either .txt for unscored, or .json for scored
 */
 word_finder::word_finder(string name, string file_addr) : common_parent(name) {
-    
-    // open file
+    // save file, initialize word tree
     this->file_addr = file_addr;
-    word_file.open(file_addr);
-    assert_m(word_file.is_open(), "could not open file " + file_addr);
-
-    // initialize word tree
     word_tree = make_shared<letter_node>(true, false, '_');
 
-    // parse word file
-    string word;
-    while(getline(word_file, word))
-    {
-        // check for validity & convert uppercase, remove dashes, etc.
-        word = parse_word(word);
+    // TODO: should .txt file support be removed?
+    if(has_suffix(file_addr, ".txt")) {
+        // open file
+        ifstream word_file;
+        word_file.open(file_addr);
+        assert_m(word_file.is_open(), "could not open txt file " + file_addr);
 
-        // add to word set & tree if of valid size
-        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN && word != "") {
-            // add to hashset of all words
-            word_map.insert({word, word_t(word)}); // TODO: add heuristics to constructor
+        // parse word file
+        string word;
+        while(getline(word_file, word)) {
+            // check for validity & convert uppercase, remove dashes, etc.
+            word = parse_word(word);
 
-            add_word_to_tree(word_tree, word, 0);
-        } 
+            // add to word set & tree if of valid size
+            if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN && word != "") {
+                // add to hashset of all words
+                word_map.insert({word, word_t(word)}); // no heuristics added due to being unscored
+
+                add_word_to_tree(word_tree, word, 0);
+            } 
+        }
+        word_file.close();
+
+    } else if(has_suffix(file_addr, ".json")) {
+        // open word file, parse data
+        ifstream word_file(file_addr);
+        assert_m(word_file.is_open(), "could not open json file " + file_addr);
+        json j = json::parse(word_file);
+
+        string word;
+        for(const auto& [item, data] : j.items()) {
+            // no need for parse_word() since incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
+            word = item;
+
+            if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+                // add to hashset of all words
+                word_map.insert({word, word_t(word, data["Score"], data["Frequency"])}); // TODO: add other heuristics as needed
+
+                add_word_to_tree(word_tree, word, 0);
+            } 
+        }
+        word_file.close();
+
+    } else {
+        ss << "word_finder got file of invalid type: " << file_addr;
+        utils->print_msg(&ss, FATAL);
+        return;
     }
-    word_file.close();
 }
 
 /**
@@ -68,7 +95,7 @@ void word_finder::find_matches(unordered_set<word_t>* matches, string& pattern) 
  * @param word the word to test
  * @return parsed word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces; "" otherwise
 */
-string word_finder::parse_word(string& word) {
+string word_finder::parse_word(const string& word) {
     stringstream word_ss;
     for(char c : word) {
         if(c >= 'a' && c <= 'z') {
@@ -158,4 +185,16 @@ void word_finder::traverse_to_find_matches(unordered_set<word_t>* matches, strin
     } else {
         // this is a dead end, do nothing
     }
+}
+
+/**
+ * @brief helper for word_finder constructor to detect file type
+ * 
+ * @param str string to check the suffix of
+ * @param suffix the suffix to check for
+ * @return true iff str ends with suffix
+*/
+bool word_finder::has_suffix(const string& str, const string& suffix) {
+    if(str.size() < suffix.size()) return false;
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
