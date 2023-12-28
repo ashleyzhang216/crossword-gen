@@ -589,15 +589,20 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_pr
     // only initialize if this is top level solve_backtracking() call in prod
     unique_ptr<progress_bar> bar = nullptr;
     double prev_progress = 0.0;
+    int words_searched = 0;
     if(print_progress_bar) {
         bar = make_unique<progress_bar>(cout, 100u, "Searching", '#', '.');
     }
 
-    // search all possible values
-    const unordered_set<word_t> domain_copy = next_var->domain;
-    int words_searched = 0;
+    // search all possible values, sorted by word score, tiebroken by frequency
+    vector<word_t> domain_copy(next_var->domain.begin(), next_var->domain.end());
+    auto compare = [](const word_t& lhs, const word_t& rhs) {
+        if(lhs.score != rhs.score) return lhs.score > rhs.score;
+        return lhs.freq > rhs.freq;
+    };
+    sort(domain_copy.begin(), domain_copy.end(), compare);
 
-    // currently this using some arbitrary order, TODO: optimize by sorting by word frequency or something
+    // iterate through search space for this variable
     for(word_t word : domain_copy) {
         
         // update progress bar if 1% more of progress made
