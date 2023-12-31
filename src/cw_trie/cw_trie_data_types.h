@@ -20,11 +20,14 @@ namespace cw_trie_data_types_ns {
         bool valid; // true iff this node terminates a valid word
         char letter;
 
+        // ptr to parent
+        shared_ptr<trie_node> parent;
+
         // ptr to child words
-        unordered_map<char, shared_ptr<trie_node> > next;
+        unordered_map<char, shared_ptr<trie_node> > children;
 
         // constructor to initialize new words/head
-        trie_node(bool r, bool v, char l) : is_root(r), valid(v), letter(l) {}
+        trie_node(bool r, bool v, char l, shared_ptr<trie_node> p) : is_root(r), valid(v), letter(l), parent(p) {}
     };
 
     /**

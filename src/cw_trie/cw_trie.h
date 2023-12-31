@@ -29,19 +29,24 @@ namespace cw_trie_ns {
             void find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern);
 
             // read function for entries in letters_at_indices
-            bool has_letters_at_index(uint index, char letter);
+            bool has_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
-            void remove_matching_words(uint index, char letter);
+            void remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter);
         
         private:
             // TODO: implement
+
+            // TODO: maybe add something to represent a domain assigned a single value
 
             // trie of all words
             shared_ptr<trie_node> trie;
 
             // stores # of words with letters at each index
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
+
+            // helper function for add_word()
+            void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);
 
             // upwards recursive deletion helper func for trie_node
 
