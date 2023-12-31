@@ -8,4 +8,11 @@
 
 using namespace cw_trie_ns;
 
-// TODO: implement
+/**
+ * @brief constructor for cw_trie block
+ * 
+ * @param name the name of this block
+*/
+cw_trie::cw_trie(string name) : common_parent(name) {
+    trie = make_shared<trie_node>(true, false, '_');
+}
