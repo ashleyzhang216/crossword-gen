@@ -26,6 +26,19 @@ namespace cw_trie_data_types_ns {
         // constructor to initialize new words/head
         trie_node(bool r, bool v, char l) : is_root(r), valid(v), letter(l) {}
     };
+
+    /**
+     * @brief entry in letters_at_indices
+    */
+    struct letters_table_entry {
+        uint num_words;
+
+        // all nodes that 
+        unordered_set<shared_ptr<trie_node> > nodes;
+
+        // base constructor
+        letters_table_entry() : num_words(0) {}
+    };
 }; // cw_trie_data_types_ns
 
 #endif // CW_TRIE_DATA_TYPES_H

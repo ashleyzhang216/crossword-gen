@@ -19,13 +19,15 @@
 #include <fstream>
 #include <unordered_set>
 #include <unordered_map>
+#include <array>
 
-#define MIN_WORD_LEN 2  // max length for a single word
-#define MAX_WORD_LEN 20 // max length for a single word
-#define WILDCARD '?'    // tile/pattern where any letter can go
-#define BLACK ' '       // tile where no letter can be placed
-#define WCD WILDCARD    // shorthand
-#define BLK BLACK       // shorthand
+#define MIN_WORD_LEN 2         // max length for a single word
+#define MAX_WORD_LEN 20        // max length for a single word
+#define WILDCARD '?'           // tile/pattern where any letter can go
+#define BLACK ' '              // tile where no letter can be placed
+#define WCD WILDCARD           // shorthand
+#define BLK BLACK              // shorthand
+#define NUM_ENGLISH_LETTERS 26 // this shouldn't ever change, knock on wood :)
 
 using std::cout;
 using std::cerr;
@@ -42,6 +44,7 @@ using std::ostream;
 using std::unordered_set;
 using std::unordered_map;
 using std::hash;
+using std::array;
 
 // RAII
 using std::shared_ptr;

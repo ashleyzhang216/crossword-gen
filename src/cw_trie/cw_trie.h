@@ -40,11 +40,12 @@ namespace cw_trie_ns {
             // trie of all words
             shared_ptr<trie_node> trie;
 
-            // letters_at_indices
+            // stores # of words with letters at each index
+            array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
 
-            // upwards recursive deletion func for trie_node
+            // upwards recursive deletion helper func for trie_node
 
-            // downwards recursive deletion func for trie_node
+            // downwards recursive deletion helper func for trie_node
     }; // cw_trie
 }; // cw_trie_ns
 
