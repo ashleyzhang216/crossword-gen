@@ -21,7 +21,7 @@ namespace cw_trie_data_types_ns {
         char letter;
 
         // ptr to parent
-        shared_ptr<trie_node> parent;
+        weak_ptr<trie_node> parent;
 
         // ptr to child words
         unordered_map<char, shared_ptr<trie_node> > children;

@@ -22,14 +22,15 @@ cw_trie::cw_trie(string name) : common_parent(name) {
  * 
  * @param word the word to add
 */
-void cw_trie::add_word(string& word) {
+void cw_trie::add_word(word_t& w) {
     // update word counts in letters_at_indices
-    for(uint i = 0; i < word.size(); i++) {
-        assert('a' <= word.at(i) && word.at(i) <= 'z');
-        letters_at_indices[i][(size_t)(word.at(i) - 'a')].num_words++;
+    word_map.insert({w.word, w});
+    for(uint i = 0; i < w.word.size(); i++) {
+        assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
+        letters_at_indices[i][(size_t)(w.word.at(i) - 'a')].num_words++;
     }
 
-    add_word_to_trie(trie, word, 0);
+    add_word_to_trie(trie, w.word, 0);
 }
 
 /**
@@ -64,9 +65,55 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
 */
-// void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
-//     // TODO: implement
-// }
+void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
+    traverse_to_find_matches(matches, pattern, 0, trie, "");
+}
+
+/**
+ * @brief helper to find_matches() to recursively traverse tree to find matches
+ * 
+ * @param matches ptr to set to add matches to
+ * @param pattern the pattern to compare against
+ * @param pos index of next char in pattern to check
+ * @param node current node traversing in word_tree
+ * @param fragment part of word matched already
+*/
+void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+    ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
+       << " @ node " << node->letter;
+    utils->print_msg(&ss, DEBUG);
+
+    // pattern fully matched
+    if(pos >= pattern.size()) {
+        // AND this is a valid word
+        ss << "pattern fully matched, valid check: " << node->valid;
+        utils->print_msg(&ss, DEBUG);
+
+        if(node->valid) { 
+            matches->insert(word_map.at(fragment));
+        }
+        return;
+    }
+
+    if(pattern.at(pos) == WILDCARD) {
+        // wildcard at this index, add all possible matches
+        ss << "traversing for wild card";
+        utils->print_msg(&ss, DEBUG);
+
+        for(auto& pair : node->children) {
+            traverse_to_find_matches(matches, pattern, pos + 1, pair.second, fragment + pair.first);
+        }
+
+    } else if (node->children.find(pattern.at(pos)) != node->children.end()) {
+        // next letter progresses towards a valid word, continue
+        ss << "traversing for letter " << pattern.at(pos);
+        utils->print_msg(&ss, DEBUG);
+        traverse_to_find_matches(matches, pattern, pos + 1, node->children[pattern.at(pos)], fragment + pattern.at(pos));
+
+    } else {
+        // this is a dead end, do nothing
+    }
+}
 
 /**
  * @brief checks if trie contains words with a specific letter at a specific index
