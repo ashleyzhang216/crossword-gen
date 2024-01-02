@@ -15,6 +15,7 @@ WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
 CWTRIE_DIR=cw_trie
+LIB_SRC_DIR=lib/src
 
 # test dirs
 CATCH_DIR=catch
@@ -69,7 +70,6 @@ HFILES = \
 		\
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder.h \
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder_data_types.h \
-		$(SRC_DIR)/$(WORDFINDER_DIR)/json.hpp \
 		$(TEST_DIR)/$(WORDFINDER_DIR)/word_finder_test_driver.h \
 		\
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword.h \
@@ -84,6 +84,7 @@ HFILES = \
 		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie_data_types.h \
 		$(TEST_DIR)/$(CWTRIE_DIR)/cw_trie_test_driver.h \
 		\
+		$(SRC_DIR)/$(LIB_SRC_DIR)/json.hpp \
 		$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \
 
 $(BIN) : $(OFILES)

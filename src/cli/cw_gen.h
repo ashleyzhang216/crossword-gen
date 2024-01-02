@@ -14,7 +14,7 @@
 #include "../cw_csp/cw_csp.h"
 #include "../word_finder/word_finder.h"
 #include "cw_gen_data_types.h"
-#include "cxxopts.hpp"
+#include "../lib/src/cxxopts.hpp"
 
 using namespace common_parent_ns;
 using namespace common_data_types_ns;

@@ -8,7 +8,7 @@
 #define WORD_FINDER_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
-#include "json.hpp"
+#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
 using json = nlohmann::json;
