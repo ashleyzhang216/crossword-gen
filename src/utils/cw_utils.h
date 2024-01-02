@@ -62,6 +62,7 @@ struct assertion_failure_exception : public exception {
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
+ * TODO: switch to using shared_ptr
  * 
  * @param lhs ptr to lhs set
  * @param rhs ptr to rhs set

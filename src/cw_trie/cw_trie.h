@@ -22,8 +22,8 @@ namespace cw_trie_ns {
             // base constructor
             cw_trie(string name);
 
-            // add word to trie
-            void add_word(word_t& w);
+            // add word to trie, TODO: should this be by reference?
+            void add_word(word_t w); 
 
             // find all words that match a pattern
             void find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern);

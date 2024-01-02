@@ -22,7 +22,7 @@ cw_trie::cw_trie(string name) : common_parent(name) {
  * 
  * @param word the word to add
 */
-void cw_trie::add_word(word_t& w) {
+void cw_trie::add_word(word_t w) {
     // update word counts in letters_at_indices
     word_map.insert({w.word, w});
     for(uint i = 0; i < w.word.size(); i++) {
