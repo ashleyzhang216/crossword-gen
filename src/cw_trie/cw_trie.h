@@ -29,16 +29,17 @@ namespace cw_trie_ns {
             void find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern);
 
             // read function for entries in letters_at_indices
-            bool has_letters_at_index(uint index, char letter) const;
+            uint num_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
             void remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter);
 
+            // expose letters_at_indicies for testing
+            array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
+
             // TODO: maybe add something to undo the previous call to remove_matching_words()
 
             // TODO: maybe add something to represent setting the domain to a single value
-
-            // TODO: add functions to expose trie & letters_at_indices for testing
         
         private:
             // trie of all words

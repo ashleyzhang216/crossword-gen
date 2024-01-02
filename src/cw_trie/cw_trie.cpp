@@ -14,7 +14,7 @@ using namespace cw_trie_ns;
  * @param name the name of this block
 */
 cw_trie::cw_trie(string name) : common_parent(name) {
-    trie = make_shared<trie_node>(true, false, '_', nullptr);
+    trie = make_shared<trie_node>(false, '_', nullptr);
 }
 
 /**
@@ -49,7 +49,7 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
 
     // create child node if it doesn't exist yet
     if(node->children.find(word.at(pos)) == node->children.end()) {
-        node->children.insert({word.at(pos), make_shared<trie_node>(false, false, word.at(pos), node)});
+        node->children.insert({word.at(pos), make_shared<trie_node>(false, word.at(pos), node)});
 
         // update nodes in letters_at_indices
         letters_at_indices[pos][(size_t)(word.at(pos) - 'a')].nodes.insert(node->children.at(word.at(pos)));
@@ -116,15 +116,15 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
 }
 
 /**
- * @brief checks if trie contains words with a specific letter at a specific index
+ * @brief checks number of words in trie with a specific letter at a specific index
  * 
  * @param index the index to check
  * @param letter the letter to check, 'a' <= letter <= 'z'
- * @returns true iff letters_at_indices[index][letter].num_words > 0
+ * @returns letters_at_indices[index][letter].num_words
 */
-bool cw_trie::has_letters_at_index(uint index, char letter) const {
+uint cw_trie::num_letters_at_index(uint index, char letter) const {
     assert('a' <= letter && letter <= 'z');
-    return letters_at_indices[index][(size_t)(letter - 'a')].num_words > 0;
+    return letters_at_indices[index][(size_t)(letter - 'a')].num_words;
 }
 
 // deletion function for words with letters at an index

@@ -16,18 +16,17 @@ namespace cw_trie_data_types_ns {
      * @brief node for cw_trie
     */
     struct trie_node {
-        bool is_root; // true only for top root node
         bool valid; // true iff this node terminates a valid word
         char letter;
 
-        // ptr to parent
+        // ptr to parent, nullptr if is_root
         weak_ptr<trie_node> parent;
 
         // ptr to child words
         unordered_map<char, shared_ptr<trie_node> > children;
 
         // constructor to initialize new words/head
-        trie_node(bool r, bool v, char l, shared_ptr<trie_node> p) : is_root(r), valid(v), letter(l), parent(p) {}
+        trie_node(bool v, char l, shared_ptr<trie_node> p) : valid(v), letter(l), parent(p) {}
     };
 
     /**
