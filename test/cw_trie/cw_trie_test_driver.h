@@ -20,12 +20,22 @@ namespace cw_trie_test_driver_ns {
     class cw_trie_test_driver : public common_parent {
         public:
             // base constructor
+            cw_trie_test_driver(string name);
+
+            // constructor with initial contents
             cw_trie_test_driver(string name, string filepath);
 
             // basic directed test for trie & find_matches()
             bool test_trie_basic(string pattern, unordered_set<word_t>& ground_truth);
 
             // TODO: add basic directed test for letters_at_indicies
+            bool test_letters_at_indicies_basic(
+                vector<word_t> words,
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
+                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
+                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+            );
 
             // destructor, all objects are raii and should delete automatically
             ~cw_trie_test_driver() = default;
@@ -33,5 +43,12 @@ namespace cw_trie_test_driver_ns {
         private:
             // design under test
             unique_ptr<cw_trie> dut;
+
+            // helper function for test_letters_at_indicies_basic()
+            bool letters_at_indicies_entries_equal(
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
+                array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
+                bool test_num_words
+            );
     }; // cw_trie_test_driver
 } // cw_trie_test_driver_ns

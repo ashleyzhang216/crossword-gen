@@ -20,17 +20,39 @@ cw_trie::cw_trie(string name) : common_parent(name) {
 /**
  * @brief adds word to word tree, updates letters_at_indices
  * 
- * @param word the word to add
+ * @param word the word to add, duplicates do nothing
 */
 void cw_trie::add_word(word_t w) {
-    // update word counts in letters_at_indices
-    word_map.insert({w.word, w});
-    for(uint i = 0; i < w.word.size(); i++) {
-        assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
-        letters_at_indices[i][(size_t)(w.word.at(i) - 'a')].num_words++;
-    }
+    if(word_map.find(w.word) == word_map.end()) {
 
-    add_word_to_trie(trie, w.word, 0);
+        word_map.insert({w.word, w});
+
+        // update word counts in letters_at_indices
+        for(uint i = 0; i < w.word.size(); i++) {
+            assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
+            letters_at_indices[i][(size_t)(w.word.at(i) - 'a')].num_words++;
+        }
+
+        add_word_to_trie(trie, w.word, 0);
+
+        ss << "num_words: " << endl;
+        for(uint i = 0; i < MAX_WORD_LEN; i++) {
+            for(char c = 'a'; c <= 'z'; c++) {
+                ss << letters_at_indices[i][(size_t)(c - 'a')].num_words << " ";
+            }
+            ss << endl;
+        }
+        utils->print_msg(&ss, DEBUG);
+
+        ss << "num nodes: " << endl;
+        for(uint i = 0; i < MAX_WORD_LEN; i++) {
+            for(char c = 'a'; c <= 'z'; c++) {
+                ss << letters_at_indices[i][(size_t)(c - 'a')].nodes.size() << " ";
+            }
+            ss << endl;
+        }
+        utils->print_msg(&ss, DEBUG);
+    }
 }
 
 /**
