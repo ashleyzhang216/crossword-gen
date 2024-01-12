@@ -33,9 +33,12 @@ namespace cw_trie_data_types_ns {
      * @brief entry in letters_at_indices
     */
     struct letters_table_entry {
+        // number of words with a specific letter at a specific index
         uint num_words;
 
-        // all nodes that 
+        // all nodes that match this specific letter and index
+        // uses shared_ptr to support easier undos of calls to remove_matching_words() in the future 
+        // after remove_matching_words() is called, ptrs to nodes are still kept here as a backup and can be restored if needed
         unordered_set<shared_ptr<trie_node> > nodes;
 
         // base constructor
