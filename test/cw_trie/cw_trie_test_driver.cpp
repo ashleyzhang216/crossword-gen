@@ -99,6 +99,26 @@ bool cw_trie_test_driver::test_letters_at_indicies_basic(
 }
 
 /**
+ * @brief check if all rows in num_words sum to total valid words for case where word length is equal
+ * 
+ * @param num_words state of num_words table
+ * @param word_len rval ref length of all words added to num_words
+ * @param total_words rval ref to total valid (non duplicate) words in num_words
+ * @returns true iff all row sums are as expected
+*/
+bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
+    uint&& word_len, uint&& total_words
+) {
+    bool result = true;
+    for(uint i = 0; i < word_len; i++) {
+        result &= check_condition("letters_at_indicies row sum", std::accumulate(std::begin(num_words[i]), std::end(num_words[i]), 0u) == total_words);
+    }
+
+    return result;
+}
+
+/**
  * @brief checks if each entry's num_words or children.size() are equal
  * 
  * @param expected expected array

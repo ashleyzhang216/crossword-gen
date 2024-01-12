@@ -118,12 +118,5 @@ TEST_CASE("cw_trie letters_at_indicies-same_len", "[cw_trie],[quick]") {
     num_duplicates++;
 
     REQUIRE(driver->test_letters_at_indicies_basic(words, init_words, init_nodes, num_words_truth, num_nodes_truth));
-
-    const uint word_len = 5;
-    bool row_sum_equal = true;
-    for(uint i = 0; i < word_len; i++) {
-        row_sum_equal &= (std::accumulate(std::begin(num_words[i]), std::end(num_words[i]), 0u) == words.size() - num_duplicates);
-    }
-
-    REQUIRE(row_sum_equal);
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, 5, static_cast<uint>(words.size() - num_duplicates)));
 }

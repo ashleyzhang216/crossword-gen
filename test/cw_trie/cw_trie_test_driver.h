@@ -28,13 +28,19 @@ namespace cw_trie_test_driver_ns {
             // basic directed test for trie & find_matches()
             bool test_trie_basic(string pattern, unordered_set<word_t>& ground_truth);
 
-            // TODO: add basic directed test for letters_at_indicies
+            // basic directed test for letters_at_indicies
             bool test_letters_at_indicies_basic(
                 vector<word_t> words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+            );
+
+            // basic test to check if alls row sums equal to word length for cw_variable use case
+            bool test_letters_at_indicies_row_sums(
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
+                uint&& word_len, uint&& total_words
             );
 
             // destructor, all objects are raii and should delete automatically
