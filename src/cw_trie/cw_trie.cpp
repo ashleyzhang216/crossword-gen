@@ -215,6 +215,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
 
         pruned_words->insert(word_map.at(fragment + node->letter));
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
+        word_map.erase(fragment + node->letter);
         return 1;
     }
 
