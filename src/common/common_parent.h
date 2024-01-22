@@ -17,7 +17,7 @@ namespace common_parent_ns {
     class common_parent {
         public:
             string name;
-            cw_utils* utils;
+            cw_utils* utils; // TODO: make this unique_ptr
             stringstream ss;
 
             // base constructor

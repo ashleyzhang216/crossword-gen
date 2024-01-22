@@ -26,6 +26,7 @@ namespace cw_trie_ns {
             void add_word(word_t w); 
 
             // find all words that match a pattern
+            // TODO: add const correctness
             void find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern);
 
             // read function for entries in letters_at_indices
@@ -36,6 +37,9 @@ namespace cw_trie_ns {
 
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
+
+            // expose word_map for testing
+            unordered_map<string, word_t> get_word_map() { return word_map; }
 
             // TODO: maybe add something to undo the previous call to remove_matching_words()
 
@@ -55,6 +59,7 @@ namespace cw_trie_ns {
             void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);
 
             // helper function for find_matches()
+            // TODO: add const correctness
             void traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
 
             // upwards recursive deletion helper func for remove_matching_words()
