@@ -52,6 +52,9 @@ namespace cw_trie_test_driver_ns {
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
             );
 
+            // basic check after remove tests that word_map is empty
+            bool test_word_map_empty() { return dut->get_word_map().size() == 0; }
+
             // destructor, all objects are raii and should delete automatically
             ~cw_trie_test_driver() = default;
 

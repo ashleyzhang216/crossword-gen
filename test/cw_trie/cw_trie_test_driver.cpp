@@ -154,9 +154,8 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
+        result &= check_condition("word_map size preserved", init_word_map_size == pruned_words->size() + dut->get_word_map().size());
     }
-
-    result &= check_condition("word_map size preserved", init_word_map_size == pruned_words->size() + dut->get_word_map().size());
 
     return result;
 }
@@ -184,7 +183,7 @@ bool cw_trie_test_driver::letters_at_indicies_entries_equal(
             ) {
                 ss << "letters_at_indicies_entries_equal() inequal at index: " << i << ", letter: " << j << ", test_num_words: " << test_num_words 
                    << ", expected: " << expected[i][j] << ", actual nodes: " << ground_truth[i][j].nodes.size() << ", actual words: " << ground_truth[i][j].num_words;
-                utils->print_msg(&ss, INFO);
+                utils->print_msg(&ss, WARNING);
                 result = false;
             }
         }
