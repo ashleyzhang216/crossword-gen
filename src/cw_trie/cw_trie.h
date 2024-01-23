@@ -35,6 +35,9 @@ namespace cw_trie_ns {
             // deletion function for words with letters at an index
             void remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter);
 
+            // assign domain to a single value. can call to change assigned value but cannot unassign domain 
+            void assign_domain(string new_value) { assigned = true; value = new_value; }
+
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
 
@@ -42,8 +45,6 @@ namespace cw_trie_ns {
             unordered_map<string, word_t> get_word_map() { return word_map; }
 
             // TODO: maybe add something to undo the previous call to remove_matching_words()
-
-            // TODO: maybe add something to represent setting the domain to a single value
         
         private:
             // trie of all words
@@ -54,6 +55,12 @@ namespace cw_trie_ns {
 
             // stores # of words with letters at each index
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
+
+            // true iff domain has been assigned to a single value --> ignore trie
+            bool assigned;
+
+            // meaningful iff assigned true, if doesn't have value, then domain is empty
+            optional<string> value;
 
             // helper function for add_word()
             void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);

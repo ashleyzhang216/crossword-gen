@@ -46,6 +46,7 @@ using std::unordered_map;
 using std::hash;
 using std::array;
 using std::pair;
+using std::optional;
 
 // RAII
 using std::shared_ptr;
