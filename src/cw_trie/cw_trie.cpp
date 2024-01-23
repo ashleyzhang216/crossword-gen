@@ -154,17 +154,18 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
  * @warning behavior undefined if called from word_finder, only supports calls from cw_variable
  * 
  * @param pruned_words ptr to hashset to copy prune words to
- * @param index the index to remove
+ * @param index the index to remove in the word(s)
  * @param letter the letter to remove, 'a' <= letter <= 'z'
 */
 void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter) {
     // downwards removal
+    // need to make copy since removing from set being iterated on, should deallocate when out of scope
+    unordered_set<shared_ptr<trie_node> > nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
     uint num_leafs;
-    for(shared_ptr<trie_node> node : letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes) {
-        num_leafs = remove_children(node, pruned_words, index, get_fragment(node));
-
+    for(shared_ptr<trie_node> node : nodes_copy) {
         if(shared_ptr<trie_node> parent = node->parent.lock()) {
-            remove_from_parents(parent, num_leafs, index - 1, letter);
+            num_leafs = remove_children(node, pruned_words, index, get_fragment(parent));
+            remove_from_parents(node, num_leafs, static_cast<int>(index), true);
         } else {
             ss << "parent of node index " << index << ", letter " << letter << " deleted early";
             utils->print_msg(&ss, ERROR);
@@ -175,21 +176,33 @@ void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_wo
 /**
  * @brief upwards helper for remove_matching_words(), updates letters_at_indices and removes nodes without remaining valid leafs
  * 
- * @param node this parent node of whom a child may be removed
+ * @param node this node which may be removed from its parent 
  * @param num_leafs number of valid words/leafs removed from the original call to remove_matching_words()
- * @param depth depth of this parent node in trie or letter index in the word
- * @param child char of the child node of this parent that may be removed if it contains no more valid leafs
+ * @param index depth of this node in trie or letter index in the word, root trie node defined as index/depth -1
+ * @param letters_at_indices_updated true iff node is a node remove_children() was already called on, to avoid double updating
+ * @note letters_at_indices_updated should only be true on the first recursive call for each node iterated on in remove_matching_words()
 */
-void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, uint index, char child) {
+void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated) {
+
     // check for base case of reached root node of trie
     if(shared_ptr<trie_node> parent = node->parent.lock()) {
-        // check if child node has no valid leafs of its own and thus should be removed
-        if(node->children.at(child)->children.size() == 0) {
-            node->children.erase(child);
+
+        // check if node has no valid leafs of its own and thus should be removed from parent
+        if(node->children.size() == 0) {
+            // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
+            if(!letters_at_indices_updated) {
+                letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].nodes.erase(node);
+            }
+            parent->children.erase(node->letter);
         }
 
-        letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
-        remove_from_parents(parent, num_leafs, index - 1, node->letter);
+        // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
+        if(!letters_at_indices_updated) { 
+            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
+        }
+
+        // recurse upwards
+        remove_from_parents(parent, num_leafs, index - 1, false);
     }
 }
 
@@ -199,30 +212,31 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, u
  * 
  * @param node current node whose children (not itself) will be removed
  * @param pruned_words ptr to hashset to write removed words to
- * @param index depth of this node in trie or letter index in the word
+ * @param index depth of this parent node in trie or letter index in the word
  * @param fragment fragment of word up to but not including this node
  * @returns number of words/leaf nodes removed
 */
 uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_set<word_t> > pruned_words, uint index, string fragment) {
     // TODO: change this when undos to calls to remove_matching_words() are implemented
     assert(letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.count(node) > 0);
-    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node);
+    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node); 
+    string fragment_with_cur_node = fragment + node->letter;
 
     // base case for leaf nodes
     if(node->valid) {
         // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
         assert(node->children.size() == 0);
 
-        pruned_words->insert(word_map.at(fragment + node->letter));
+        pruned_words->insert(word_map.at(fragment_with_cur_node));
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
-        word_map.erase(fragment + node->letter);
+        word_map.erase(fragment_with_cur_node);
         return 1;
     }
 
     // recursive calls to children
     uint num_leafs = 0;
     for(const auto& pair : node->children) {
-        num_leafs += remove_children(pair.second, pruned_words, index + 1, fragment + node->letter);
+        num_leafs += remove_children(pair.second, pruned_words, index + 1, fragment_with_cur_node);
     }
 
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;

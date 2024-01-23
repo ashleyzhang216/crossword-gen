@@ -122,22 +122,22 @@ bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
  * @brief basic directed cw_trie test for letters_at_indicies after removal calls
  * 
  * @param init_words words to add at once before removal calls
- * @param remove_words words to remove, in order, size must be equal to num_words_ground_truths, num_nodes_ground_truths
+ * @param remove_params words to remove, in order, size must be equal to num_words_ground_truths, num_nodes_ground_truths
  * @param initial_num_words initial state of num_words in letters_at_indices
  * @param initial_num_nodes initial state of nodes.size() in letters_at_indices
- * @param num_words_ground_truths expected num_words after each call to remove_matching_words(), size must be equal as remove_words, num_nodes_ground_truths
- * @param num_nodes_ground_truths expected size() of children nodes after each call to remove_matching_words(), size must be equal as num_words_ground_truths, remove_words
+ * @param num_words_ground_truths expected num_words after each call to remove_matching_words(), size must be equal as remove_params, num_nodes_ground_truths
+ * @param num_nodes_ground_truths expected size() of children nodes after each call to remove_matching_words(), size must be equal as num_words_ground_truths, remove_params
  * @returns true iff letters_at_indices equal to expected at every step 
 */
 bool cw_trie_test_driver::test_letters_at_indicies_remove(
-    vector<word_t> init_words, vector<pair<uint, char> > remove_words,
+    vector<word_t> init_words, vector<pair<uint, char> > remove_params,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
     vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
     vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
 ) {
     bool result = true;
-    assert(remove_words.size() == num_words_ground_truths.size()); 
+    assert(remove_params.size() == num_words_ground_truths.size()); 
     assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
 
     for(word_t word : init_words) dut->add_word(word);
@@ -148,8 +148,8 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
 
     shared_ptr<unordered_set<word_t> > pruned_words = make_shared<unordered_set<word_t> >();
     const size_t init_word_map_size = dut->get_word_map().size();
-    for(uint i = 0; i < remove_words.size(); i++) {
-        dut->remove_matching_words(pruned_words, remove_words[i].first, remove_words[i].second);
+    for(uint i = 0; i < remove_params.size(); i++) {
+        dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
         letters_at_indices = dut->get_letters_at_indices();
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
@@ -182,8 +182,8 @@ bool cw_trie_test_driver::letters_at_indicies_entries_equal(
                 (test_num_words  && expected[i][j] != ground_truth[i][j].num_words) || 
                 (!test_num_words && expected[i][j] != ground_truth[i][j].nodes.size())
             ) {
-                ss << "letters_at_indicies_entries_equal() inequal at i: " << i << ", j: " << j << ", test_num_words: " << test_num_words 
-                   << ", expected: " << expected[i][j] << ", actual: " << ground_truth[i][j].nodes.size();
+                ss << "letters_at_indicies_entries_equal() inequal at index: " << i << ", letter: " << j << ", test_num_words: " << test_num_words 
+                   << ", expected: " << expected[i][j] << ", actual nodes: " << ground_truth[i][j].nodes.size() << ", actual words: " << ground_truth[i][j].num_words;
                 utils->print_msg(&ss, INFO);
                 result = false;
             }

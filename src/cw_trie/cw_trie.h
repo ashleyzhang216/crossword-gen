@@ -63,7 +63,7 @@ namespace cw_trie_ns {
             void traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
 
             // upwards recursive deletion helper func for remove_matching_words()
-            void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, uint index, char child);
+            void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
 
             // downwards recursive deletion helper func for remove_matching_words()
             uint remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_set<word_t> > pruned_words, uint index, string fragment);

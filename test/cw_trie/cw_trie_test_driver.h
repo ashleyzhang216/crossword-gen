@@ -45,7 +45,7 @@ namespace cw_trie_test_driver_ns {
 
             // basic directed test for letters_at_indicies state after calling removal func
             bool test_letters_at_indicies_remove(
-                vector<word_t> init_words, vector<pair<uint, char> > remove_words,
+                vector<word_t> init_words, vector<pair<uint, char> > remove_params,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
