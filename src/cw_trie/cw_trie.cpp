@@ -21,37 +21,42 @@ cw_trie::cw_trie(string name) : common_parent(name) {
  * @brief adds word to word tree, updates letters_at_indices
  * 
  * @param word the word to add, duplicates do nothing
+ * @note if domain assigned, this will overwrite the domain value
 */
 void cw_trie::add_word(word_t w) {
-    if(word_map.find(w.word) == word_map.end()) {
+    if(assigned) {
+        // TODO: implement
+    } else {
+        if(word_map.find(w.word) == word_map.end()) {
 
-        word_map.insert({w.word, w});
+            word_map.insert({w.word, w});
 
-        // update word counts in letters_at_indices
-        for(uint i = 0; i < w.word.size(); i++) {
-            assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
-            letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
-        }
-
-        add_word_to_trie(trie, w.word, 0);
-
-        ss << "num_words: " << endl;
-        for(uint i = 0; i < MAX_WORD_LEN; i++) {
-            for(char c = 'a'; c <= 'z'; c++) {
-                ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].num_words << " ";
+            // update word counts in letters_at_indices
+            for(uint i = 0; i < w.word.size(); i++) {
+                assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
+                letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
-            ss << endl;
-        }
-        utils->print_msg(&ss, DEBUG);
 
-        ss << "num nodes: " << endl;
-        for(uint i = 0; i < MAX_WORD_LEN; i++) {
-            for(char c = 'a'; c <= 'z'; c++) {
-                ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].nodes.size() << " ";
+            add_word_to_trie(trie, w.word, 0);
+
+            ss << "num_words: " << endl;
+            for(uint i = 0; i < MAX_WORD_LEN; i++) {
+                for(char c = 'a'; c <= 'z'; c++) {
+                    ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].num_words << " ";
+                }
+                ss << endl;
             }
-            ss << endl;
+            utils->print_msg(&ss, DEBUG);
+
+            ss << "num nodes: " << endl;
+            for(uint i = 0; i < MAX_WORD_LEN; i++) {
+                for(char c = 'a'; c <= 'z'; c++) {
+                    ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].nodes.size() << " ";
+                }
+                ss << endl;
+            }
+            utils->print_msg(&ss, DEBUG);
         }
-        utils->print_msg(&ss, DEBUG);
     }
 }
 
@@ -86,6 +91,7 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
  * 
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
+ * @note behavior undefined if domain assigned, only intended to be called from word_finder
 */
 void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
     traverse_to_find_matches(matches, pattern, 0, trie, "");
@@ -146,6 +152,9 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
 */
 uint cw_trie::num_letters_at_index(uint index, char letter) const {
     assert('a' <= letter && letter <= 'z');
+    if(assigned) {
+        return (assigned_value.has_value() && assigned_value.value().at(index) == letter) ? 1 : 0;
+    }
     return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
 }
 
@@ -158,17 +167,28 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
  * @param letter the letter to remove, 'a' <= letter <= 'z'
 */
 void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter) {
-    // downwards removal
-    // need to make copy since removing from set being iterated on, should deallocate when out of scope
-    unordered_set<shared_ptr<trie_node> > nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
-    uint num_leafs;
-    for(shared_ptr<trie_node> node : nodes_copy) {
-        if(shared_ptr<trie_node> parent = node->parent.lock()) {
-            num_leafs = remove_children(node, pruned_words, index, get_fragment(parent));
-            remove_from_parents(node, num_leafs, static_cast<int>(index), true);
-        } else {
-            ss << "parent of node index " << index << ", letter " << letter << " deleted early";
-            utils->print_msg(&ss, ERROR);
+    if(assigned) { // assigned value
+        if(assigned_value.has_value() && assigned_value.value().at(index) == letter) {
+            pruned_words->insert(assigned_value.value());
+            assigned_value.reset();
+
+            // TODO: update letters_at_indices
+        }
+    } else { // regular case
+        // need to make copy since removing from set being iterated on, should deallocate when out of scope
+        unordered_set<shared_ptr<trie_node> > nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
+        uint num_leafs;
+        for(shared_ptr<trie_node> node : nodes_copy) {
+            if(shared_ptr<trie_node> parent = node->parent.lock()) {
+                // downwards removal in trie
+                num_leafs = remove_children(node, pruned_words, index, get_fragment(parent));
+
+                // upwards removal in trie
+                remove_from_parents(node, num_leafs, static_cast<int>(index), true);
+            } else {
+                ss << "parent of node index " << index << ", letter " << letter << " deleted early";
+                utils->print_msg(&ss, ERROR);
+            }
         }
     }
 }
@@ -242,6 +262,16 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
     node->children.clear(); // remove children
     return num_leafs;
+}
+
+/**
+ * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
+*/
+size_t cw_trie::domain_size() {
+    if(assigned) {
+        return assigned_value.has_value() ? 1l : 0l;
+    }
+    return word_map.size();
 }
 
 /**

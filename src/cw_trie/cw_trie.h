@@ -36,7 +36,10 @@ namespace cw_trie_ns {
             void remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter);
 
             // assign domain to a single value. can call to change assigned value but cannot unassign domain 
-            void assign_domain(string new_value) { assigned = true; value = new_value; }
+            void assign_domain(string new_value) { assigned = true; assigned_value = new_value; }
+
+            // get size of domain remaining, for ac3 validity checking
+            size_t domain_size();
 
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
@@ -54,13 +57,14 @@ namespace cw_trie_ns {
             unordered_map<string, word_t> word_map;
 
             // stores # of words with letters at each index
+            // contents undefined if domain assigned
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
 
             // true iff domain has been assigned to a single value --> ignore trie
             bool assigned;
 
             // meaningful iff assigned true, if doesn't have value, then domain is empty
-            optional<string> value;
+            optional<string> assigned_value;
 
             // helper function for add_word()
             void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);
