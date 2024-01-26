@@ -25,7 +25,9 @@ cw_trie::cw_trie(string name) : common_parent(name) {
 */
 void cw_trie::add_word(word_t w) {
     if(assigned) {
-        // TODO: implement
+        assigned_value = w;
+
+        // letters_at_indices not updated since it's contents are undefined if assigned
     } else {
         if(word_map.find(w.word) == word_map.end()) {
 
@@ -153,7 +155,7 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
 uint cw_trie::num_letters_at_index(uint index, char letter) const {
     assert('a' <= letter && letter <= 'z');
     if(assigned) {
-        return (assigned_value.has_value() && assigned_value.value().at(index) == letter) ? 1 : 0;
+        return (assigned_value.has_value() && assigned_value.value().word.at(index) == letter) ? 1 : 0;
     }
     return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
 }
@@ -168,11 +170,11 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
 */
 void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter) {
     if(assigned) { // assigned value
-        if(assigned_value.has_value() && assigned_value.value().at(index) == letter) {
+        if(assigned_value.has_value() && assigned_value.value().word.at(index) == letter) {
             pruned_words->insert(assigned_value.value());
             assigned_value.reset();
 
-            // TODO: update letters_at_indices
+            // letters_at_indices not updated since it's contents are undefined if assigned
         }
     } else { // regular case
         // need to make copy since removing from set being iterated on, should deallocate when out of scope
