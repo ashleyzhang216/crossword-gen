@@ -196,3 +196,45 @@ TEST_CASE("cw_trie remove_matching_words-letters_at_indicies", "[cw_trie],[quick
     REQUIRE(driver->test_letters_at_indicies_remove(init_words, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
     REQUIRE(driver->test_word_map_empty());
 }
+
+/**
+ * more complex test mixing adding and removing
+*/
+TEST_CASE("cw_trie adding_removing", "[cw_trie],[quick]") {
+    REQUIRE(false);
+}
+
+/**
+ * basic test for assigning domain values
+*/
+TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-assigning-basic");
+
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
+    driver->add_words({word_t("bread")});
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
+
+    driver->assign_domain(word_t("hello"));
+    REQUIRE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
+    driver->assign_domain(word_t("jumps"));
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
+    REQUIRE(driver->test_num_letters_at_indicies_assign(word_t("jumps")));
+    driver->unassign_domain();
+    REQUIRE(driver->test_num_letters_at_indicies_assign(word_t("bread")));
+    driver->add_words({word_t("jumps")});
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("jumps")));
+    driver->assign_domain(word_t("jumps"));
+    REQUIRE(driver->test_num_letters_at_indicies_assign(word_t("jumps")));
+    driver->add_words({word_t("skate"), word_t("axels"), word_t("flips")});
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
+    REQUIRE(driver->test_num_letters_at_indicies_assign(word_t("flips")));
+    driver->unassign_domain();
+    REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("flips")));
+}
+
+/**
+ * more complex test mixing adding, removing, and assigning
+*/
+TEST_CASE("cw_trie adding_removing_assigning", "[cw_trie],[quick]") {
+    REQUIRE(false);
+}

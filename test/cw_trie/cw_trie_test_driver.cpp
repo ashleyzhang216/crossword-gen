@@ -161,6 +161,27 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
 }
 
 /**
+ * @brief checks that num_letters_at_index() is consistent with assigning a specific word as the domain
+ * @note does not actually assign the domain 
+ * 
+ * @param value word to assign as the new domain
+ * @returns true iff num_letters_at_index() works correctly
+*/
+bool cw_trie_test_driver::test_num_letters_at_indicies_assign(word_t value) {
+    bool result = true;
+
+    uint expected_val;
+    for(uint i = 0; i < MAX_WORD_LEN; i++) {
+        for(char c = 'a'; c <= 'z'; c++) {
+            expected_val = (i < value.word.size() && value.word.at(i) == c) ? 1l : 0l; 
+            result &= dut->num_letters_at_index(i, c) == expected_val;
+        }
+    }
+
+    return result;
+}
+
+/**
  * @brief checks if each entry's num_words or children.size() are equal
  * 
  * @param expected expected array

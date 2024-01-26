@@ -155,7 +155,7 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
 uint cw_trie::num_letters_at_index(uint index, char letter) const {
     assert('a' <= letter && letter <= 'z');
     if(assigned) {
-        return (assigned_value.has_value() && assigned_value.value().word.at(index) == letter) ? 1 : 0;
+        return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1l : 0l;
     }
     return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
 }
