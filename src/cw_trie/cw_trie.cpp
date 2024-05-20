@@ -210,6 +210,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
     if(shared_ptr<trie_node> parent = node->parent.lock()) {
 
         // check if node has no valid leafs of its own and thus should be removed from parent
+        // TODO: commented out to re-implement via more efficient node pruning for restoring words after a call to remove_matching_words
         if(node->children.size() == 0) {
             // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
             if(!letters_at_indices_updated) {

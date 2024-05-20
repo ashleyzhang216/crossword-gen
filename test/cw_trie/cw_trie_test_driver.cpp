@@ -71,7 +71,7 @@ bool cw_trie_test_driver::test_trie_basic(string pattern, unordered_set<word_t>&
  * @param num_nodes_ground_truths expected size() of children nodes after each call to add_word(), size must be equal as num_words_ground_truths, words
  * @returns true iff letters_at_indices equal to expected at every step 
 */
-bool cw_trie_test_driver::test_letters_at_indicies_basic(
+bool cw_trie_test_driver::test_letters_at_indicies_add(
     vector<word_t> words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
@@ -103,12 +103,12 @@ bool cw_trie_test_driver::test_letters_at_indicies_basic(
  * 
  * @param num_words state of num_words table
  * @param word_len rval ref length of all words added to num_words
- * @param total_words rval ref to total valid (non duplicate) words in num_words
+ * @param total_words total valid (non duplicate) words in num_words
  * @returns true iff all row sums are as expected
 */
 bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
-    uint&& word_len, uint&& total_words
+    uint&& word_len, uint total_words
 ) {
     bool result = true;
     for(uint i = 0; i < word_len; i++) {

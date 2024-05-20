@@ -29,7 +29,7 @@ namespace cw_trie_test_driver_ns {
             bool test_trie_basic(string pattern, unordered_set<word_t>& ground_truth);
 
             // basic directed test for letters_at_indicies
-            bool test_letters_at_indicies_basic(
+            bool test_letters_at_indicies_add(
                 vector<word_t> words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
@@ -40,7 +40,7 @@ namespace cw_trie_test_driver_ns {
             // basic test to check if alls row sums equal to word length for cw_variable use case
             bool test_letters_at_indicies_row_sums(
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
-                uint&& word_len, uint&& total_words
+                uint&& word_len, uint total_words
             );
 
             // basic directed test for letters_at_indicies state after calling removal func
@@ -60,6 +60,9 @@ namespace cw_trie_test_driver_ns {
 
             // expose basic functionalities for dut 
             void add_words(vector<word_t> words) { for(word_t w : words) dut->add_word(w); }
+            void remove_words(shared_ptr<unordered_set<word_t> > pruned_words, vector<pair<uint, char> > remove_params) { 
+                for(const auto& pair : remove_params) dut->remove_matching_words(pruned_words, pair.first, pair.second);
+            }
             void assign_domain(word_t word) { dut->assign_domain(word); }
             void unassign_domain() { dut->unassign_domain(); }
 
@@ -70,7 +73,7 @@ namespace cw_trie_test_driver_ns {
             // design under test
             unique_ptr<cw_trie> dut;
 
-            // helper function for test_letters_at_indicies_basic()
+            // helper function for test_letters_at_indicies_add()
             bool letters_at_indicies_entries_equal(
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
                 array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
