@@ -13,7 +13,9 @@ COMMON_DIR=common
 WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
+CWTRIE_DIR=cw_trie
 CWGEN_DIR=cli
+LIB_SRC_DIR=lib/src
 
 # g++ settings
 D = -D
@@ -44,6 +46,9 @@ OFILES = \
 		cw_csp.o \
 		cw_csp_data_types.o \
 		\
+		cw_trie.o \
+		cw_trie_data_types.o \
+		\
 		cw_gen.o \
 
 # full path of all header files to build
@@ -54,7 +59,6 @@ HFILES = \
 		\
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder.h \
 		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder_data_types.h \
-		$(SRC_DIR)/$(WORDFINDER_DIR)/json.hpp \
 		\
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword.h \
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword_data_types.h \
@@ -62,9 +66,14 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp.h \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		\
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie.h \
+		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie_data_types.h \
+		\
 		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen.h \
 		$(SRC_DIR)/$(CWGEN_DIR)/cw_gen_data_types.h \
-		$(SRC_DIR)/$(CWGEN_DIR)/cxxopts.hpp \
+		\
+		$(SRC_DIR)/$(LIB_SRC_DIR)/cxxopts.hpp \
+		$(SRC_DIR)/$(LIB_SRC_DIR)/json.hpp \
 
 $(BIN) : $(OFILES)
 	$(CXX) $(INC) *.o -o $(BIN)
