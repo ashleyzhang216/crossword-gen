@@ -21,6 +21,12 @@ namespace cw_trie_ns {
         public:
             // base constructor
             cw_trie(string name);
+            
+            // constructor with filepath
+            cw_trie(string name, string filepath);
+
+            // constructor with filepath opt
+            cw_trie(string name, optional<string> filepath_opt);
 
             // add word to trie, TODO: should this be by reference?
             void add_word(word_t w); 
@@ -53,6 +59,9 @@ namespace cw_trie_ns {
             // TODO: maybe add something to undo the previous call to remove_matching_words()
         
         private:
+            // opt file that this object may have read from
+            optional<string> filepath_opt;
+
             // trie of all words
             shared_ptr<trie_node> trie;
 
@@ -69,6 +78,12 @@ namespace cw_trie_ns {
 
             // meaningful iff assigned true, if doesn't have value, then domain is empty
             optional<word_t> assigned_value;
+
+            // helper for filepath constructor to detect file type
+            bool has_suffix(const string& str, const string& suffix);
+
+            // helper for filepath constructor to check if word is legal
+            optional<string> parse_word(const string& word);
 
             // helper function for add_word()
             void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);

@@ -21,26 +21,10 @@ cw_trie_test_driver::cw_trie_test_driver(string name) : common_parent(name) {
  * @brief constructor for cw_trie test driver with initial contents
  * 
  * @param name name of driver
- * @param filepath json files only
+ * @param filepath path to .txt or .json file containing word data
 */
 cw_trie_test_driver::cw_trie_test_driver(string name, string filepath) : common_parent(name) {
-    dut = make_unique<cw_trie>(name);
-
-    // open word file, parse data
-    ifstream word_file(filepath);
-    assert_m(word_file.is_open(), "could not open file " + filepath);
-    json j = json::parse(word_file);
-
-    string word;
-    for(const auto& [item, data] : j.items()) {
-        // no need for parse_word() since incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
-        word = item;
-
-        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
-            dut->add_word(word_t(word, data["Score"], data["Frequency"]));
-        } 
-    }
-    word_file.close();
+    dut = make_unique<cw_trie>(name, filepath);
 }
 
 /**

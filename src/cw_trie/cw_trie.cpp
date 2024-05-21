@@ -9,12 +9,124 @@
 using namespace cw_trie_ns;
 
 /**
- * @brief constructor for cw_trie block
+ * @brief constructor for cw_trie with no filepath
  * 
- * @param name the name of this block
+ * @param name the name of this object
 */
-cw_trie::cw_trie(string name) : common_parent(name) {
+cw_trie::cw_trie(string name) : cw_trie(name, std::nullopt) {
+    // do nothing, delegated to constructor does everything needed
+}
+
+/**
+ * @brief constructor for cw_trie with filepath
+ * 
+ * @param name the name of this object
+ * @param filepath path to .txt or .json file containing word data
+*/
+cw_trie::cw_trie(string name, string filepath) : cw_trie(name, std::make_optional(filepath)) {
+    // do nothing, delegated to constructor does everything needed
+}
+
+/**
+ * @brief constructor for cw_trie with filepath optional
+ * 
+ * @param name the name of this object
+ * @param filepath_opt optional, may contain path to .txt or .json file containing word data
+*/
+cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
+    this->filepath_opt = filepath_opt;
+
+    // if filepath was provided
+    if(filepath_opt.has_value()) {
+        string filepath = filepath_opt.value();
+        string word;
+        optional<string> parsed_word;
+        
+        // TODO: should .txt file support be removed?
+        if(has_suffix(filepath, ".txt")) {
+            // open file
+            ifstream word_file;
+            word_file.open(filepath);
+            assert_m(word_file.is_open(), "could not open txt file " + filepath);
+
+            // parse word file
+            while(getline(word_file, word)) {
+                // check for validity & convert uppercase, remove dashes, etc.
+                parsed_word = parse_word(word);
+
+                // add to word set & tree if valid and of valid size
+                if(parsed_word.has_value()) {
+                    word = parsed_word.value();
+                    
+                    if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+                        add_word(word_t(word));
+                    } 
+                }
+            }
+            word_file.close();
+
+        } else if(has_suffix(filepath, ".json")) {
+            // open word file, parse data
+            ifstream word_file(filepath);
+            assert_m(word_file.is_open(), "could not open json file " + filepath);
+            json j = json::parse(word_file);
+
+            for(const auto& [item, data] : j.items()) {
+                // incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
+                parsed_word = parse_word(item);
+                assert_m(parsed_word.has_value() && parsed_word.value() == item, ".json file input word not clean: " + item);
+                word = item;
+
+                if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+                    add_word(word_t(word, data["Score"], data["Frequency"]));
+                } 
+            }
+            word_file.close();
+
+        } else {
+            ss << "cw_trie got file of invalid type: " << filepath;
+            utils->print_msg(&ss, FATAL);
+            return;
+        }
+    } 
+}
+
+/**
+ * @brief helper for filepath constructor to detect file type
+ * 
+ * @param str string to check the suffix of
+ * @param suffix the suffix to check for
+ * @return true iff str ends with suffix
+*/
+bool cw_trie::has_suffix(const string& str, const string& suffix) {
+    if(str.size() < suffix.size()) return false;
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+/**
+ * @brief helper for filepath constructor to test validity for and parse words
+ * 
+ * @param word the word to test
+ * @return optional containing word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces
+*/
+optional<string> cw_trie::parse_word(const string& word) {
+    stringstream word_ss;
+    for(char c : word) {
+        if(c >= 'a' && c <= 'z') {
+            // valid lowercase letters, do nothing
+            word_ss << c;
+        } else if(c >= 'A' && c <= 'Z') {
+            // valid uppercase letters, convert to lowercase
+            word_ss << (char)(c + 'a' - 'A'); // TODO: should this be static_cast<char> ?
+        } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
+            // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
+        } else {
+            // invalid word, contains unknown character
+            return std::nullopt;
+        }
+    }
+    return std::make_optional<string>(word_ss.str());
 }
 
 /**
@@ -70,6 +182,8 @@ void cw_trie::add_word(word_t w) {
  * @param pos index of next letter to add to tree
 */
 void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos) {
+    assert(node);
+
     // all letters added to tree
     if(pos >= word.size()) {
         node->valid = true;
