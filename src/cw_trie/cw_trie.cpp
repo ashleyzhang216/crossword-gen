@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: trie and related data structure implementations for cw_csp and word_finder
+// Description: trie and related data structure implementations for cw_csp
 // ==================================================================
 
 #include "cw_trie.h"
@@ -203,11 +203,22 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
 }
 
 /**
+ * @brief check if a string is a valid word
+ * 
+ * @param word string to check
+ * @return true iff word is a valid word
+ * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
+*/
+bool cw_trie::is_word(string& word) {
+    return word_map.count(word) > 0;
+}
+
+/**
  * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
- * @note behavior undefined if domain assigned, only intended to be called from word_finder
+ * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
 void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
     traverse_to_find_matches(matches, pattern, 0, trie, "");
@@ -276,7 +287,7 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
 
 /**
  * @brief removes words with a specific letter at a specific index from trie
- * @warning behavior undefined if called from word_finder, only supports calls from cw_variable
+ * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param pruned_words ptr to hashset to copy prune words to
  * @param index the index to remove in the word(s)
@@ -311,6 +322,7 @@ void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_wo
 
 /**
  * @brief upwards helper for remove_matching_words(), updates letters_at_indices and removes nodes without remaining valid leafs
+ * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param node this node which may be removed from its parent 
  * @param num_leafs number of valid words/leafs removed from the original call to remove_matching_words()
@@ -345,7 +357,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
 
 /**
  * @brief downwards helper for remove_matching_words(), records and removes all children of this node recursively and updates letters_at_indices
- * @warning behavior undefined if called from word_finder, only supports calls from cw_variable
+ * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param node current node whose children (not itself) will be removed
  * @param pruned_words ptr to hashset to write removed words to

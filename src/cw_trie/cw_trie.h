@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: trie and related data structures for cw_csp and word_finder
+// Description: trie and related data structures for cw_csp
 // ==================================================================
 
 #ifndef CW_TRIE_H
@@ -30,6 +30,9 @@ namespace cw_trie_ns {
 
             // add word to trie, TODO: should this be by reference?
             void add_word(word_t w); 
+
+            // word check
+            bool is_word(string& word);
 
             // find all words that match a pattern
             // TODO: add const correctness
