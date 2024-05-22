@@ -32,7 +32,7 @@ namespace cw_trie_ns {
             void add_word(word_t w); 
 
             // word check
-            bool is_word(string& word);
+            bool is_word(string& word) const;
 
             // find all words that match a pattern
             // TODO: add const correctness
@@ -51,7 +51,7 @@ namespace cw_trie_ns {
             void unassign_domain() { assigned = false; assigned_value.reset(); }
 
             // get size of domain remaining, for ac3 validity checking
-            size_t domain_size();
+            size_t domain_size() const;
 
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }

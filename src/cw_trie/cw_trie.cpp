@@ -209,7 +209,7 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
  * @return true iff word is a valid word
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-bool cw_trie::is_word(string& word) {
+bool cw_trie::is_word(string& word) const {
     return word_map.count(word) > 0;
 }
 
@@ -396,7 +396,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
 /**
  * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
 */
-size_t cw_trie::domain_size() {
+size_t cw_trie::domain_size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }
