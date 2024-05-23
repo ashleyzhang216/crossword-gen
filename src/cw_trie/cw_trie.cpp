@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: trie and related data structure implementations for cw_csp and word_finder
+// Description: trie and related data structure implementations for cw_csp
 // ==================================================================
 
 #include "cw_trie.h"
@@ -9,12 +9,124 @@
 using namespace cw_trie_ns;
 
 /**
- * @brief constructor for cw_trie block
+ * @brief constructor for cw_trie with no filepath
  * 
- * @param name the name of this block
+ * @param name the name of this object
 */
-cw_trie::cw_trie(string name) : common_parent(name) {
+cw_trie::cw_trie(string name) : cw_trie(name, std::nullopt) {
+    // do nothing, delegated to constructor does everything needed
+}
+
+/**
+ * @brief constructor for cw_trie with filepath
+ * 
+ * @param name the name of this object
+ * @param filepath path to .txt or .json file containing word data
+*/
+cw_trie::cw_trie(string name, string filepath) : cw_trie(name, std::make_optional(filepath)) {
+    // do nothing, delegated to constructor does everything needed
+}
+
+/**
+ * @brief constructor for cw_trie with filepath optional
+ * 
+ * @param name the name of this object
+ * @param filepath_opt optional, may contain path to .txt or .json file containing word data
+*/
+cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
+    this->filepath_opt = filepath_opt;
+
+    // if filepath was provided
+    if(filepath_opt.has_value()) {
+        string filepath = filepath_opt.value();
+        string word;
+        optional<string> parsed_word;
+        
+        // TODO: should .txt file support be removed?
+        if(has_suffix(filepath, ".txt")) {
+            // open file
+            ifstream word_file;
+            word_file.open(filepath);
+            assert_m(word_file.is_open(), "could not open txt file " + filepath);
+
+            // parse word file
+            while(getline(word_file, word)) {
+                // check for validity & convert uppercase, remove dashes, etc.
+                parsed_word = parse_word(word);
+
+                // add to word set & tree if valid and of valid size
+                if(parsed_word.has_value()) {
+                    word = parsed_word.value();
+                    
+                    if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+                        add_word(word_t(word));
+                    } 
+                }
+            }
+            word_file.close();
+
+        } else if(has_suffix(filepath, ".json")) {
+            // open word file, parse data
+            ifstream word_file(filepath);
+            assert_m(word_file.is_open(), "could not open json file " + filepath);
+            json j = json::parse(word_file);
+
+            for(const auto& [item, data] : j.items()) {
+                // incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
+                parsed_word = parse_word(item);
+                assert_m(parsed_word.has_value() && parsed_word.value() == item, ".json file input word not clean: " + item);
+                word = item;
+
+                if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
+                    add_word(word_t(word, data["Score"], data["Frequency"]));
+                } 
+            }
+            word_file.close();
+
+        } else {
+            ss << "cw_trie got file of invalid type: " << filepath;
+            utils->print_msg(&ss, FATAL);
+            return;
+        }
+    } 
+}
+
+/**
+ * @brief helper for filepath constructor to detect file type
+ * 
+ * @param str string to check the suffix of
+ * @param suffix the suffix to check for
+ * @return true iff str ends with suffix
+*/
+bool cw_trie::has_suffix(const string& str, const string& suffix) {
+    if(str.size() < suffix.size()) return false;
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+/**
+ * @brief helper for filepath constructor to test validity for and parse words
+ * 
+ * @param word the word to test
+ * @return optional containing word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces
+*/
+optional<string> cw_trie::parse_word(const string& word) {
+    stringstream word_ss;
+    for(char c : word) {
+        if(c >= 'a' && c <= 'z') {
+            // valid lowercase letters, do nothing
+            word_ss << c;
+        } else if(c >= 'A' && c <= 'Z') {
+            // valid uppercase letters, convert to lowercase
+            word_ss << (char)(c + 'a' - 'A'); // TODO: should this be static_cast<char> ?
+        } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
+            // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
+        } else {
+            // invalid word, contains unknown character
+            return std::nullopt;
+        }
+    }
+    return std::make_optional<string>(word_ss.str());
 }
 
 /**
@@ -70,6 +182,8 @@ void cw_trie::add_word(word_t w) {
  * @param pos index of next letter to add to tree
 */
 void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos) {
+    assert(node);
+
     // all letters added to tree
     if(pos >= word.size()) {
         node->valid = true;
@@ -89,13 +203,24 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
 }
 
 /**
+ * @brief check if a string is a valid word
+ * 
+ * @param word string to check
+ * @return true iff word is a valid word
+ * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
+*/
+bool cw_trie::is_word(string& word) const {
+    return word_map.count(word) > 0;
+}
+
+/**
  * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
- * @param matches ptr to set to add matches to
+ * @param matches ref to set to add matches to
  * @param pattern the pattern to compare against
- * @note behavior undefined if domain assigned, only intended to be called from word_finder
+ * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
+void cw_trie::find_matches(unordered_set<word_t>& matches, string& pattern) {
     traverse_to_find_matches(matches, pattern, 0, trie, "");
 }
 
@@ -108,7 +233,7 @@ void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& p
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);
@@ -120,7 +245,7 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
         utils->print_msg(&ss, DEBUG);
 
         if(node->valid) { 
-            matches->insert(word_map.at(fragment));
+            matches.insert(word_map.at(fragment));
         }
         return;
     }
@@ -162,16 +287,16 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
 
 /**
  * @brief removes words with a specific letter at a specific index from trie
- * @warning behavior undefined if called from word_finder, only supports calls from cw_variable
+ * @warning behavior undefined if called in cw_variable initialization
  * 
- * @param pruned_words ptr to hashset to copy prune words to
+ * @param pruned_words ref to hashset to copy prune words to
  * @param index the index to remove in the word(s)
  * @param letter the letter to remove, 'a' <= letter <= 'z'
 */
-void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter) {
+void cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter) {
     if(assigned) { // assigned value
         if(assigned_value.has_value() && assigned_value.value().word.at(index) == letter) {
-            pruned_words->insert(assigned_value.value());
+            pruned_words.insert(assigned_value.value());
             assigned_value.reset();
 
             // letters_at_indices not updated since it's contents are undefined if assigned
@@ -197,6 +322,7 @@ void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_wo
 
 /**
  * @brief upwards helper for remove_matching_words(), updates letters_at_indices and removes nodes without remaining valid leafs
+ * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param node this node which may be removed from its parent 
  * @param num_leafs number of valid words/leafs removed from the original call to remove_matching_words()
@@ -231,15 +357,15 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
 
 /**
  * @brief downwards helper for remove_matching_words(), records and removes all children of this node recursively and updates letters_at_indices
- * @warning behavior undefined if called from word_finder, only supports calls from cw_variable
+ * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param node current node whose children (not itself) will be removed
- * @param pruned_words ptr to hashset to write removed words to
+ * @param pruned_words ref to hashset to write removed words to
  * @param index depth of this parent node in trie or letter index in the word
  * @param fragment fragment of word up to but not including this node
  * @returns number of words/leaf nodes removed
 */
-uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_set<word_t> > pruned_words, uint index, string fragment) {
+uint cw_trie::remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment) {
     // TODO: change this when undos to calls to remove_matching_words() are implemented
     assert(letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.count(node) > 0);
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node); 
@@ -250,7 +376,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
         // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
         assert(node->children.size() == 0);
 
-        pruned_words->insert(word_map.at(fragment_with_cur_node));
+        pruned_words.insert(word_map.at(fragment_with_cur_node));
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
         word_map.erase(fragment_with_cur_node);
         return 1;
@@ -270,7 +396,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
 /**
  * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
 */
-size_t cw_trie::domain_size() {
+size_t cw_trie::domain_size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }

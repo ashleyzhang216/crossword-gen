@@ -8,8 +8,10 @@
 #define CW_TRIE_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
+#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
+using json = nlohmann::json;
 
 namespace cw_trie_data_types_ns {
     /**

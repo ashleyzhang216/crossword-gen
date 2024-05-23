@@ -21,26 +21,10 @@ cw_trie_test_driver::cw_trie_test_driver(string name) : common_parent(name) {
  * @brief constructor for cw_trie test driver with initial contents
  * 
  * @param name name of driver
- * @param filepath json files only
+ * @param filepath path to .txt or .json file containing word data
 */
 cw_trie_test_driver::cw_trie_test_driver(string name, string filepath) : common_parent(name) {
-    dut = make_unique<cw_trie>(name);
-
-    // open word file, parse data
-    ifstream word_file(filepath);
-    assert_m(word_file.is_open(), "could not open file " + filepath);
-    json j = json::parse(word_file);
-
-    string word;
-    for(const auto& [item, data] : j.items()) {
-        // no need for parse_word() since incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
-        word = item;
-
-        if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
-            dut->add_word(word_t(word, data["Score"], data["Frequency"]));
-        } 
-    }
-    word_file.close();
+    dut = make_unique<cw_trie>(name, filepath);
 }
 
 /**
@@ -51,14 +35,14 @@ cw_trie_test_driver::cw_trie_test_driver(string name, string filepath) : common_
  * @return true iff successful
 */
 bool cw_trie_test_driver::test_trie_basic(string pattern, unordered_set<word_t>& ground_truth) {
-    shared_ptr<unordered_set<word_t> > result = make_shared<unordered_set<word_t> >();
+    unordered_set<word_t> result;
     dut->find_matches(result, pattern);
 
     ss << "actual output: ";
-    for(word_t w : *result) ss << w.word << ", ";
+    for(word_t w : result) ss << w.word << ", ";
     utils->print_msg(&ss, DEBUG);
 
-    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &(*result), true));
+    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result, true));
 }
 
 /**
@@ -146,7 +130,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
     result &= check_condition("letters_at_indicies initial num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
 
-    shared_ptr<unordered_set<word_t> > pruned_words = make_shared<unordered_set<word_t> >();
+    unordered_set<word_t> pruned_words;
     const size_t init_word_map_size = dut->get_word_map().size();
     for(uint i = 0; i < remove_params.size(); i++) {
         dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
@@ -154,7 +138,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-        result &= check_condition("word_map size preserved", init_word_map_size == pruned_words->size() + dut->get_word_map().size());
+        result &= check_condition("word_map size preserved", init_word_map_size == pruned_words.size() + dut->get_word_map().size());
     }
 
     return result;

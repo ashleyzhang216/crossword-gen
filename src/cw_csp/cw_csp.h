@@ -11,15 +11,15 @@
 #include "../common/common_parent.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
-#include "../word_finder/word_finder_data_types.h"
-#include "../word_finder/word_finder.h"
+#include "../cw_trie/cw_trie_data_types.h"
+#include "../cw_trie/cw_trie.h"
 
 using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
-using namespace word_finder_data_types_ns;
-using namespace word_finder_ns;
+using namespace cw_trie_data_types_ns;
+using namespace cw_trie_ns;
 
 namespace cw_csp_ns {
     /**
@@ -34,7 +34,6 @@ namespace cw_csp_ns {
             cw_csp(string name, uint length, uint height, string contents, string filepath);
 
             // read-only getters for testing
-            shared_ptr   <word_finder>                                get_finder()           const { return finder; }
             unordered_set<cw_variable>                                get_variables()        const;
             unordered_set<cw_constraint>                              get_constraints()      const;
             unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
@@ -75,10 +74,10 @@ namespace cw_csp_ns {
 
         private:
             // crossword to be solved
-            unique_ptr<crossword> cw = nullptr;
+            crossword cw;
 
-            // word_finder to populate domains
-            shared_ptr<word_finder> finder = nullptr;
+            // domain of all valid words of all lengths, to populate variable domains
+            cw_trie total_domain;
 
             // csp structures
             unordered_set<shared_ptr<cw_variable> >   variables;
