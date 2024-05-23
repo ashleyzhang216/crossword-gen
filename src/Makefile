@@ -10,7 +10,6 @@ SRC_DIR=./
 # src dirs
 UTIL_DIR=utils
 COMMON_DIR=common
-WORDFINDER_DIR=word_finder
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
 CWTRIE_DIR=cw_trie
@@ -37,9 +36,6 @@ OFILES = \
 		cw_utils.o \
 		common_parent.o \
 		\
-		word_finder.o \
-		word_finder_data_types.o \
-		\
 		crossword.o \
 		crossword_data_types.o \
 		\
@@ -56,9 +52,6 @@ HFILES = \
 		$(SRC_DIR)/$(UTIL_DIR)/cw_utils.h \
 		$(SRC_DIR)/$(COMMON_DIR)/common_data_types.h \
 		$(SRC_DIR)/$(COMMON_DIR)/common_parent.h \
-		\
-		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder.h \
-		$(SRC_DIR)/$(WORDFINDER_DIR)/word_finder_data_types.h \
 		\
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword.h \
 		$(SRC_DIR)/$(CROSSWORD_DIR)/crossword_data_types.h \

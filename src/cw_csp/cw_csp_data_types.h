@@ -8,12 +8,12 @@
 #define CW_CSP_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
-#include "../word_finder/word_finder_data_types.h"
-#include "../word_finder/word_finder.h"
+#include "../cw_trie/cw_trie_data_types.h"
+#include "../cw_trie/cw_trie.h"
 
 using namespace common_data_types_ns;
-using namespace word_finder_data_types_ns;
-using namespace word_finder_ns;
+using namespace cw_trie_data_types_ns;
+using namespace cw_trie_ns;
 
 namespace cw_csp_data_types_ns {
 
@@ -50,7 +50,7 @@ namespace cw_csp_data_types_ns {
         bool assigned = false;        // true iff assigned to single value --> domain.size() == 1
 
         // standard constructor for cw_csp
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, shared_ptr<word_finder> finder);
+        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, cw_trie& total_domain);
 
         // testing-only constructor
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);

@@ -15,7 +15,7 @@ using namespace common_parent_ns;
 
 namespace cw_trie_ns {
     /**
-     * @brief class representation of a word trie and related contents tracking data structures
+     * @brief class representation of a word trie for variable domain initialization and tracking
     */
     class cw_trie : public common_parent {
         public:
@@ -36,13 +36,13 @@ namespace cw_trie_ns {
 
             // find all words that match a pattern
             // TODO: add const correctness
-            void find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern);
+            void find_matches(unordered_set<word_t>& matches, string& pattern);
 
             // read function for entries in letters_at_indices
             uint num_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
-            void remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter);
+            void remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter);
 
             // assign domain to a single value, repeat calls overwrite assigned value
             void assign_domain(word_t new_value) { assigned = true; assigned_value = new_value; }
@@ -93,13 +93,13 @@ namespace cw_trie_ns {
 
             // helper function for find_matches()
             // TODO: add const correctness
-            void traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
+            void traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
 
             // upwards recursive deletion helper func for remove_matching_words()
             void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
 
             // downwards recursive deletion helper func for remove_matching_words()
-            uint remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_set<word_t> > pruned_words, uint index, string fragment);
+            uint remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment);
 
             // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
             string get_fragment(shared_ptr<trie_node> node);

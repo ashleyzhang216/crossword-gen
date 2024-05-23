@@ -216,11 +216,11 @@ bool cw_trie::is_word(string& word) const {
 /**
  * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
- * @param matches ptr to set to add matches to
+ * @param matches ref to set to add matches to
  * @param pattern the pattern to compare against
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern) {
+void cw_trie::find_matches(unordered_set<word_t>& matches, string& pattern) {
     traverse_to_find_matches(matches, pattern, 0, trie, "");
 }
 
@@ -233,7 +233,7 @@ void cw_trie::find_matches(shared_ptr<unordered_set<word_t> > matches, string& p
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);
@@ -245,7 +245,7 @@ void cw_trie::traverse_to_find_matches(shared_ptr<unordered_set<word_t> > matche
         utils->print_msg(&ss, DEBUG);
 
         if(node->valid) { 
-            matches->insert(word_map.at(fragment));
+            matches.insert(word_map.at(fragment));
         }
         return;
     }
@@ -289,14 +289,14 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
  * @brief removes words with a specific letter at a specific index from trie
  * @warning behavior undefined if called in cw_variable initialization
  * 
- * @param pruned_words ptr to hashset to copy prune words to
+ * @param pruned_words ref to hashset to copy prune words to
  * @param index the index to remove in the word(s)
  * @param letter the letter to remove, 'a' <= letter <= 'z'
 */
-void cw_trie::remove_matching_words(shared_ptr<unordered_set<word_t> > pruned_words, uint index, char letter) {
+void cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter) {
     if(assigned) { // assigned value
         if(assigned_value.has_value() && assigned_value.value().word.at(index) == letter) {
-            pruned_words->insert(assigned_value.value());
+            pruned_words.insert(assigned_value.value());
             assigned_value.reset();
 
             // letters_at_indices not updated since it's contents are undefined if assigned
@@ -360,12 +360,12 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
  * @warning behavior undefined if called in cw_variable initialization
  * 
  * @param node current node whose children (not itself) will be removed
- * @param pruned_words ptr to hashset to write removed words to
+ * @param pruned_words ref to hashset to write removed words to
  * @param index depth of this parent node in trie or letter index in the word
  * @param fragment fragment of word up to but not including this node
  * @returns number of words/leaf nodes removed
 */
-uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_set<word_t> > pruned_words, uint index, string fragment) {
+uint cw_trie::remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment) {
     // TODO: change this when undos to calls to remove_matching_words() are implemented
     assert(letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.count(node) > 0);
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node); 
@@ -376,7 +376,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, shared_ptr<unordered_s
         // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
         assert(node->children.size() == 0);
 
-        pruned_words->insert(word_map.at(fragment_with_cur_node));
+        pruned_words.insert(word_map.at(fragment_with_cur_node));
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
         word_map.erase(fragment_with_cur_node);
         return 1;
