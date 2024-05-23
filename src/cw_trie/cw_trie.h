@@ -36,13 +36,17 @@ namespace cw_trie_ns {
 
             // find all words that match a pattern
             // TODO: add const correctness
-            void find_matches(unordered_set<word_t>& matches, string& pattern);
+            unordered_set<word_t> find_matches(const string& pattern);
 
             // read function for entries in letters_at_indices
             uint num_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
             void remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter);
+
+            // start new AC-3 algorithm call, i.e. add new blank layer to  
+
+            // undo previous AC-3 algorithm call, i.e. pop top layer of 
 
             // assign domain to a single value, repeat calls overwrite assigned value
             void assign_domain(word_t new_value) { assigned = true; assigned_value = new_value; }
@@ -76,6 +80,10 @@ namespace cw_trie_ns {
             // contents undefined if domain assigned
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
 
+            // each layer corresponds to one call to AC-3 algorithm, and contains nodes pruned from each element in letters_at_indices
+            // top layer corresponds to most recent AC-3 call
+            // stack<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > ac3_pruned_stack;
+
             // true iff domain has been assigned to a single value --> ignore trie
             bool assigned;
 
@@ -93,7 +101,7 @@ namespace cw_trie_ns {
 
             // helper function for find_matches()
             // TODO: add const correctness
-            void traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
+            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
 
             // upwards recursive deletion helper func for remove_matching_words()
             void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);

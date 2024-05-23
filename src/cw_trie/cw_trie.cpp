@@ -216,12 +216,13 @@ bool cw_trie::is_word(string& word) const {
 /**
  * @brief adds all words that match pattern with WILDCARD ('?') as placeholder
  * 
- * @param matches ref to set to add matches to
  * @param pattern the pattern to compare against
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-void cw_trie::find_matches(unordered_set<word_t>& matches, string& pattern) {
+unordered_set<word_t> cw_trie::find_matches(const string& pattern) {
+    unordered_set<word_t> matches;
     traverse_to_find_matches(matches, pattern, 0, trie, "");
+    return matches;
 }
 
 /**
@@ -233,7 +234,7 @@ void cw_trie::find_matches(unordered_set<word_t>& matches, string& pattern) {
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);

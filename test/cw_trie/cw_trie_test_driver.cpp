@@ -35,8 +35,7 @@ cw_trie_test_driver::cw_trie_test_driver(string name, string filepath) : common_
  * @return true iff successful
 */
 bool cw_trie_test_driver::test_trie_basic(string pattern, unordered_set<word_t>& ground_truth) {
-    unordered_set<word_t> result;
-    dut->find_matches(result, pattern);
+    unordered_set<word_t> result = dut->find_matches(pattern);
 
     ss << "actual output: ";
     for(word_t w : result) ss << w.word << ", ";
