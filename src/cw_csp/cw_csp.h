@@ -74,8 +74,7 @@ namespace cw_csp_ns {
 
         private:
             // crossword to be solved
-            // TODO: does this have to be a ptr?
-            unique_ptr<crossword> cw = nullptr;
+            crossword cw;
 
             // domain of all valid words of all lengths, to populate variable domains
             cw_trie total_domain;

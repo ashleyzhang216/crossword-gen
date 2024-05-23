@@ -63,6 +63,6 @@ void progress_bar::write(double fraction) {
  * @brief destructor for progress bar, finishes writing last line
 */
 progress_bar::~progress_bar() {
-    write('\n');
+    write(1.0);
     os << '\n';
 }

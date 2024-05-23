@@ -15,8 +15,10 @@ using namespace cw_csp_ns;
  * @param height the height of puzzle to be created
  * @param filepath relative filepath to dictionary of words file
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath) : common_parent(name), total_domain(name + " total_domain", filepath) {
-    cw = std::make_unique<crossword>(name + " cw", length, height);
+cw_csp::cw_csp(string name, uint length, uint height, string filepath) 
+        : common_parent(name), 
+          cw(name + " cw", length, height), 
+          total_domain(name + " total_domain", filepath) {
     initialize_csp();
 }
 
@@ -28,8 +30,10 @@ cw_csp::cw_csp(string name, uint length, uint height, string filepath) : common_
  * @param contents the contents to populate puzzle with
  * @param filepath relative filepath to dictionary of words file
 */
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath) : common_parent(name), total_domain(name + " total_domain", filepath) {
-    cw = std::make_unique<crossword>(name + " cw", length, height, contents);
+cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath) 
+        : common_parent(name), 
+          cw(name + " cw", length, height, contents), 
+          total_domain(name + " total_domain", filepath) {
     initialize_csp();
 }
 
@@ -91,14 +95,14 @@ void cw_csp::initialize_csp() {
     utils->print_msg(&ss, DEBUG);
 
     // find horizontal variables
-    for(uint row = 0; row < cw->rows(); row++) {
+    for(uint row = 0; row < cw.rows(); row++) {
 
         // reset
         traversing_word = false;
         word_pattern.str("");
 
-        for(uint col = 0; col < cw->cols(); col++) {
-            if(cw->read_at(row, col) != BLACK) {
+        for(uint col = 0; col < cw.cols(); col++) {
+            if(cw.read_at(row, col) != BLACK) {
                 // not black tile, in a word
                 
                 if(!traversing_word) {
@@ -111,7 +115,7 @@ void cw_csp::initialize_csp() {
                 }
 
                 // add current char to pattern
-                word_pattern << cw->read_at(row, col);
+                word_pattern << cw.read_at(row, col);
                 cur_var_len++;
 
             } else {
@@ -155,14 +159,14 @@ void cw_csp::initialize_csp() {
     utils->print_msg(&ss, DEBUG);
 
     // find vertical variables
-    for(uint col = 0; col < cw->cols(); col++) {
+    for(uint col = 0; col < cw.cols(); col++) {
 
         // reset
         traversing_word = false;
         word_pattern.str("");
 
-        for(uint row = 0; row < cw->rows(); row++) {
-            if(cw->read_at(row, col) != BLACK) {
+        for(uint row = 0; row < cw.rows(); row++) {
+            if(cw.read_at(row, col) != BLACK) {
                 // not black tile, in a word
                 
                 if(!traversing_word) {
@@ -175,7 +179,7 @@ void cw_csp::initialize_csp() {
                 }
 
                 // add current char to pattern
-                word_pattern << cw->read_at(row, col);
+                word_pattern << cw.read_at(row, col);
                 cur_var_len++;
 
             } else {
@@ -217,7 +221,7 @@ void cw_csp::initialize_csp() {
 
     // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
-    vector<vector<cw_constraint> > var_intersect_table(cw->rows(), vector<cw_constraint>(cw->cols()));
+    vector<vector<cw_constraint> > var_intersect_table(cw.rows(), vector<cw_constraint>(cw.cols()));
 
     ss << "cw_csp building var_intersect_table";
     utils->print_msg(&ss, DEBUG);
@@ -256,8 +260,8 @@ void cw_csp::initialize_csp() {
     utils->print_msg(&ss, DEBUG);
 
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
-    for(uint row = 0; row < cw->rows(); row++) {
-        for(uint col = 0; col < cw->cols(); col++) {
+    for(uint row = 0; row < cw.rows(); row++) {
+        for(uint col = 0; col < cw.cols(); col++) {
             if(var_intersect_table[row][col].rhs != nullptr) {
                 // assert that 2 variables exist in constraint
                 if(var_intersect_table[row][col].lhs == nullptr) {
@@ -427,7 +431,7 @@ bool cw_csp::solved() const {
 string cw_csp::result() const {
     assert(solved());
     stringstream cw_ss;
-    cw_ss << *cw;
+    cw_ss << cw;
     return cw_ss.str();
 }
 
@@ -448,17 +452,17 @@ void cw_csp::overwrite_cw() {
                 for(uint letter = 0; letter < var.length; letter++) {
                     // this square must be wildcard or the same letter about to be written
                     assert(
-                        cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
-                        cw->read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->word.at(letter)
+                        cw.read_at(var.origin_row, var.origin_col + letter) == WILDCARD ||
+                        cw.read_at(var.origin_row, var.origin_col + letter) == var.domain.begin()->word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
-                    if(cw->read_at(var.origin_row, var.origin_col + letter) == WILDCARD) {
+                    if(cw.read_at(var.origin_row, var.origin_col + letter) == WILDCARD) {
                         // record overwritting
                         overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row, var.origin_col + letter));
 
                         // overwrite cw
-                        cw->write_at(var.domain.begin()->word.at(letter), var.origin_row, var.origin_col + letter);
+                        cw.write_at(var.domain.begin()->word.at(letter), var.origin_row, var.origin_col + letter);
                     }
                 }
             } else { // var.dir == VERTICAL
@@ -466,17 +470,17 @@ void cw_csp::overwrite_cw() {
 
                     // this square must be wildcard or the same letter about to be written
                     assert(
-                        cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
-                        cw->read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->word.at(letter)
+                        cw.read_at(var.origin_row + letter, var.origin_col) == WILDCARD ||
+                        cw.read_at(var.origin_row + letter, var.origin_col) == var.domain.begin()->word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
-                    if(cw->read_at(var.origin_row + letter, var.origin_col) == WILDCARD) {
+                    if(cw.read_at(var.origin_row + letter, var.origin_col) == WILDCARD) {
                         // record overwriting
                         overwritten_tiles.push_back(std::make_tuple(WILDCARD, var.origin_row + letter, var.origin_col));
 
                         // overwrite cw
-                        cw->write_at(var.domain.begin()->word.at(letter), var.origin_row + letter, var.origin_col);
+                        cw.write_at(var.domain.begin()->word.at(letter), var.origin_row + letter, var.origin_col);
                     }
                 }
             }
@@ -493,7 +497,7 @@ void cw_csp::undo_overwrite_cw() {
     assert(prev_overwritten_tiles.size() > 0);
 
     for(const auto& tuple : prev_overwritten_tiles.top()) {
-        cw->write_at(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+        cw.write_at(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
     }
     prev_overwritten_tiles.pop();
 }
@@ -567,7 +571,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 */
 bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_progress_bar) {
 
-    ss << "entering solve_backtracking() with cw: " << *cw;
+    ss << "entering solve_backtracking() with cw: " << cw;
     utils->print_msg(&ss, DEBUG);
 
     // base case
