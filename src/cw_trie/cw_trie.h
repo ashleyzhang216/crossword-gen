@@ -65,6 +65,8 @@ namespace cw_trie_ns {
 
             // TODO: add function to get list of letters at an index, for ac3 validity checking
 
+            // TODO: add function to get list of words to try to assign for backtracking
+
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
 

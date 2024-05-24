@@ -481,7 +481,7 @@ size_t cw_trie::undo_prev_ac3_call() {
             assert_m(letters_at_indices[i][j].ac3_pruned_children.size() == stack_depth, "stack depth invariant violated for ac3_pruned_children");
         }
     }
-
+    
     size_t num_restored = 0;
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {

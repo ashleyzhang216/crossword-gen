@@ -194,7 +194,7 @@ TEST_CASE("cw_trie remove_matching_words-letters_at_indicies", "[cw_trie],[quick
     num_nodes_ground_truths.push_back(num_nodes);
 
     REQUIRE(driver->test_letters_at_indicies_remove(init_words, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
-    REQUIRE(driver->test_word_map_empty());
+    REQUIRE(driver->test_domain_empty());
 }
 
 /**
