@@ -357,3 +357,5 @@ TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
 TEST_CASE("cw_trie adding_removing_assigning", "[cw_trie],[quick]") {
     REQUIRE(true);
 }
+
+// TODO: add test case with word of max length

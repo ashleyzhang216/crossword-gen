@@ -131,13 +131,16 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
 
     unordered_set<word_t> pruned_words;
     const size_t init_word_map_size = dut->get_word_map().size();
+    size_t num_removed = 0;
     for(uint i = 0; i < remove_params.size(); i++) {
-        dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
+        dut->start_new_ac3_call(); // simulate single AC-3 layer for each remove
+        num_removed += dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
         letters_at_indices = dut->get_letters_at_indices();
 
+        result &= check_condition("num_removed nonequal to pruned_words size", num_removed == pruned_words.size());
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-        result &= check_condition("word_map size preserved", init_word_map_size == pruned_words.size() + dut->get_word_map().size());
+        result &= check_condition("word_map size preserved", init_word_map_size == num_removed + dut->get_word_map().size());
     }
 
     return result;

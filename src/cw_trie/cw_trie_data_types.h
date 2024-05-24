@@ -43,6 +43,15 @@ namespace cw_trie_data_types_ns {
         // after remove_matching_words() is called, ptrs to nodes are still kept here as a backup and can be restored if needed
         unordered_set<shared_ptr<trie_node> > nodes;
 
+        // for these fields below, each layer corresponds to one call to AC-3 algorithm
+        // top layer corresponds to most recent AC-3 call
+        //   contains nodes pruned during an AC-3 call
+        stack<unordered_set<shared_ptr<trie_node> > > ac3_pruned_nodes; 
+        //   # of words pruned during an AC-3 call
+        stack<size_t> ac3_pruned_words; 
+        //   map from node in nodes set -> parent node whose children map this node was removed from during an AC-3 call
+        stack<unordered_map<shared_ptr<trie_node>, shared_ptr<trie_node> > > ac3_pruned_children;
+
         // base constructor
         letters_table_entry() : num_words(0) {}
     };
