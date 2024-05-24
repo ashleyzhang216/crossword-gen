@@ -81,9 +81,11 @@ namespace cw_trie_ns {
             shared_ptr<trie_node> trie;
 
             // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
-            // contents undefined if assigned (contains data for previous trie)
-            // TODO: should this be removed?
+            // contents include all words added, even if pruned during an AC-3 call or this domain is assigned a value
             unordered_map<string, word_t> word_map;
+
+            // number of words currently in domain, ignoring any assigned value
+            size_t unassigned_domain_size;
 
             // stores # of words with letters at each index
             // contents undefined if domain assigned
@@ -117,6 +119,9 @@ namespace cw_trie_ns {
 
             // downwards recursive deletion helper func for remove_matching_words()
             uint remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment);
+
+            // enforces invariant that the sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
+            void enforce_domain_size_ok();
 
             // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
             // TODO: should this be removed?

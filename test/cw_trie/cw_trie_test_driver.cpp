@@ -132,6 +132,43 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
     unordered_set<word_t> pruned_words;
     const size_t init_domain_size = dut->get_word_map().size();
     size_t num_removed = 0;
+
+    // iterate twice to ensure AC-3 restoration works properly
+    for(uint iteration = 0; iteration < 2; iteration++) {
+        pruned_words.clear();
+        for(uint i = 0; i < remove_params.size(); i++) {
+            dut->start_new_ac3_call(); // simulate single AC-3 layer for each remove
+            num_removed += dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
+            letters_at_indices = dut->get_letters_at_indices();
+
+            result &= check_condition("num_removed equal to pruned_words size", num_removed == pruned_words.size());
+            result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
+            result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
+            result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->domain_size());
+        }
+
+        for(int i = static_cast<int>(remove_params.size()) - 2; i >= 0; i--) {
+            num_removed -= dut->undo_prev_ac3_call();
+            letters_at_indices = dut->get_letters_at_indices();
+
+            result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[static_cast<uint>(i)], letters_at_indices, true));
+            result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[static_cast<uint>(i)], letters_at_indices, false));
+            result &= check_condition("domain size preserved during restore", init_domain_size == num_removed + dut->domain_size());
+        }
+
+        if(remove_params.size() > 0) {
+            num_removed -= dut->undo_prev_ac3_call();
+            letters_at_indices = dut->get_letters_at_indices();
+
+            result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
+            result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
+            result &= check_condition("num_removed is 0 after undoing all removes", num_removed == 0);
+            result &= check_condition("domain size preserved during restore to init", init_domain_size == dut->get_word_map().size());
+        }
+    }
+
+    // remove again
+    pruned_words.clear();
     for(uint i = 0; i < remove_params.size(); i++) {
         dut->start_new_ac3_call(); // simulate single AC-3 layer for each remove
         num_removed += dut->remove_matching_words(pruned_words, remove_params[i].first, remove_params[i].second);
@@ -140,26 +177,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
         result &= check_condition("num_removed nonequal to pruned_words size", num_removed == pruned_words.size());
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-        result &= check_condition("domain size preserved", init_domain_size == num_removed + dut->domain_size());
-    }
-
-    for(int i = static_cast<int>(remove_params.size()) - 2; i >= 0; i--) {
-        num_removed -= dut->undo_prev_ac3_call();
-        letters_at_indices = dut->get_letters_at_indices();
-
-        result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[static_cast<uint>(i)], letters_at_indices, true));
-        result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[static_cast<uint>(i)], letters_at_indices, false));
-        result &= check_condition("domain size preserved", init_domain_size == num_removed + dut->domain_size());
-    }
-
-    if(remove_params.size() > 0) {
-        num_removed -= dut->undo_prev_ac3_call();
-        letters_at_indices = dut->get_letters_at_indices();
-
-        result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
-        result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
-        result &= check_condition("num_removed is 0 after undoing all removes", num_removed == 0);
-        result &= check_condition("domain size preserved", init_domain_size == dut->get_word_map().size());
+        result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->domain_size());
     }
 
     return result;

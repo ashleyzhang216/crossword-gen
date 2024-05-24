@@ -36,6 +36,7 @@ cw_trie::cw_trie(string name, string filepath) : cw_trie(name, optional<string>(
 cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     this->filepath_opt = filepath_opt;
+    unassigned_domain_size = 0;
     assigned = false;
 
     // if filepath was provided
@@ -142,9 +143,10 @@ void cw_trie::add_word(word_t w) {
 
         // letters_at_indices not updated since it's contents are undefined if assigned
     } else {
-        if(word_map.find(w.word) == word_map.end()) {
+        if(word_map.count(w.word) == 0) {
 
             word_map.insert({w.word, w});
+            unassigned_domain_size++;
 
             // update word counts in letters_at_indices
             for(uint i = 0; i < w.word.size(); i++) {
@@ -317,6 +319,7 @@ size_t cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint 
             assigned_value.reset();
 
             // letters_at_indices not updated since it's contents are undefined if assigned
+            // unassigned_domain_size also not updated since it is undefined if assigned
             return 1;
         } else {
             return 0;
@@ -341,6 +344,8 @@ size_t cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint 
             }
         }
 
+        unassigned_domain_size -= total_leafs;
+        enforce_domain_size_ok(); // TODO: deprecated
         return total_leafs;
     }
 }
@@ -413,7 +418,6 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, unordered_set<word_t>&
         pruned_words.insert(word_map.at(fragment_with_cur_node));
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
         letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
-        word_map.erase(fragment_with_cur_node);
         return 1;
     }
 
@@ -483,7 +487,9 @@ size_t cw_trie::undo_prev_ac3_call() {
     }
     
     size_t num_restored = 0;
+    size_t num_restored_per_index = 0;
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
+        num_restored_per_index = 0;
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             // restore nodes
             letters_at_indices[i][j].nodes.insert(
@@ -493,7 +499,7 @@ size_t cw_trie::undo_prev_ac3_call() {
 
             // restore num_words
             letters_at_indices[i][j].num_words += letters_at_indices[i][j].ac3_pruned_words.top();
-            num_restored += letters_at_indices[i][j].ac3_pruned_words.top();
+            num_restored_per_index += letters_at_indices[i][j].ac3_pruned_words.top();
             letters_at_indices[i][j].ac3_pruned_words.pop();
 
             // restore connections to parent nodes
@@ -504,6 +510,8 @@ size_t cw_trie::undo_prev_ac3_call() {
             }
             letters_at_indices[i][j].ac3_pruned_children.pop();
         }
+        assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
+        if(num_restored_per_index != 0) num_restored = num_restored_per_index;
     }
     if(ac3_pruned_assigned_val.top().has_value()) {
         assert_m(num_restored == 0, "restoring to letters_at_indices and assigned_value in undo_prev_ac3_call() call");
@@ -511,6 +519,8 @@ size_t cw_trie::undo_prev_ac3_call() {
     }
     ac3_pruned_assigned_val.pop();
 
+    unassigned_domain_size += num_restored;
+    enforce_domain_size_ok(); // TODO: deprecated
     return num_restored;
 }
 
@@ -521,7 +531,29 @@ size_t cw_trie::domain_size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }
-    return word_map.size();
+    return unassigned_domain_size;
+}
+
+/**
+ * @brief testing method to enforce invariant that the sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
+ * @invariant sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
+ * @deprecated
+*/
+void cw_trie::enforce_domain_size_ok() {
+    for(uint i = 0; i < MAX_WORD_LEN; i++) {
+        size_t sum = 0;
+        for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
+            sum += letters_at_indices[i][j].num_words;
+        }
+        
+        // TODO: debug
+        if(!(sum == 0 || sum == unassigned_domain_size)) {
+            ss << "invariant violated @ index " << i << ", expected: " << unassigned_domain_size << ", got " << sum;
+            utils->print_msg(&ss, INFO);
+        }
+
+        assert_m(sum == 0 || sum == unassigned_domain_size, "domain size invariant violated");
+    }
 }
 
 /**
