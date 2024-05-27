@@ -43,14 +43,29 @@ namespace cw_trie_data_types_ns {
         // after remove_matching_words() is called, ptrs to nodes are still kept here as a backup and can be restored if needed
         unordered_set<shared_ptr<trie_node> > nodes;
 
-        // for these fields below, each layer corresponds to one call to AC-3 algorithm
-        // top layer corresponds to most recent AC-3 call
-        //   contains nodes pruned during an AC-3 call
+        /**
+         * for these two functions below, each layer corresponds to one call to AC-3 algorithm, top layer corresponds to most recent AC-3 call
+         * 
+         * @note why only ac3_pruned_nodes used to restore trie structure:
+         * ---
+         * after calls to remove_matching_words(), all the nodes removed from the trie are the nodes of 0 or more trees which 
+         * are branches chopped off of the original trie. thus, if a node has been removed from the main trie, it is guaranteed 
+         * that its connection, an edge from its parent node to itself, has been removed. vice versa, if a node's connection to its 
+         * child node has been removed, by the description of the behavior of remove_matching_words(), it is guaranteed that the 
+         * child node is no longer part of the trie. thus, the function from nodes removed from the trie to their parents from which 
+         * their incoming edge has been removed is one-to-one. therefore it is sufficient to store only a set of removed nodes since the 
+         * node datatype stores a weak_ptr to their parent which is not deleted in calls to remove_matching_words(). during the restore 
+         * call, we can simply restore all the removed nodes in the top layer of ac3_pruned_nodes, and for each node, access their parent 
+         * to restore the edge pointing to formerly removed node. 
+         * 
+         * note: overlap between the removed node set and parent node set is permitted iff all parent nodes (themselves removed or not) 
+         * remove edges to all their removed children, which indeed is the case. also notice that under these conditions, all the removed 
+         * nodes have no connections to one another
+        */
+        // contains nodes pruned during an AC-3 call
         stack<unordered_set<shared_ptr<trie_node> > > ac3_pruned_nodes; 
-        //   # of words pruned during an AC-3 call
+        // # of words pruned during an AC-3 call
         stack<size_t> ac3_pruned_words; 
-        //   map from node in nodes set -> parent node whose children map this node was removed from during an AC-3 call
-        stack<unordered_map<shared_ptr<trie_node>, shared_ptr<trie_node> > > ac3_pruned_children;
 
         // base constructor
         letters_table_entry() : num_words(0) {}

@@ -293,7 +293,7 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
  * @brief removes words with a specific letter at a specific index from trie
  * @warning behavior undefined if called in cw_variable initialization
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
- * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words/ac3_pruned_children in each element of letters_at_indices must all be equal
+ * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
  * 
  * @param pruned_words ref to hashset to copy prune words to
  * @param index the index to remove in the word(s)
@@ -308,7 +308,6 @@ size_t cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint 
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
-            assert_m(letters_at_indices[i][j].ac3_pruned_children.size() == stack_depth, "stack depth invariant violated for ac3_pruned_children");
         }
     }
 
@@ -354,7 +353,7 @@ size_t cw_trie::remove_matching_words(unordered_set<word_t>& pruned_words, uint 
  * @brief upwards helper for remove_matching_words(), updates letters_at_indices and removes nodes without remaining valid leafs
  * @warning behavior undefined if called in cw_variable initialization
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
- * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words/ac3_pruned_children in each element of letters_at_indices must all be equal
+ * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
  * 
  * @param node this node which may be removed from its parent 
  * @param num_leafs number of valid words/leafs removed from the original call to remove_matching_words()
@@ -376,8 +375,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
             }
 
             // remove node as child from parent
-            assert_m(letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].ac3_pruned_children.top().count(node) == 0, "double adding node to ac3_pruned_children in remove_from_parents() call");
-            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].ac3_pruned_children.top().insert({node, parent});
+            // for details on why this link isn't saved, see the proof in cw_trie_data_types.h
             parent->children.erase(node->letter);
         }
 
@@ -396,7 +394,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
  * @brief downwards helper for remove_matching_words(), records and removes all children of this node recursively and updates letters_at_indices
  * @warning behavior undefined if called in cw_variable initialization
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
- * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words/ac3_pruned_children in each element of letters_at_indices must all be equal
+ * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
  * 
  * @param node current node whose children (not itself) will be removed
  * @param pruned_words ref to hashset to write removed words to
@@ -431,12 +429,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, unordered_set<word_t>&
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
 
-    // remove children
-    assert_m(index != MAX_WORD_LEN - 1, "trie_node of max depth does not terminate valid word");
-    for(const auto& pair : node->children) {
-        assert_m(letters_at_indices[index + 1][static_cast<size_t>(pair.second->letter - 'a')].ac3_pruned_children.top().count(pair.second) == 0, "double adding node to ac3_pruned_children in remove_children() call");
-        letters_at_indices[index + 1][static_cast<size_t>(pair.second->letter - 'a')].ac3_pruned_children.top().insert({pair.second, node});
-    }
+    // for details on why these links aren't saved, see the proof in cw_trie_data_types.h
     node->children.clear();
 
     return num_leafs;
@@ -445,7 +438,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, unordered_set<word_t>&
 /**
  * @brief start new AC-3 call, during which remove_matching_words() may be called 0 or more times
  * @note causes new layer to be added to ac3_pruned_assigned_val, and ac3_pruned_nodes in each element of letters_at_indices
- * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words/ac3_pruned_children in each element of letters_at_indices must all be equal
+ * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
 */
 void cw_trie::start_new_ac3_call() {
     // check invariant
@@ -454,7 +447,6 @@ void cw_trie::start_new_ac3_call() {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
-            assert_m(letters_at_indices[i][j].ac3_pruned_children.size() == stack_depth, "stack depth invariant violated for ac3_pruned_children");
         }
     }
 
@@ -463,7 +455,6 @@ void cw_trie::start_new_ac3_call() {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             letters_at_indices[i][j].ac3_pruned_nodes.push(unordered_set<shared_ptr<trie_node> >());
             letters_at_indices[i][j].ac3_pruned_words.push(0);
-            letters_at_indices[i][j].ac3_pruned_children.push(unordered_map<shared_ptr<trie_node>, shared_ptr<trie_node> >());
         }
     }
 }
@@ -471,7 +462,7 @@ void cw_trie::start_new_ac3_call() {
 /**
  * @brief undo previous AC-3 call, restoring the nodes to letters_at_indices and assigned_value
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
- * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words/ac3_pruned_children in each element of letters_at_indices must all be equal
+ * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes in each element of letters_at_indices must all be equal
  * @returns number of words/leaf nodes and assigned values restored
 */
 size_t cw_trie::undo_prev_ac3_call() {
@@ -482,7 +473,6 @@ size_t cw_trie::undo_prev_ac3_call() {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
-            assert_m(letters_at_indices[i][j].ac3_pruned_children.size() == stack_depth, "stack depth invariant violated for ac3_pruned_children");
         }
     }
     
@@ -494,21 +484,27 @@ size_t cw_trie::undo_prev_ac3_call() {
             // restore nodes
             letters_at_indices[i][j].nodes.insert(
                 letters_at_indices[i][j].ac3_pruned_nodes.top().begin(), letters_at_indices[i][j].ac3_pruned_nodes.top().end()
-            );
+            ); 
+            // don't pop ac3_pruned_nodes yet, need it to restore links from parents
+
+            // restore edges from parent nodes
+            for(shared_ptr<trie_node> node : letters_at_indices[i][j].ac3_pruned_nodes.top()) {
+                if(shared_ptr<trie_node> parent = node->parent.lock()) {
+                    assert_m(i == 0 || letters_at_indices[i-1][static_cast<size_t>(parent->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
+                    assert_m(parent->children.count(node->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
+                    parent->children.insert({node->letter, node});
+                } else {
+                    ss << "parent of node index " << i << ", letter " << j << " deleted early during restoration";
+                    utils->print_msg(&ss, ERROR);
+                }
+            }
             letters_at_indices[i][j].ac3_pruned_nodes.pop();
+
 
             // restore num_words
             letters_at_indices[i][j].num_words += letters_at_indices[i][j].ac3_pruned_words.top();
             num_restored_per_index += letters_at_indices[i][j].ac3_pruned_words.top();
             letters_at_indices[i][j].ac3_pruned_words.pop();
-
-            // restore connections to parent nodes
-            for(const auto& pair : letters_at_indices[i][j].ac3_pruned_children.top()) {
-                assert_m(letters_at_indices[i][j].nodes.count(pair.first) > 0, "child node not found in undo_prev_ac3_call() call");
-                assert_m(pair.second->children.count(pair.first->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
-                pair.second->children.insert({pair.first->letter, pair.first});
-            }
-            letters_at_indices[i][j].ac3_pruned_children.pop();
         }
         assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
         if(num_restored_per_index != 0) num_restored = num_restored_per_index;
