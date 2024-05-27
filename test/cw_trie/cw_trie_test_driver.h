@@ -60,8 +60,8 @@ namespace cw_trie_test_driver_ns {
 
             // expose basic functionalities for dut 
             void add_words(vector<word_t> words) { for(word_t w : words) dut->add_word(w); }
-            void remove_words(unordered_set<word_t>& pruned_words, vector<pair<uint, char> > remove_params) { 
-                for(const auto& pair : remove_params) dut->remove_matching_words(pruned_words, pair.first, pair.second);
+            void remove_words(vector<pair<uint, char> > remove_params) { 
+                for(const auto& pair : remove_params) dut->remove_matching_words(pair.first, pair.second);
             }
             void assign_domain(word_t word) { dut->assign_domain(word); }
             void unassign_domain() { dut->unassign_domain(); }

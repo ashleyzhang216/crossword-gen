@@ -44,7 +44,7 @@ namespace cw_trie_ns {
             uint num_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
-            size_t remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter);
+            size_t remove_matching_words(uint index, char letter);
 
             // start new AC-3 algorithm call
             // i.e. add new blank layer to letters_at_indices.ac3_pruned_nodes and ac3_pruned_assigned_val
@@ -119,10 +119,7 @@ namespace cw_trie_ns {
             void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
 
             // downwards recursive deletion helper func for remove_matching_words()
-            uint remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment);
-
-            // enforces invariant that the sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
-            void enforce_domain_size_ok();
+            uint remove_children(shared_ptr<trie_node> node, uint index);
 
             // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
             // TODO: should this be removed?

@@ -88,7 +88,7 @@ namespace common_data_types_ns {
 
     /**
      * @brief progress bar to print cw search progress
-     * implementation largely borrowed from https://codereview.stackexchange.com/a/186537
+     * @cite https://codereview.stackexchange.com/a/186537
     */
     class progress_bar {
         public:
