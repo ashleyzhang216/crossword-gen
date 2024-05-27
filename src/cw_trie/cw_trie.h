@@ -63,7 +63,8 @@ namespace cw_trie_ns {
             // get size of domain remaining, for ac3 validity checking
             size_t domain_size() const;
 
-            // TODO: add function to get list of letters at an index, for ac3 validity checking
+            // get letters at an index, for AC-3 constraint satisfaction checking
+            vector<char> letters_at_index(uint index) const;
 
             // TODO: add function to get list of words to try to assign for backtracking
 

@@ -535,6 +535,32 @@ size_t cw_trie::domain_size() const {
 }
 
 /**
+ * @brief get letters at an index in the current domain, for AC-3 constraint satisfaction checking
+ * @param index the index to get letters for
+ * @returns vector of chars, >= 'a', and <= 'z', which appear at the specific index in the current domain (taking into account assignment) 
+*/
+vector<char> cw_trie::letters_at_index(uint index) const {
+    assert(index < MAX_WORD_LEN);
+
+    vector<char> result;
+    if(assigned) {
+        if(assigned_value.has_value()) {
+            assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
+            
+            result = { assigned_value.value().word.at(index) };
+        }
+    } else {
+        for(char letter = 'a'; letter <= 'z'; letter++) {
+            if(num_letters_at_index(index, letter) > 0) {
+                result.push_back(letter);
+            }
+        }
+    } 
+    
+    return result;
+}
+
+/**
  * @brief testing method to enforce invariant that the sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
  * @invariant sum of num_words for each letter index in letters_at_indices should equal unassigned_domain_size
  * @deprecated
