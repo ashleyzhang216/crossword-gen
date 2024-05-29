@@ -67,9 +67,10 @@ namespace cw_trie_ns {
             size_t domain_size() const;
 
             // get letters at an index, for AC-3 constraint satisfaction checking
-            vector<char> letters_at_index(uint index) const;
+            vector<char> get_all_letters_at_index(uint index) const;
 
-            // TODO: add function to get list of words to try to assign for backtracking
+            // get all words in current domain to try to assign for backtracking
+            vector<word_t> get_cur_domain();
 
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
@@ -85,7 +86,7 @@ namespace cw_trie_ns {
             shared_ptr<trie_node> trie;
 
             // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
-            // contents include all words added, even if pruned during an AC-3 call or this domain is assigned a value
+            // contents include all words ever added, even if pruned during an AC-3 call or this domain is assigned a value
             unordered_map<string, word_t> word_map;
 
             // number of words currently in domain, ignoring any assigned value
@@ -123,6 +124,9 @@ namespace cw_trie_ns {
 
             // downwards recursive deletion helper func for remove_matching_words()
             uint remove_children(shared_ptr<trie_node> node, uint index);
+
+            // helper for get_cur_domain() to traverse trie and collect words
+            void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc);
 
             // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
             // TODO: should this be removed?

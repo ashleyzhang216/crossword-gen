@@ -548,7 +548,7 @@ size_t cw_trie::domain_size() const {
  * @param index the index to get letters for
  * @returns vector of chars, >= 'a', and <= 'z', which appear at the specific index in the current domain (taking into account assignment) 
 */
-vector<char> cw_trie::letters_at_index(uint index) const {
+vector<char> cw_trie::get_all_letters_at_index(uint index) const {
     assert(index < MAX_WORD_LEN);
 
     vector<char> result;
@@ -567,6 +567,41 @@ vector<char> cw_trie::letters_at_index(uint index) const {
     } 
     
     return result;
+}
+
+/**
+ * @brief get vector containing all words in the current domain
+ * @returns vector of all words in the current domain
+*/
+vector<word_t> cw_trie::get_cur_domain() {
+    vector<word_t> acc;
+    collect_cur_domain(trie, "", acc);
+    return acc;
+}
+
+/**
+ * @brief helper for get_cur_domain(), traverses trie and adds words to accumulator
+ * 
+ * @param node current node in the traversal
+ * @param fragment letters from traversal so far up to and not including the current node
+ * @param acc accumulator vector to write back valid words to
+*/
+void cw_trie::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
+    string fragment_with_cur_node = fragment + node->letter;
+
+    // base case for leaf nodes
+    if(node->valid) {
+        // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
+        assert(node->children.size() == 0);
+
+        acc.push_back(word_map.at(fragment_with_cur_node));
+        return;
+    }
+
+    // recursive calls to children
+    for(const auto& pair : node->children) {
+        collect_cur_domain(pair.second, fragment_with_cur_node, acc);
+    }
 }
 
 /**
