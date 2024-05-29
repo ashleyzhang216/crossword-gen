@@ -95,6 +95,27 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(nam
 }
 
 /**
+ * @brief constructor for cw_trie with hashset of words in domain
+ * @warning behavior undefined unless called to initialize a domain for a cw_variable
+ * 
+ * @param name the name of this object
+ * @param domain set of words to add to domain, whose words must all be equal length
+*/
+cw_trie::cw_trie(string name, unordered_set<word_t> domain) : common_parent(name) {
+    trie = make_shared<trie_node>(false, '_', nullptr);
+    filepath_opt = std::nullopt;
+    unassigned_domain_size = 0;
+    assigned = false;
+
+    size_t word_len = 0;
+    for(word_t word : domain) {
+        assert_m(word_len == 0 || word_len == word.word.size(), "cw_trie set constructor includes words of unequal length");
+        word_len = word.word.size();
+        add_word(word);
+    }
+}
+
+/**
  * @brief helper for filepath constructor to detect file type
  * 
  * @param str string to check the suffix of

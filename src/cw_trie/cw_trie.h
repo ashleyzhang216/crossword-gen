@@ -28,6 +28,9 @@ namespace cw_trie_ns {
             // constructor with filepath opt
             cw_trie(string name, optional<string> filepath_opt);
 
+            // constructor with set of domain, exclusively for cw_variable domain representation
+            cw_trie(string name, unordered_set<word_t> domain);
+
             // add word to trie
             // TODO: should this be by reference?
             void add_word(word_t w); 
