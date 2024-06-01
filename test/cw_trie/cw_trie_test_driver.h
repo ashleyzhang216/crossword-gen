@@ -51,6 +51,15 @@ namespace cw_trie_test_driver_ns {
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
             );
+
+            // directed test for letters_at_indicies state after remove calls and during assignment in an AC-3 step
+            bool test_letters_at_indicies_remove_assign(
+                vector<word_t> init_words, vector<pair<uint, char> > remove_params, 
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
+                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
+                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+            );
             
             // basic check after remove tests that the domain is empty
             bool test_domain_empty() { return dut->domain_size() == 0; }

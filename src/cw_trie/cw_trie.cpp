@@ -482,7 +482,7 @@ void cw_trie::start_new_ac3_call() {
 size_t cw_trie::undo_prev_ac3_call() {
     // check precondition and invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
-    assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to remove_matching_words()");
+    assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
@@ -490,6 +490,7 @@ size_t cw_trie::undo_prev_ac3_call() {
         }
     }
     
+    // restore regular letters_at_indices entries
     size_t num_restored = 0;
     size_t num_restored_per_index = 0;
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
@@ -514,7 +515,6 @@ size_t cw_trie::undo_prev_ac3_call() {
             }
             letters_at_indices[i][j].ac3_pruned_nodes.pop();
 
-
             // restore num_words
             letters_at_indices[i][j].num_words += letters_at_indices[i][j].ac3_pruned_words.top();
             num_restored_per_index += letters_at_indices[i][j].ac3_pruned_words.top();
@@ -523,11 +523,17 @@ size_t cw_trie::undo_prev_ac3_call() {
         assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
         if(num_restored_per_index != 0) num_restored = num_restored_per_index;
     }
-    if(ac3_pruned_assigned_val.top().has_value()) {
-        assert_m(num_restored == 0, "restoring to letters_at_indices and assigned_value in undo_prev_ac3_call() call");
-        assigned_value = ac3_pruned_assigned_val.top().value();
-    }
+    if(num_restored > 0) assert_m(!assigned, "assigned upon restoring nonzero values in undo_prev_ac3_call() call");
+    
+    // restore assigned value
+    optional<word_t> popped_assignment = ac3_pruned_assigned_val.top();
     ac3_pruned_assigned_val.pop();
+    if(popped_assignment.has_value()) {
+        assert_m(num_restored == 0, "restoring to letters_at_indices and assigned_value in undo_prev_ac3_call() call");
+        assert_m(assigned, "not assigned upon restoring assigned value in undo_prev_ac3_call() call");
+        assigned_value = popped_assignment.value();
+        return 1; // return early to bypass updating unassigned_domain_size since it's undefined if assigned
+    }
 
     unassigned_domain_size += num_restored;
     return num_restored;
@@ -587,7 +593,7 @@ vector<word_t> cw_trie::get_cur_domain() {
  * @param acc accumulator vector to write back valid words to
 */
 void cw_trie::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
-    string fragment_with_cur_node = fragment + node->letter;
+    string fragment_with_cur_node = (node == trie) ? fragment : fragment + node->letter;
 
     // base case for leaf nodes
     if(node->valid) {
