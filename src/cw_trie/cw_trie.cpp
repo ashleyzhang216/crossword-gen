@@ -603,17 +603,3 @@ void cw_trie::collect_cur_domain(shared_ptr<trie_node> node, string fragment, ve
         collect_cur_domain(pair.second, fragment_with_cur_node, acc);
     }
 }
-
-/**
- * @brief remove_matching_words() helper to get the string fragment terminating at this node
- * 
- * @param node the current node being read and has not been added to result yet
- * @return string fragment of word before and including the provided node
-*/
-string cw_trie::get_fragment(shared_ptr<trie_node> node) {
-    if(auto p = node->parent.lock()) {
-        return get_fragment(p) + node->letter;
-    }
-
-    return "";
-}

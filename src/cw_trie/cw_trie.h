@@ -127,10 +127,6 @@ namespace cw_trie_ns {
 
             // helper for get_cur_domain() to traverse trie and collect words
             void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc);
-
-            // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
-            // TODO: should this be removed?
-            string get_fragment(shared_ptr<trie_node> node);
     }; // cw_trie
 }; // cw_trie_ns
 
