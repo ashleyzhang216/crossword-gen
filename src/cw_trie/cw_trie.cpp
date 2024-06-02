@@ -577,7 +577,7 @@ vector<char> cw_trie::get_all_letters_at_index(uint index) const {
 
 /**
  * @brief get vector containing all words in the current domain
- * @returns vector of all words in the current domain
+ * @returns unsorted vector of all words in the current domain
 */
 vector<word_t> cw_trie::get_cur_domain() {
     vector<word_t> acc;

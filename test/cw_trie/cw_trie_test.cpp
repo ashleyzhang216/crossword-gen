@@ -354,8 +354,8 @@ TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
 /**
  * more complex test mixing adding, removing, and assigning in an AC-3 step
 */
-TEST_CASE("cw_trie adding_removing_assigning", "[cw_trie]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-adding_removing_assigning");
+TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-adding_removing_assigning-letters_at_indicies");
 
     // for this test, add every possible 4 letter word composed of only the first 20 letters of alphabet
     vector<word_t> init_words;
@@ -477,8 +477,71 @@ TEST_CASE("cw_trie adding_removing_assigning", "[cw_trie]") {
     REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, 4, num_words_remaining));
 }
 
-// TODO: add test case with word of max length
+/**
+ * removing and assigning test with words of max length
+*/
+TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_trie]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-max_length-letters_at_indicies");
+
+    assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
+
+    // for this test, add every possible max length word composed only of letters a and b
+    vector<string> fragments = {""};
+    for(uint i = 0; i < MAX_WORD_LEN; i++) {
+        vector<string> next_fragments;
+        for(string fragment : fragments) {
+            next_fragments.push_back(fragment + "a");
+            next_fragments.push_back(fragment + "b");
+        }
+        fragments = next_fragments;
+    }
+    vector<word_t> init_words;
+    for(string word : fragments) init_words.push_back(word_t(word));
+    assert_m(init_words.size() == 1 << MAX_WORD_LEN, "incorrect size of init_words");
+
+    driver->add_words(init_words);
+
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    init_num_words.fill({ 1 << (MAX_WORD_LEN - 1), 1 << (MAX_WORD_LEN - 1), });
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes;
+    for(uint i = 0; i < MAX_WORD_LEN; i++) init_num_nodes[i] = {1u << i, 1u << i,};
+    
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    vector<pair<uint, char> > remove_params;
+    uint num_words_remaining = static_cast<uint>(init_words.size());
+
+    REQUIRE(driver->test_letters_at_indicies_add({}, num_words, num_nodes, {}, {}));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
+    
+    // --------------- remove a or b, alternating, from every index ---------------
+
+    for(uint letter = 0; letter < MAX_WORD_LEN; letter++) {
+        remove_params.push_back({letter, (letter % 2 == 0) ? 'a' : 'b'});
+        num_words_remaining -= num_words_remaining >> 1;
+
+        for(uint i = 0; i < MAX_WORD_LEN; i++) {
+            if(i != letter) {
+                num_words[i][0] = num_words[i][0] >> 1;
+                num_words[i][1] = num_words[i][1] >> 1;
+            }
+        }
+        num_words[letter][letter % 2] = 0;
+        num_words_ground_truths.push_back(num_words);
+
+        for(uint i = letter + 1; i < MAX_WORD_LEN; i++) {
+            num_nodes[i][0] = num_nodes[i][0] >> 1;
+            num_nodes[i][1] = num_nodes[i][1] >> 1;
+        }
+        num_nodes[letter][letter % 2] = 0;
+        num_nodes_ground_truths.push_back(num_nodes);
+    }
+
+    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
+}
+
 
 // TODO: add test for get_all_letters_at_index 
-
-// TODO: add test with empty AC-3 step

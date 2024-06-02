@@ -230,6 +230,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove_assign(
 
     // try assigning candidates
     vector<word_t> candidates = dut->get_cur_domain();
+    result &= candidates.size() == dut->domain_size();
     for(word_t candidate : candidates) {
         dut->assign_domain(candidate);
         result &= test_num_letters_at_indicies_assign(candidate);
