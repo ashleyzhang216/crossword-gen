@@ -480,7 +480,7 @@ TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") 
 /**
  * removing and assigning test with words of max length
 */
-TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_trie]") {
+TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_trie],[slow]") {
     shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-max_length-letters_at_indicies");
 
     assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
