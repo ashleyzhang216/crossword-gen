@@ -473,7 +473,7 @@ TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") 
     num_nodes[3][0] = 0;
     num_nodes_ground_truths.push_back(num_nodes);
 
-    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
+    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, std::nullopt, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
     REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, 4, num_words_remaining));
 }
 
@@ -512,15 +512,17 @@ TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_t
     vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
     vector<pair<uint, char> > remove_params;
     uint num_words_remaining = static_cast<uint>(init_words.size());
+    stringstream last_word;
 
     REQUIRE(driver->test_letters_at_indicies_add({}, num_words, num_nodes, {}, {}));
     REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
     
     // --------------- remove a or b, alternating, from every index ---------------
-
+    
     for(uint letter = 0; letter < MAX_WORD_LEN; letter++) {
         remove_params.push_back({letter, (letter % 2 == 0) ? 'a' : 'b'});
-        num_words_remaining -= num_words_remaining >> 1;
+        last_word << ((letter % 2 != 0) ? 'a' : 'b');
+        num_words_remaining = num_words_remaining >> 1;
 
         for(uint i = 0; i < MAX_WORD_LEN; i++) {
             if(i != letter) {
@@ -539,9 +541,49 @@ TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_t
         num_nodes_ground_truths.push_back(num_nodes);
     }
 
-    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
+    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, optional<word_t>(word_t(last_word.str())), init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
     REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
+
+    REQUIRE(num_words_remaining == 1);
+    REQUIRE(driver->get_cur_domain().size() == 1 << MAX_WORD_LEN);
 }
 
+/**
+ * basic test for get_all_letters_at_index
+*/
+TEST_CASE("cw_trie get_all_letters_at_index", "[cw_trie][quick]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-get_all_letters_at_index");
 
-// TODO: add test for get_all_letters_at_index 
+    const size_t word_len = 9;
+    const uint num_word_variations = 3;
+    const uint num_removes = 10;
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    //                   a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+    init_num_words.fill({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    // construct many words using changing intervals between letters 
+    vector<word_t> words;
+    vector<string> fragments = {""};
+    for(uint i = 0; i < word_len; i++) {
+        vector<string> next_fragments;
+        for(string fragment : fragments) {
+            for(uint j = 0; j < num_word_variations; j++) {
+                char letter = static_cast<char>('a' + (i*j + i) % NUM_ENGLISH_LETTERS);
+                next_fragments.push_back(fragment + letter);
+            }
+        }
+        fragments = next_fragments;
+    }
+    unordered_set<string> fragments_unique(fragments.begin(), fragments.end());
+    for(string word : fragments_unique) words.push_back(word_t(word));
+
+    // construct many remove params using changing intervals and letters
+    vector<pair<uint, char> > remove_params;
+    for(uint i = 0; i < num_removes; i++) {
+        uint index = (7 * num_removes + i) % word_len;
+        char letter = static_cast<char>((11 * num_removes + i) % NUM_ENGLISH_LETTERS + 'a');
+        remove_params.push_back({index, letter});
+    }
+
+    REQUIRE(driver->test_get_all_letters_at_index(words, remove_params, init_num_words));
+}

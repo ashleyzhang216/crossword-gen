@@ -54,11 +54,17 @@ namespace cw_trie_test_driver_ns {
 
             // directed test for letters_at_indicies state after remove calls and during assignment in an AC-3 step
             bool test_letters_at_indicies_remove_assign(
-                vector<word_t> init_words, vector<pair<uint, char> > remove_params, 
+                vector<word_t> init_words, vector<pair<uint, char> > remove_params, optional<word_t> last_remaining, 
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
                 vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+            );
+
+            // directed test for get_all_letters_at_index state after add, remove, and assign calls
+            bool test_get_all_letters_at_index(
+                vector<word_t> words, vector<pair<uint, char> > remove_params, 
+                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words
             );
             
             // basic check after remove tests that the domain is empty
@@ -74,6 +80,7 @@ namespace cw_trie_test_driver_ns {
             }
             void assign_domain(word_t word) { dut->assign_domain(word); }
             void unassign_domain() { dut->unassign_domain(); }
+            vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
 
             // destructor, all objects are raii and should delete automatically
             ~cw_trie_test_driver() = default;
@@ -87,6 +94,11 @@ namespace cw_trie_test_driver_ns {
                 array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
                 array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
                 bool test_num_words
+            );
+
+            // helper function for test_get_all_letters_at_index()
+            unordered_set<char> get_all_letters_at_index(
+                uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words
             );
     }; // cw_trie_test_driver
 } // cw_trie_test_driver_ns
