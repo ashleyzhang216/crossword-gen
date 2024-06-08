@@ -22,8 +22,9 @@ cw_trie::cw_trie(string name) : cw_trie(name, std::nullopt) {
  * 
  * @param name the name of this object
  * @param filepath path to .txt or .json file containing word data
+ * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_trie::cw_trie(string name, string filepath) : cw_trie(name, optional<string>(filepath)) {
+cw_trie::cw_trie(string name, string filepath, bool print_progress_bar) : cw_trie(name, optional<string>(filepath), print_progress_bar) {
     // do nothing, delegated to constructor does everything needed
 }
 
@@ -32,8 +33,9 @@ cw_trie::cw_trie(string name, string filepath) : cw_trie(name, optional<string>(
  * 
  * @param name the name of this object
  * @param filepath_opt optional, may contain path to .txt or .json file containing word data
+ * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(name) {
+cw_trie::cw_trie(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     this->filepath_opt = filepath_opt;
     unassigned_domain_size = 0;
@@ -44,6 +46,14 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(nam
         string filepath = filepath_opt.value();
         string word;
         optional<string> parsed_word;
+
+        // initialize progress bar fields
+        unique_ptr<progress_bar> bar = nullptr;
+        double prev_progress = 0.0;
+        uint words_added = 0;
+        if(print_progress_bar) {
+            bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building Dictionary", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+        }
         
         // TODO: should .txt file support be removed?
         if(has_suffix(filepath, ".txt")) {
@@ -51,6 +61,14 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(nam
             ifstream word_file;
             word_file.open(filepath);
             assert_m(word_file.is_open(), "could not open txt file " + filepath);
+
+            // count total number of lines in file for progress bar
+            uint num_lines = 0;
+            if(print_progress_bar) {
+                while(getline(word_file, word)) num_lines++;
+                word_file.clear(); // clear EOF flag
+                word_file.seekg(0, std::ios::beg); // rewind file indicator
+            }
 
             // parse word file
             while(getline(word_file, word)) {
@@ -65,6 +83,15 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(nam
                         add_word(word_t(word));
                     } 
                 }
+
+                // update progress bar if 1% more of progress made
+                if(print_progress_bar && (double)words_added/num_lines >= prev_progress + 0.01) {
+                    prev_progress += 0.01;
+                    bar->write(prev_progress);
+                }
+
+                // another word added
+                words_added++;
             }
             word_file.close();
 
@@ -80,9 +107,19 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt) : common_parent(nam
                 assert_m(parsed_word.has_value() && parsed_word.value() == item, ".json file input word not clean: " + item);
                 word = item;
 
+                // add word
                 if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
                     add_word(word_t(word, data["Score"], data["Frequency"]));
                 } 
+
+                // update progress bar if 1% more of progress made
+                if(print_progress_bar && (double)words_added/j.size() >= prev_progress + 0.01) {
+                    prev_progress += 0.01;
+                    bar->write(prev_progress);
+                }
+
+                // another word added
+                words_added++;
             }
             word_file.close();
 

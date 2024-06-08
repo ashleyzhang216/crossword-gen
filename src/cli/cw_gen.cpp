@@ -38,9 +38,9 @@ string cw_gen::squash_options(vector<string> options) {
 */
 void cw_gen::build() {
     if(has_grid_contents) {
-        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict]);
+        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict], display_progress_bar);
     } else {
-        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict]);
+        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict], display_progress_bar);
     }
 }
 

@@ -29,6 +29,11 @@
 #define BLK BLACK              // shorthand
 #define NUM_ENGLISH_LETTERS 26 // this shouldn't ever change, knock on wood :)
 
+// cosmetics
+#define PROGRESS_BAR_WIDTH 100u
+#define PROGRESS_BAR_SYMBOL_FULL '#'
+#define PROGRESS_BAR_SYMBOL_EMPTY '.'
+
 using std::cout;
 using std::cerr;
 using std::endl;

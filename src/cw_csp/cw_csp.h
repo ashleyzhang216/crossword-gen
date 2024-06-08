@@ -28,10 +28,10 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // constructor w/o puzzle contents
-            cw_csp(string name, uint length, uint height, string filepath);
+            cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar = false);
 
             // constructor with puzzle contents
-            cw_csp(string name, uint length, uint height, string contents, string filepath);
+            cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar = false);
 
             // read-only getters for testing
             unordered_set<cw_variable>                                get_variables()        const;
@@ -39,7 +39,7 @@ namespace cw_csp_ns {
             unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
 
             // solve CSP
-            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, bool print_progress_bar);
+            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
 
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
@@ -70,7 +70,7 @@ namespace cw_csp_ns {
             void undo_overwrite_cw();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy, bool print_progress_bar);
+            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar);
 
         private:
             // crossword to be solved
@@ -94,6 +94,9 @@ namespace cw_csp_ns {
 
             // words already assigned to the crossword, used to avoid duplicates
             unordered_set<word_t> assigned_words;
+
+            // progress bar for searching and domain building
+            bool print_progress_bar;
 
     }; // cw_csp
 } // cw_csp_ns

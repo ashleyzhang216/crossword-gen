@@ -23,10 +23,10 @@ namespace cw_trie_ns {
             cw_trie(string name);
             
             // constructor with filepath
-            cw_trie(string name, string filepath);
+            cw_trie(string name, string filepath, bool print_progress_bar = false);
 
             // constructor with filepath opt
-            cw_trie(string name, optional<string> filepath_opt);
+            cw_trie(string name, optional<string> filepath_opt, bool print_progress_bar = false);
 
             // constructor with set of domain, exclusively for cw_variable domain representation
             cw_trie(string name, unordered_set<word_t> domain);
