@@ -194,7 +194,7 @@ TEST_CASE("cw_trie remove_matching_words-letters_at_indicies", "[cw_trie],[quick
     num_nodes_ground_truths.push_back(num_nodes);
 
     REQUIRE(driver->test_letters_at_indicies_remove(init_words, remove_params, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
-    REQUIRE(driver->test_word_map_empty());
+    REQUIRE(driver->test_domain_empty());
 }
 
 /**
@@ -352,8 +352,238 @@ TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
 }
 
 /**
- * more complex test mixing adding, removing, and assigning
+ * more complex test mixing adding, removing, and assigning in an AC-3 step
 */
-TEST_CASE("cw_trie adding_removing_assigning", "[cw_trie],[quick]") {
-    REQUIRE(true);
+TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-adding_removing_assigning-letters_at_indicies");
+
+    // for this test, add every possible 4 letter word composed of only the first 20 letters of alphabet
+    vector<word_t> init_words;
+    for(char c0 = 'a'; c0 <= 't'; c0++) {
+        for(char c1 = 'a'; c1 <= 't'; c1++) {
+            for(char c2 = 'a'; c2 <= 't'; c2++) {
+                for(char c3 = 'a'; c3 <= 't'; c3++) {
+                    string word = {c0, c1, c2, c3};
+                    init_words.push_back(word_t(word));
+                }
+            }
+        }
+    }
+    driver->add_words(init_words);
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words = {{
+        //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
+        { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
+        { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
+        { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
+        { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
+    }};
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes = {{
+        //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
+        {    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    0,    0,    0,    0,    0,    0},
+        {   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,    0,    0,    0,    0,    0,    0},
+        {  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,    0,    0,    0,    0,    0,    0},
+        { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
+    }};
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    vector<pair<uint, char> > remove_params;
+    uint num_words_remaining = static_cast<uint>(init_words.size());
+    uint factor;
+
+    REQUIRE(driver->test_letters_at_indicies_add({}, num_words, num_nodes, {}, {}));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, 4, num_words_remaining));
+
+    init_num_words = num_words;
+    init_num_nodes = num_nodes;
+    num_words_ground_truths.clear();
+    num_nodes_ground_truths.clear();    
+
+    // --------------- remove a @ 0 ---------------
+
+    remove_params.push_back({0, 'a'});
+    num_words_remaining -= 8000;
+
+    for(uint i = 1; i < 4; i++) for(uint j = 0; j < 20; j++) num_words[i][j] -= 400;
+    num_words[0][0] = 0; 
+    num_words_ground_truths.push_back(num_words);
+
+    factor = 1;
+    for(uint i = 1; i < 4; i++) { for(uint j = 0; j < 20; j++) { num_nodes[i][j] -= factor; } factor *= 20; }
+    num_nodes[0][0] = 0;
+    num_nodes_ground_truths.push_back(num_nodes);
+
+    // --------------- remove b @ 0 ---------------
+
+    remove_params.push_back({0, 'b'});
+    num_words_remaining -= 8000;
+
+    for(uint i = 1; i < 4; i++) for(uint j = 0; j < 20; j++) num_words[i][j] -= 400;
+    num_words[0][1] = 0; 
+    num_words_ground_truths.push_back(num_words);
+
+    factor = 1;
+    for(uint i = 1; i < 4; i++) { for(uint j = 0; j < 20; j++) { num_nodes[i][j] -= factor; } factor *= 20; }
+    num_nodes[0][1] = 0;
+    num_nodes_ground_truths.push_back(num_nodes);
+
+    // --------------- remove c @ 1 ---------------
+
+    remove_params.push_back({1, 'c'});
+    num_words_remaining -= 400 * 18;
+
+    for(uint j = 2; j < 20; j++) num_words[0][j] -= 20 * 20; // excluding 'a' and 'b' @ index 0 since those are already removed
+    for(uint i = 2; i < 4; i++) for(uint j = 0; j < 20; j++) num_words[i][j] -= 18 * 20;
+    num_words[1][2] = 0; 
+    num_words_ground_truths.push_back(num_words);
+
+    factor = 18;
+    for(uint i = 2; i < 4; i++) { for(uint j = 0; j < 20; j++) { num_nodes[i][j] -= factor; } factor *= 20; }
+    num_nodes[1][2] = 0;
+    num_nodes_ground_truths.push_back(num_nodes);
+
+    // --------------- remove d @ 2 ---------------
+
+    remove_params.push_back({2, 'd'});
+    num_words_remaining -= 20 * 19 * 18;
+
+    for(uint j = 2; j < 20; j++) num_words[0][j] -= 20 * 19; // excluding 'a' and 'b' @ index 0 since those are already removed
+    for(uint j = 0; j < 20; j++) if(j != 2) num_words[1][j] -= 20 * 18;
+    for(uint j = 0; j < 20; j++) num_words[3][j] -= 19 * 18;
+    num_words[2][3] = 0; 
+    num_words_ground_truths.push_back(num_words);
+
+    factor = 19 * 18;
+    for(uint j = 0; j < 20; j++) { num_nodes[3][j] -= factor; }
+    num_nodes[2][3] = 0;
+    num_nodes_ground_truths.push_back(num_nodes);
+
+    // --------------- remove a @ 3 ---------------
+
+    remove_params.push_back({3, 'a'});
+    num_words_remaining -= 19 * 19 * 18;
+
+    for(uint j = 2; j < 20; j++) num_words[0][j] -= 19 * 19; // excluding 'a' and 'b' @ index 0 since those are already removed
+    for(uint j = 0; j < 20; j++) if(j != 2) num_words[1][j] -= 19 * 18;
+    for(uint j = 0; j < 20; j++) if(j != 3) num_words[2][j] -= 19 * 18;
+    num_words[3][0] = 0;
+    num_words_ground_truths.push_back(num_words);
+
+    num_nodes[3][0] = 0;
+    num_nodes_ground_truths.push_back(num_nodes);
+
+    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, std::nullopt, init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, 4, num_words_remaining));
+}
+
+/**
+ * removing and assigning test with words of max length
+*/
+TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_trie],[slow]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-max_length-letters_at_indicies");
+
+    assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
+
+    // for this test, add every possible max length word composed only of letters a and b
+    vector<string> fragments = {""};
+    for(uint i = 0; i < MAX_WORD_LEN; i++) {
+        vector<string> next_fragments;
+        for(string fragment : fragments) {
+            next_fragments.push_back(fragment + "a");
+            next_fragments.push_back(fragment + "b");
+        }
+        fragments = next_fragments;
+    }
+    vector<word_t> init_words;
+    for(string word : fragments) init_words.push_back(word_t(word));
+    assert_m(init_words.size() == 1 << MAX_WORD_LEN, "incorrect size of init_words");
+
+    driver->add_words(init_words);
+
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    init_num_words.fill({ 1 << (MAX_WORD_LEN - 1), 1 << (MAX_WORD_LEN - 1), });
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes;
+    for(uint i = 0; i < MAX_WORD_LEN; i++) init_num_nodes[i] = {1u << i, 1u << i,};
+    
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
+    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    vector<pair<uint, char> > remove_params;
+    uint num_words_remaining = static_cast<uint>(init_words.size());
+    stringstream last_word;
+
+    REQUIRE(driver->test_letters_at_indicies_add({}, num_words, num_nodes, {}, {}));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
+    
+    // --------------- remove a or b, alternating, from every index ---------------
+    
+    for(uint letter = 0; letter < MAX_WORD_LEN; letter++) {
+        remove_params.push_back({letter, (letter % 2 == 0) ? 'a' : 'b'});
+        last_word << ((letter % 2 != 0) ? 'a' : 'b');
+        num_words_remaining = num_words_remaining >> 1;
+
+        for(uint i = 0; i < MAX_WORD_LEN; i++) {
+            if(i != letter) {
+                num_words[i][0] = num_words[i][0] >> 1;
+                num_words[i][1] = num_words[i][1] >> 1;
+            }
+        }
+        num_words[letter][letter % 2] = 0;
+        num_words_ground_truths.push_back(num_words);
+
+        for(uint i = letter + 1; i < MAX_WORD_LEN; i++) {
+            num_nodes[i][0] = num_nodes[i][0] >> 1;
+            num_nodes[i][1] = num_nodes[i][1] >> 1;
+        }
+        num_nodes[letter][letter % 2] = 0;
+        num_nodes_ground_truths.push_back(num_nodes);
+    }
+
+    REQUIRE(driver->test_letters_at_indicies_remove_assign({}, remove_params, optional<word_t>(word_t(last_word.str())), init_num_words, init_num_nodes, num_words_ground_truths, num_nodes_ground_truths));
+    REQUIRE(driver->test_letters_at_indicies_row_sums(num_words, MAX_WORD_LEN, num_words_remaining));
+
+    REQUIRE(num_words_remaining == 1);
+    REQUIRE(driver->get_cur_domain().size() == 1 << MAX_WORD_LEN);
+}
+
+/**
+ * basic test for get_all_letters_at_index
+*/
+TEST_CASE("cw_trie get_all_letters_at_index", "[cw_trie][quick]") {
+    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-get_all_letters_at_index");
+
+    const size_t word_len = 9;
+    const uint num_word_variations = 3;
+    const uint num_removes = 10;
+    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    //                   a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+    init_num_words.fill({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    // construct many words using changing intervals between letters 
+    vector<word_t> words;
+    vector<string> fragments = {""};
+    for(uint i = 0; i < word_len; i++) {
+        vector<string> next_fragments;
+        for(string fragment : fragments) {
+            for(uint j = 0; j < num_word_variations; j++) {
+                char letter = static_cast<char>('a' + (i*j + i) % NUM_ENGLISH_LETTERS);
+                next_fragments.push_back(fragment + letter);
+            }
+        }
+        fragments = next_fragments;
+    }
+    unordered_set<string> fragments_unique(fragments.begin(), fragments.end());
+    for(string word : fragments_unique) words.push_back(word_t(word));
+
+    // construct many remove params using changing intervals and letters
+    vector<pair<uint, char> > remove_params;
+    for(uint i = 0; i < num_removes; i++) {
+        uint index = (7 * num_removes + i) % word_len;
+        char letter = static_cast<char>((11 * num_removes + i) % NUM_ENGLISH_LETTERS + 'a');
+        remove_params.push_back({index, letter});
+    }
+
+    REQUIRE(driver->test_get_all_letters_at_index(words, remove_params, init_num_words));
 }

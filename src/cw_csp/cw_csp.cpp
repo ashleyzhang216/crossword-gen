@@ -14,11 +14,13 @@ using namespace cw_csp_ns;
  * @param length the length of puzzle to be created
  * @param height the height of puzzle to be created
  * @param filepath relative filepath to dictionary of words file
+ * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath) 
+cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar) 
         : common_parent(name), 
           cw(name + " cw", length, height), 
-          total_domain(name + " total_domain", filepath) {
+          total_domain(name + " total_domain", filepath, print_progress_bar), 
+          print_progress_bar(print_progress_bar) {
     initialize_csp();
 }
 
@@ -29,11 +31,13 @@ cw_csp::cw_csp(string name, uint length, uint height, string filepath)
  * @param height the height of puzzle to be created
  * @param contents the contents to populate puzzle with
  * @param filepath relative filepath to dictionary of words file
+ * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath) 
+cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar) 
         : common_parent(name), 
           cw(name + " cw", length, height, contents), 
-          total_domain(name + " total_domain", filepath) {
+          total_domain(name + " total_domain", filepath, print_progress_bar), 
+          print_progress_bar(print_progress_bar) {
     initialize_csp();
 }
 
@@ -128,7 +132,7 @@ void cw_csp::initialize_csp() {
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
-                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain);
+                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
                         variables.insert(new_var);
@@ -148,7 +152,7 @@ void cw_csp::initialize_csp() {
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last space in a row is blank
-            shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain);
+            shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
             variables.insert(new_var);
@@ -192,7 +196,7 @@ void cw_csp::initialize_csp() {
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
-                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain);
+                        shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
                         variables.insert(new_var);
@@ -212,7 +216,7 @@ void cw_csp::initialize_csp() {
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last 2+ spaces in a row are blank
-            shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain);
+            shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
             variables.insert(new_var);
@@ -541,10 +545,9 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
  * 
  * @param csp_strategy strategy to solve this CSP
  * @param var_strategy strategy to select next unassigned variable
- * @param print_progress_bar true for prod to avoid printing during testing
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, bool print_progress_bar) {
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
     // base case for initially invalid crosswords
     if(!ac3()) return false;
 
@@ -566,10 +569,10 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * @brief use backtracking strategy to solve CSP
  * 
  * @param var_strategy strategy to use to select next unassigned variable 
- * @param print_progress_bar true for top level call in prod to avoid printing during testing
+ * @param do_progress_bar true for top level call in prod to avoid printing during testing
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_progress_bar) {
+bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar) {
 
     ss << "entering solve_backtracking() with cw: " << cw;
     utils->print_msg(&ss, DEBUG);
@@ -592,8 +595,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_pr
     unique_ptr<progress_bar> bar = nullptr;
     double prev_progress = 0.0;
     int words_searched = 0;
-    if(print_progress_bar) {
-        bar = make_unique<progress_bar>(cout, 100u, "Searching", '#', '.');
+    if(do_progress_bar) {
+        bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
     }
 
     // search all possible values, sorted by word score, tiebroken by frequency
@@ -608,7 +611,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool print_pr
     for(word_t word : domain_copy) {
         
         // update progress bar if 1% more of progress made
-        if(print_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
+        if(do_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
             prev_progress += 0.01;
             bar->write(prev_progress);
         }

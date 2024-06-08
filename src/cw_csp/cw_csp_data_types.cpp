@@ -73,18 +73,15 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
  * @param length num of letters in this var
  * @param dir direction of this var
  * @param pattern word pattern to find matches for to populate domain
- * @param total_domain ref to cw_trie of all words to populate domain with
+ * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, cw_trie& total_domain) {
+cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) {
     this->origin_row = origin_row;
     this->origin_col = origin_col;
     this->length = length;
     this->dir = dir;
     this->pattern = pattern;
-    domain.clear();
-
-    // populate domain
-    total_domain.find_matches(domain, pattern);
+    this->domain = domain;
 }
 
 /**

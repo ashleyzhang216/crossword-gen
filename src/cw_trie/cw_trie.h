@@ -23,26 +23,39 @@ namespace cw_trie_ns {
             cw_trie(string name);
             
             // constructor with filepath
-            cw_trie(string name, string filepath);
+            cw_trie(string name, string filepath, bool print_progress_bar = false);
 
             // constructor with filepath opt
-            cw_trie(string name, optional<string> filepath_opt);
+            cw_trie(string name, optional<string> filepath_opt, bool print_progress_bar = false);
 
-            // add word to trie, TODO: should this be by reference?
+            // constructor with set of domain, exclusively for cw_variable domain representation
+            cw_trie(string name, unordered_set<word_t> domain);
+
+            // add word to trie
+            // TODO: should this be by reference?
             void add_word(word_t w); 
 
             // word check
+            // TODO: should this be removed?
             bool is_word(string& word) const;
 
             // find all words that match a pattern
             // TODO: add const correctness
-            void find_matches(unordered_set<word_t>& matches, string& pattern);
+            unordered_set<word_t> find_matches(const string& pattern);
 
             // read function for entries in letters_at_indices
             uint num_letters_at_index(uint index, char letter) const;
 
             // deletion function for words with letters at an index
-            void remove_matching_words(unordered_set<word_t>& pruned_words, uint index, char letter);
+            size_t remove_matching_words(uint index, char letter);
+
+            // start new AC-3 algorithm call
+            // i.e. add new blank layer to letters_at_indices.ac3_pruned_nodes and ac3_pruned_assigned_val
+            void start_new_ac3_call();
+
+            // undo previous AC-3 algorithm call
+            // i.e. pop top layers of letters_at_indices.ac3_pruned_nodes and ac3_pruned_assigned_val, and restore to trie and assigned_value
+            size_t undo_prev_ac3_call();
 
             // assign domain to a single value, repeat calls overwrite assigned value
             void assign_domain(word_t new_value) { assigned = true; assigned_value = new_value; }
@@ -53,13 +66,17 @@ namespace cw_trie_ns {
             // get size of domain remaining, for ac3 validity checking
             size_t domain_size() const;
 
+            // get letters at an index, for AC-3 constraint satisfaction checking
+            unordered_set<char> get_all_letters_at_index(uint index) const;
+
+            // get all words in current domain to try to assign for backtracking
+            vector<word_t> get_cur_domain();
+
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
 
             // expose word_map for testing, undefined if domain assigned
             unordered_map<string, word_t>& get_word_map() { return word_map; }
-
-            // TODO: maybe add something to undo the previous call to remove_matching_words()
         
         private:
             // opt file that this object may have read from
@@ -69,12 +86,19 @@ namespace cw_trie_ns {
             shared_ptr<trie_node> trie;
 
             // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
-            // contents undefined if assigned (contains data for previous trie)
+            // contents include all words ever added, even if pruned during an AC-3 call or this domain is assigned a value
             unordered_map<string, word_t> word_map;
+
+            // number of words currently in domain, ignoring any assigned value
+            size_t unassigned_domain_size;
 
             // stores # of words with letters at each index
             // contents undefined if domain assigned
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
+
+            // each layer corresponds to one call to AC-3 algorithm, and possibly contains a pruned assigned value 
+            // top layer corresponds to most recent AC-3 call
+            stack<optional<word_t> > ac3_pruned_assigned_val;
 
             // true iff domain has been assigned to a single value --> ignore trie
             bool assigned;
@@ -93,16 +117,16 @@ namespace cw_trie_ns {
 
             // helper function for find_matches()
             // TODO: add const correctness
-            void traverse_to_find_matches(unordered_set<word_t>& matches, string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
+            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
 
             // upwards recursive deletion helper func for remove_matching_words()
             void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
 
             // downwards recursive deletion helper func for remove_matching_words()
-            uint remove_children(shared_ptr<trie_node> node, unordered_set<word_t>& pruned_words, uint index, string fragment);
+            uint remove_children(shared_ptr<trie_node> node, uint index);
 
-            // helper for remove_matching_words(), gets preceding word fragment from a node targeted for removal
-            string get_fragment(shared_ptr<trie_node> node);
+            // helper for get_cur_domain() to traverse trie and collect words
+            void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc);
     }; // cw_trie
 }; // cw_trie_ns
 

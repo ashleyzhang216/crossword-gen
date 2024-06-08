@@ -47,7 +47,7 @@ namespace cw_gen_ns {
             void build();
 
             // attempt to solve crossword puzzle, return true iff successful
-            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES, display_progress_bar) && csp->solved(); }
+            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES) && csp->solved(); }
 
             // return result after running solve()
             string result() { assert(csp->solved()); return csp->result(); }

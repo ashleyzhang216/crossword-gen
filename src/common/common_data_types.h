@@ -29,6 +29,11 @@
 #define BLK BLACK              // shorthand
 #define NUM_ENGLISH_LETTERS 26 // this shouldn't ever change, knock on wood :)
 
+// cosmetics
+#define PROGRESS_BAR_WIDTH 100u
+#define PROGRESS_BAR_SYMBOL_FULL '#'
+#define PROGRESS_BAR_SYMBOL_EMPTY '.'
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -88,7 +93,7 @@ namespace common_data_types_ns {
 
     /**
      * @brief progress bar to print cw search progress
-     * implementation largely borrowed from https://codereview.stackexchange.com/a/186537
+     * @cite https://codereview.stackexchange.com/a/186537
     */
     class progress_bar {
         public:

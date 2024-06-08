@@ -50,7 +50,7 @@ namespace cw_csp_data_types_ns {
         bool assigned = false;        // true iff assigned to single value --> domain.size() == 1
 
         // standard constructor for cw_csp
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, cw_trie& total_domain);
+        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
 
         // testing-only constructor
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);

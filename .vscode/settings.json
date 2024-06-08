@@ -80,6 +80,7 @@
     "forward_list": "cpp",
     "span": "cpp",
     "valarray": "cpp",
-    "ranges": "cpp"
+    "ranges": "cpp",
+    "filesystem": "cpp"
   }
 }
