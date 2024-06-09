@@ -32,7 +32,6 @@ namespace word_domain_ns {
             word_domain(string name, unordered_set<word_t> domain);
 
             // add word to trie
-            // TODO: should this be by reference?
             void add_word(word_t w); 
 
             // word check

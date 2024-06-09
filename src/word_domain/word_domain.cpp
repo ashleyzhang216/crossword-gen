@@ -52,7 +52,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         double prev_progress = 0.0;
         uint words_added = 0;
         if(print_progress_bar) {
-            bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building Dictionary", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+            bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
         }
         
         // TODO: should .txt file support be removed?
