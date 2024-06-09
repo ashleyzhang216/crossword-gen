@@ -1,29 +1,32 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: test driver declaration for cw_trie
+// Description: test driver declaration for word_domain
 // ==================================================================
+
+#ifndef WORD_DOMAIN_TEST_DRIVER_H
+#define WORD_DOMAIN_TEST_DRIVER_H
 
 #include "../../src/common/common_data_types.h"
 #include "../../src/common/common_parent.h"
-#include "../../src/cw_trie/cw_trie_data_types.h"
-#include "../../src/cw_trie/cw_trie.h"
+#include "../../src/word_domain/word_domain_data_types.h"
+#include "../../src/word_domain/word_domain.h"
 #include "../../src/lib/src/json.hpp"
 
 using namespace common_data_types_ns;
 using namespace common_parent_ns;
-using namespace cw_trie_data_types_ns;
-using namespace cw_trie_ns;
+using namespace word_domain_data_types_ns;
+using namespace word_domain_ns;
 using json = nlohmann::json;
 
-namespace cw_trie_test_driver_ns {
-    class cw_trie_test_driver : public common_parent {
+namespace word_domain_test_driver_ns {
+    class word_domain_test_driver : public common_parent {
         public:
             // base constructor
-            cw_trie_test_driver(string name);
+            word_domain_test_driver(string name);
 
             // constructor with initial contents
-            cw_trie_test_driver(string name, string filepath);
+            word_domain_test_driver(string name, string filepath);
 
             // basic directed test for trie & find_matches()
             bool test_trie_basic(string pattern, unordered_set<word_t>& ground_truth);
@@ -83,11 +86,11 @@ namespace cw_trie_test_driver_ns {
             vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
 
             // destructor, all objects are raii and should delete automatically
-            ~cw_trie_test_driver() = default;
+            ~word_domain_test_driver() = default;
 
         private:
             // design under test
-            unique_ptr<cw_trie> dut;
+            unique_ptr<word_domain> dut;
 
             // helper function for test_letters_at_indicies_add()
             bool letters_at_indicies_entries_equal(
@@ -100,5 +103,7 @@ namespace cw_trie_test_driver_ns {
             unordered_set<char> get_all_letters_at_index(
                 uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words
             );
-    }; // cw_trie_test_driver
-} // cw_trie_test_driver_ns
+    }; // word_domain_test_driver
+} // word_domain_test_driver_ns
+
+#endif // WORD_DOMAIN_TEST_DRIVER_H

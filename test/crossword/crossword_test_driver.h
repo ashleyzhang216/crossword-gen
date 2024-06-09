@@ -4,6 +4,9 @@
 // Description: test driver declaration for crossword
 // ==================================================================
 
+#ifndef CROSSWORD_TEST_DRIVER_H
+#define CROSSWORD_TEST_DRIVER_H
+
 #include "../../src/common/common_data_types.h"
 #include "../../src/common/common_parent.h"
 #include "../../src/crossword/crossword_data_types.h"
@@ -39,3 +42,5 @@ namespace crossword_test_driver_ns {
             crossword* dut = nullptr;
     }; // crossword_test_driver
 } // crossword_test_driver_ns
+
+#endif // CROSSWORD_TEST_DRIVER_H

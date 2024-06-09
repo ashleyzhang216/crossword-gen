@@ -1,42 +1,40 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: trie and related data structures for cw_csp
+// Description: trie and related data structures for cw_csp and cw_variable
 // ==================================================================
 
-#ifndef CW_TRIE_H
-#define CW_TRIE_H
+#ifndef WORD_DOMAIN_H
+#define WORD_DOMAIN_H
 
-#include "cw_trie_data_types.h"
+#include "word_domain_data_types.h"
 #include "../common/common_parent.h"
 
-using namespace cw_trie_data_types_ns;
+using namespace word_domain_data_types_ns;
 using namespace common_parent_ns;
 
-namespace cw_trie_ns {
+namespace word_domain_ns {
     /**
      * @brief class representation of a word trie for variable domain initialization and tracking
     */
-    class cw_trie : public common_parent {
+    class word_domain : public common_parent {
         public:
             // base constructor
-            cw_trie(string name);
+            word_domain(string name);
             
             // constructor with filepath
-            cw_trie(string name, string filepath, bool print_progress_bar = false);
+            word_domain(string name, string filepath, bool print_progress_bar = false);
 
             // constructor with filepath opt
-            cw_trie(string name, optional<string> filepath_opt, bool print_progress_bar = false);
+            word_domain(string name, optional<string> filepath_opt, bool print_progress_bar = false);
 
             // constructor with set of domain, exclusively for cw_variable domain representation
-            cw_trie(string name, unordered_set<word_t> domain);
+            word_domain(string name, unordered_set<word_t> domain);
 
             // add word to trie
-            // TODO: should this be by reference?
             void add_word(word_t w); 
 
             // word check
-            // TODO: should this be removed?
             bool is_word(string& word) const;
 
             // find all words that match a pattern
@@ -127,7 +125,7 @@ namespace cw_trie_ns {
 
             // helper for get_cur_domain() to traverse trie and collect words
             void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc);
-    }; // cw_trie
-}; // cw_trie_ns
+    }; // word_domain
+}; // word_domain_ns
 
-#endif // CW_TRIE_H
+#endif // WORD_DOMAIN_H

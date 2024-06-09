@@ -4,8 +4,8 @@
 // Description: data type, function implementations for trie and related data structures
 // ==================================================================
 
-#include "cw_trie_data_types.h"
+#include "word_domain_data_types.h"
 
-using namespace cw_trie_data_types_ns;
+using namespace word_domain_data_types_ns;
 
 // TODO: implement

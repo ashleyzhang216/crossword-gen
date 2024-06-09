@@ -4,8 +4,8 @@
 // Description: data types, functions for trie and related data structures
 // ==================================================================
 
-#ifndef CW_TRIE_DATA_TYPES_H
-#define CW_TRIE_DATA_TYPES_H
+#ifndef WORD_DOMAIN_DATA_TYPES_H
+#define WORD_DOMAIN_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
 #include "../lib/src/json.hpp"
@@ -13,9 +13,9 @@
 using namespace common_data_types_ns;
 using json = nlohmann::json;
 
-namespace cw_trie_data_types_ns {
+namespace word_domain_data_types_ns {
     /**
-     * @brief node for cw_trie
+     * @brief node for word_domain
     */
     struct trie_node {
         bool valid; // true iff this node terminates a valid word
@@ -70,6 +70,6 @@ namespace cw_trie_data_types_ns {
         // base constructor
         letters_table_entry() : num_words(0) {}
     };
-}; // cw_trie_data_types_ns
+}; // word_domain_data_types_ns
 
-#endif // CW_TRIE_DATA_TYPES_H
+#endif // WORD_DOMAIN_DATA_TYPES_H

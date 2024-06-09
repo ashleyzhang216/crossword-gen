@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
         cout << "Error: got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
         exit(1);
     }
-    VERBOSITY = verbosity_map[verbosity];
+    VERBOSITY = verbosity_map.at(verbosity);
 
     // ############### progress bar ###############
 
@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
 
     cwgen->build();
     if(cwgen->solve()) {
-        cout << "found crossword: " << cwgen->result() << endl;
+        cout << "Found: " << cwgen->result() << endl;
     } else {
         cout << "Error: no valid crossword generated for the given parameters. " 
              << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;

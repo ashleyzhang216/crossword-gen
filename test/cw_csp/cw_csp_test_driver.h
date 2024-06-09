@@ -4,6 +4,9 @@
 // Description: test driver declaration for cw_csp
 // ==================================================================
 
+#ifndef CW_CSP_TEST_DRIVER_H
+#define CW_CSP_TEST_DRIVER_H
+
 #include "../../src/common/common_data_types.h"
 #include "../../src/common/common_parent.h"
 #include "../../src/cw_csp/cw_csp_data_types.h"
@@ -47,3 +50,5 @@ namespace cw_csp_test_driver_ns {
             cw_csp* dut = nullptr;
     }; // cw_csp_test_driver
 } // cw_csp_test_driver_ns
+
+#endif // CW_CSP_TEST_DRIVER_H

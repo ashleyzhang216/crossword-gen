@@ -8,12 +8,12 @@
 #define CW_CSP_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
-#include "../cw_trie/cw_trie_data_types.h"
-#include "../cw_trie/cw_trie.h"
+#include "../word_domain/word_domain_data_types.h"
+#include "../word_domain/word_domain.h"
 
 using namespace common_data_types_ns;
-using namespace cw_trie_data_types_ns;
-using namespace cw_trie_ns;
+using namespace word_domain_data_types_ns;
+using namespace word_domain_ns;
 
 namespace cw_csp_data_types_ns {
 

@@ -13,7 +13,7 @@ UTIL_DIR=utils
 COMMON_DIR=common
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
-CWTRIE_DIR=cw_trie
+WORDDOMAIN_DIR=word_domain
 LIB_SRC_DIR=lib/src
 
 # test dirs
@@ -49,10 +49,10 @@ OFILES = \
 		cw_csp_test.o \
 		cw_csp_test_driver.o \
 		\
-		cw_trie.o \
-		cw_trie_data_types.o \
-		cw_trie_test.o \
-		cw_trie_test_driver.o \
+		word_domain.o \
+		word_domain_data_types.o \
+		word_domain_test.o \
+		word_domain_test_driver.o \
 		\
 		cw_test_driver.o \
 
@@ -70,9 +70,9 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		$(TEST_DIR)/$(CWCSP_DIR)/cw_csp_test_driver.h \
 		\
-		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie.h \
-		$(SRC_DIR)/$(CWTRIE_DIR)/cw_trie_data_types.h \
-		$(TEST_DIR)/$(CWTRIE_DIR)/cw_trie_test_driver.h \
+		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain.h \
+		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain_data_types.h \
+		$(TEST_DIR)/$(WORDDOMAIN_DIR)/word_domain_test_driver.h \
 		\
 		$(SRC_DIR)/$(LIB_SRC_DIR)/json.hpp \
 		$(TEST_DIR)/$(CATCH_DIR)/catch.hpp \

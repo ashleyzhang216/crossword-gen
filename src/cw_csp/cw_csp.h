@@ -11,15 +11,15 @@
 #include "../common/common_parent.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
-#include "../cw_trie/cw_trie_data_types.h"
-#include "../cw_trie/cw_trie.h"
+#include "../word_domain/word_domain_data_types.h"
+#include "../word_domain/word_domain.h"
 
 using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
-using namespace cw_trie_data_types_ns;
-using namespace cw_trie_ns;
+using namespace word_domain_data_types_ns;
+using namespace word_domain_ns;
 
 namespace cw_csp_ns {
     /**
@@ -77,7 +77,7 @@ namespace cw_csp_ns {
             crossword cw;
 
             // domain of all valid words of all lengths, to populate variable domains
-            cw_trie total_domain;
+            word_domain total_domain;
 
             // csp structures
             unordered_set<shared_ptr<cw_variable> >   variables;

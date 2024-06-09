@@ -4,43 +4,43 @@
 // Description: test driver implementation for crossword
 // ==================================================================
 
-#include "cw_trie_test_driver.h"
+#include "word_domain_test_driver.h"
 
-using namespace cw_trie_test_driver_ns;
+using namespace word_domain_test_driver_ns;
 
 /**
- * @brief basic constructor for cw_trie test driver
+ * @brief basic constructor for word_domain test driver
  * 
  * @param name name of driver
 */
-cw_trie_test_driver::cw_trie_test_driver(string name) : common_parent(name) {
-    dut = make_unique<cw_trie>(name);
+word_domain_test_driver::word_domain_test_driver(string name) : common_parent(name) {
+    dut = make_unique<word_domain>(name);
 }
 
 /**
- * @brief constructor for cw_trie test driver with initial contents
+ * @brief constructor for word_domain test driver with initial contents
  * 
  * @param name name of driver
  * @param filepath path to .txt or .json file containing word data
 */
-cw_trie_test_driver::cw_trie_test_driver(string name, string filepath) : common_parent(name) {
-    dut = make_unique<cw_trie>(name, filepath);
+word_domain_test_driver::word_domain_test_driver(string name, string filepath) : common_parent(name) {
+    dut = make_unique<word_domain>(name, filepath);
 }
 
 /**
- * @brief basic directed cw_trie test for find_matches
+ * @brief basic directed word_domain test for find_matches
  * 
  * @param pattern pattern to test against
- * @param ground_truth expected output of find_matches() from cw_trie
+ * @param ground_truth expected output of find_matches() from word_domain
  * @return true iff successful
 */
-bool cw_trie_test_driver::test_trie_basic(string pattern, unordered_set<word_t>& ground_truth) {
+bool word_domain_test_driver::test_trie_basic(string pattern, unordered_set<word_t>& ground_truth) {
     unordered_set<word_t> result = dut->find_matches(pattern);
     return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result, true));
 }
 
 /**
- * @brief basic directed cw_trie test for letters_at_indicies
+ * @brief basic directed word_domain test for letters_at_indicies
  * 
  * @param words words to add to trie, in order. size must be equal as num_words_ground_truths, num_nodes_ground_truths
  * @param initial_num_words initial state of num_words in letters_at_indices
@@ -49,7 +49,7 @@ bool cw_trie_test_driver::test_trie_basic(string pattern, unordered_set<word_t>&
  * @param num_nodes_ground_truths expected size() of children nodes after each call to add_word(), size must be equal as num_words_ground_truths, words
  * @returns true iff letters_at_indices equal to expected at every step 
 */
-bool cw_trie_test_driver::test_letters_at_indicies_add(
+bool word_domain_test_driver::test_letters_at_indicies_add(
     vector<word_t> words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
@@ -84,7 +84,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_add(
  * @param total_words total valid (non duplicate) words in num_words
  * @returns true iff all row sums are as expected
 */
-bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
+bool word_domain_test_driver::test_letters_at_indicies_row_sums(
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
     uint&& word_len, uint total_words
 ) {
@@ -97,7 +97,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
 }
 
 /**
- * @brief basic directed cw_trie test for letters_at_indicies after removal calls
+ * @brief basic directed word_domain test for letters_at_indicies after removal calls
  * 
  * @param init_words words to add at once before removal calls
  * @param remove_params words to remove, in order, size must be equal to num_words_ground_truths, num_nodes_ground_truths
@@ -107,7 +107,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_row_sums(
  * @param num_nodes_ground_truths expected size() of children nodes after each call to remove_matching_words(), size must be equal as num_words_ground_truths, remove_params
  * @returns true iff letters_at_indices equal to expected at every step 
 */
-bool cw_trie_test_driver::test_letters_at_indicies_remove(
+bool word_domain_test_driver::test_letters_at_indicies_remove(
     vector<word_t> init_words, vector<pair<uint, char> > remove_params,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
@@ -185,7 +185,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove(
  * @param num_nodes_ground_truths expected size() of children nodes after each call to remove_matching_words(), size must be equal as num_words_ground_truths, remove_params
  * @returns true iff letters_at_indices equal to expected at every step 
 */
-bool cw_trie_test_driver::test_letters_at_indicies_remove_assign(
+bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
     vector<word_t> init_words, vector<pair<uint, char> > remove_params, optional<word_t> last_remaining, 
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
@@ -268,7 +268,7 @@ bool cw_trie_test_driver::test_letters_at_indicies_remove_assign(
  * @param initial_num_words initial state of num_words in letters_at_indices
  * @returns true iff get_all_letters_at_index() returns expected value at every step
 */
-bool cw_trie_test_driver::test_get_all_letters_at_index(
+bool word_domain_test_driver::test_get_all_letters_at_index(
     vector<word_t> words, vector<pair<uint, char> > remove_params, 
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words
 ) {
@@ -383,7 +383,7 @@ bool cw_trie_test_driver::test_get_all_letters_at_index(
  * @param value word to assign as the new domain
  * @returns true iff num_letters_at_index() works correctly
 */
-bool cw_trie_test_driver::test_num_letters_at_indicies_assign(word_t value) {
+bool word_domain_test_driver::test_num_letters_at_indicies_assign(word_t value) {
     bool result = true;
 
     uint expected_val;
@@ -405,7 +405,7 @@ bool cw_trie_test_driver::test_num_letters_at_indicies_assign(word_t value) {
  * @param test_num_words true -> test num_words, false -> test nodes.size() in ground_truth
  * @returns true iff arrays are equal
 */
-bool cw_trie_test_driver::letters_at_indicies_entries_equal(
+bool word_domain_test_driver::letters_at_indicies_entries_equal(
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
     array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
     bool test_num_words
@@ -436,7 +436,7 @@ bool cw_trie_test_driver::letters_at_indicies_entries_equal(
  * @returns set of all letters with at least 1 appearance at specified index
  * 
 */
-unordered_set<char> cw_trie_test_driver::get_all_letters_at_index(uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words) {
+unordered_set<char> word_domain_test_driver::get_all_letters_at_index(uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words) {
     assert_m(index < MAX_WORD_LEN, "index exceeds table dimension");
 
     unordered_set<char> expected;
