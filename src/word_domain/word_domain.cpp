@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: trie and related data structure implementations for cw_csp
+// Description: trie and related data structure implementations for cw_csp and cw_variable
 // ==================================================================
 
 #include "word_domain.h"
