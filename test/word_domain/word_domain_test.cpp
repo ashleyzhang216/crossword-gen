@@ -1,26 +1,26 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   12/28/2023
-// Description: Catch2 tests for cw_trie class
+// Description: Catch2 tests for word_domain class
 // ==================================================================
 
 #include "../catch/catch.hpp"
-#include "cw_trie_test_driver.h"
+#include "word_domain_test_driver.h"
 
-using namespace cw_trie_test_driver_ns;
+using namespace word_domain_test_driver_ns;
 
 /**
- * hello world test for cw_trie
+ * hello world test for word_domain
 */
-TEST_CASE("cw_trie hello_world", "[cw_trie],[hello_world],[quick]") {
+TEST_CASE("word_domain hello_world", "[word_domain],[hello_world],[quick]") {
     REQUIRE(true);
 }
 
 /**
  * basic test to check trie and find_matches() for barebone dictionary for json files
 */
-TEST_CASE("cw_trie trie-basic_json", "[cw_trie],[quick]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-trie-basic_json", "cw_trie/data/data_small.json");
+TEST_CASE("word_domain trie-basic_json", "[word_domain],[quick]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-trie-basic_json", "word_domain/data/data_small.json");
     
     unordered_map<string, unordered_set<word_t> > test_cases = {
         {"ab", {}},
@@ -49,8 +49,8 @@ TEST_CASE("cw_trie trie-basic_json", "[cw_trie],[quick]") {
 /**
  * basic test to check letters_at_indicies
 */
-TEST_CASE("cw_trie letters_at_indicies-same_len", "[cw_trie],[quick]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-letters_at_indicies-same_len");
+TEST_CASE("word_domain letters_at_indicies-same_len", "[word_domain],[quick]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-letters_at_indicies-same_len");
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_words;
     //               a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
     init_words.fill({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -124,8 +124,8 @@ TEST_CASE("cw_trie letters_at_indicies-same_len", "[cw_trie],[quick]") {
 /**
  * basic test to check letters_at_indicies after remove_matching_words() calls
 */
-TEST_CASE("cw_trie remove_matching_words-letters_at_indicies", "[cw_trie],[quick]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-letters_at_indicies");
+TEST_CASE("word_domain remove_matching_words-letters_at_indicies", "[word_domain],[quick]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-remove_matching_words-letters_at_indicies");
     vector<word_t> init_words = {
         word_t("aaaaa"), word_t("aaaab"), word_t("aabaa"), 
         word_t("abcda"), word_t("bbcda"), word_t("abbaa"), 
@@ -200,8 +200,8 @@ TEST_CASE("cw_trie remove_matching_words-letters_at_indicies", "[cw_trie],[quick
 /**
  * more complex removing test using with calculated ground truths
 */
-TEST_CASE("cw_trie remove_matching_words-complex-letters_at_indicies", "[cw_trie]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-complex-letters_at_indicies");
+TEST_CASE("word_domain remove_matching_words-complex-letters_at_indicies", "[word_domain]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-remove_matching_words-complex-letters_at_indicies");
 
     // for this test, add every possible 4 letter word composed of only the first 20 letters of alphabet
     vector<word_t> init_words;
@@ -326,8 +326,8 @@ TEST_CASE("cw_trie remove_matching_words-complex-letters_at_indicies", "[cw_trie
 /**
  * basic test for assigning domain values
 */
-TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-assigning-basic");
+TEST_CASE("word_domain assigning-basic", "[word_domain],[quick]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-assigning-basic");
 
     REQUIRE_FALSE(driver->test_num_letters_at_indicies_assign(word_t("hello")));
     driver->add_words({word_t("bread")});
@@ -354,8 +354,8 @@ TEST_CASE("cw_trie assigning-basic", "[cw_trie],[quick]") {
 /**
  * more complex test mixing adding, removing, and assigning in an AC-3 step
 */
-TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-adding_removing_assigning-letters_at_indicies");
+TEST_CASE("word_domain adding_removing_assigning-letters_at_indicies", "[word_domain]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-adding_removing_assigning-letters_at_indicies");
 
     // for this test, add every possible 4 letter word composed of only the first 20 letters of alphabet
     vector<word_t> init_words;
@@ -480,8 +480,8 @@ TEST_CASE("cw_trie adding_removing_assigning-letters_at_indicies", "[cw_trie]") 
 /**
  * removing and assigning test with words of max length
 */
-TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_trie],[slow]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-remove_matching_words-max_length-letters_at_indicies");
+TEST_CASE("word_domain remove_matching_words-max_length-letters_at_indicies", "[word_domain],[slow]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-remove_matching_words-max_length-letters_at_indicies");
 
     assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
 
@@ -551,8 +551,8 @@ TEST_CASE("cw_trie remove_matching_words-max_length-letters_at_indicies", "[cw_t
 /**
  * basic test for get_all_letters_at_index
 */
-TEST_CASE("cw_trie get_all_letters_at_index", "[cw_trie][quick]") {
-    shared_ptr<cw_trie_test_driver> driver = make_shared<cw_trie_test_driver>("cw_trie_test_driver-get_all_letters_at_index");
+TEST_CASE("word_domain get_all_letters_at_index", "[word_domain][quick]") {
+    shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-get_all_letters_at_index");
 
     const size_t word_len = 9;
     const uint num_word_variations = 3;

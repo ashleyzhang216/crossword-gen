@@ -4,38 +4,38 @@
 // Description: trie and related data structure implementations for cw_csp
 // ==================================================================
 
-#include "cw_trie.h"
+#include "word_domain.h"
 
-using namespace cw_trie_ns;
+using namespace word_domain_ns;
 
 /**
- * @brief constructor for cw_trie with no filepath
+ * @brief constructor for word_domain with no filepath
  * 
  * @param name the name of this object
 */
-cw_trie::cw_trie(string name) : cw_trie(name, std::nullopt) {
+word_domain::word_domain(string name) : word_domain(name, std::nullopt) {
     // do nothing, delegated to constructor does everything needed
 }
 
 /**
- * @brief constructor for cw_trie with filepath
+ * @brief constructor for word_domain with filepath
  * 
  * @param name the name of this object
  * @param filepath path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_trie::cw_trie(string name, string filepath, bool print_progress_bar) : cw_trie(name, optional<string>(filepath), print_progress_bar) {
+word_domain::word_domain(string name, string filepath, bool print_progress_bar) : word_domain(name, optional<string>(filepath), print_progress_bar) {
     // do nothing, delegated to constructor does everything needed
 }
 
 /**
- * @brief constructor for cw_trie with filepath optional
+ * @brief constructor for word_domain with filepath optional
  * 
  * @param name the name of this object
  * @param filepath_opt optional, may contain path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-cw_trie::cw_trie(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name) {
+word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     this->filepath_opt = filepath_opt;
     unassigned_domain_size = 0;
@@ -124,7 +124,7 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt, bool print_progress
             word_file.close();
 
         } else {
-            ss << "cw_trie got file of invalid type: " << filepath;
+            ss << "word_domain got file of invalid type: " << filepath;
             utils->print_msg(&ss, FATAL);
             return;
         }
@@ -132,13 +132,13 @@ cw_trie::cw_trie(string name, optional<string> filepath_opt, bool print_progress
 }
 
 /**
- * @brief constructor for cw_trie with hashset of words in domain
+ * @brief constructor for word_domain with hashset of words in domain
  * @warning behavior undefined unless called to initialize a domain for a cw_variable
  * 
  * @param name the name of this object
  * @param domain set of words to add to domain, whose words must all be equal length
 */
-cw_trie::cw_trie(string name, unordered_set<word_t> domain) : common_parent(name) {
+word_domain::word_domain(string name, unordered_set<word_t> domain) : common_parent(name) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     filepath_opt = std::nullopt;
     unassigned_domain_size = 0;
@@ -146,7 +146,7 @@ cw_trie::cw_trie(string name, unordered_set<word_t> domain) : common_parent(name
 
     size_t word_len = 0;
     for(word_t word : domain) {
-        assert_m(word_len == 0 || word_len == word.word.size(), "cw_trie set constructor includes words of unequal length");
+        assert_m(word_len == 0 || word_len == word.word.size(), "word_domain set constructor includes words of unequal length");
         word_len = word.word.size();
         add_word(word);
     }
@@ -159,7 +159,7 @@ cw_trie::cw_trie(string name, unordered_set<word_t> domain) : common_parent(name
  * @param suffix the suffix to check for
  * @return true iff str ends with suffix
 */
-bool cw_trie::has_suffix(const string& str, const string& suffix) {
+bool word_domain::has_suffix(const string& str, const string& suffix) {
     if(str.size() < suffix.size()) return false;
     return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
@@ -170,7 +170,7 @@ bool cw_trie::has_suffix(const string& str, const string& suffix) {
  * @param word the word to test
  * @return optional containing word iff word only contains lowercase letters, uppercase letters, dashes, apostrophes, semicolons, numbers, spaces
 */
-optional<string> cw_trie::parse_word(const string& word) {
+optional<string> word_domain::parse_word(const string& word) {
     stringstream word_ss;
     for(char c : word) {
         if(c >= 'a' && c <= 'z') {
@@ -195,7 +195,7 @@ optional<string> cw_trie::parse_word(const string& word) {
  * @param word the word to add, duplicates do nothing
  * @note if domain assigned, this will overwrite the domain value
 */
-void cw_trie::add_word(word_t w) {
+void word_domain::add_word(word_t w) {
     if(assigned) {
         assigned_value = w;
 
@@ -242,7 +242,7 @@ void cw_trie::add_word(word_t w) {
  * @param word the word to add
  * @param pos index of next letter to add to tree
 */
-void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos) {
+void word_domain::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos) {
     assert(node);
 
     // all letters added to tree
@@ -270,7 +270,7 @@ void cw_trie::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint po
  * @return true iff word is a valid word
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-bool cw_trie::is_word(string& word) const {
+bool word_domain::is_word(string& word) const {
     return word_map.count(word) > 0;
 }
 
@@ -280,7 +280,7 @@ bool cw_trie::is_word(string& word) const {
  * @param pattern the pattern to compare against
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-unordered_set<word_t> cw_trie::find_matches(const string& pattern) {
+unordered_set<word_t> word_domain::find_matches(const string& pattern) {
     unordered_set<word_t> matches;
     traverse_to_find_matches(matches, pattern, 0, trie, "");
     return matches;
@@ -295,7 +295,7 @@ unordered_set<word_t> cw_trie::find_matches(const string& pattern) {
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);
@@ -339,7 +339,7 @@ void cw_trie::traverse_to_find_matches(unordered_set<word_t>& matches, const str
  * @param letter the letter to check, 'a' <= letter <= 'z'
  * @returns letters_at_indices[index][letter].num_words
 */
-uint cw_trie::num_letters_at_index(uint index, char letter) const {
+uint word_domain::num_letters_at_index(uint index, char letter) const {
     assert('a' <= letter && letter <= 'z');
     if(assigned) {
         return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1l : 0l;
@@ -357,7 +357,7 @@ uint cw_trie::num_letters_at_index(uint index, char letter) const {
  * @param letter the letter to remove, 'a' <= letter <= 'z'
  * @returns total # number of words/leaf nodes removed
 */
-size_t cw_trie::remove_matching_words(uint index, char letter) {
+size_t word_domain::remove_matching_words(uint index, char letter) {
     // check precondition and invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to remove_matching_words()");
@@ -416,7 +416,7 @@ size_t cw_trie::remove_matching_words(uint index, char letter) {
  * @param letters_at_indices_updated true iff node is a node remove_children() was already called on, to avoid double updating
  * @note letters_at_indices_updated should only be true on the first recursive call for each node iterated on in remove_matching_words()
 */
-void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated) {
+void word_domain::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated) {
 
     // check for base case of reached root node of trie
     if(shared_ptr<trie_node> parent = node->parent.lock()) {
@@ -430,7 +430,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
             }
 
             // remove node as child from parent
-            // for details on why this link isn't saved, see the proof in cw_trie_data_types.h
+            // for details on why this link isn't saved, see the proof in word_domain_data_types.h
             parent->children.erase(node->letter);
         }
 
@@ -455,7 +455,7 @@ void cw_trie::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, i
  * @param index depth of this parent node in trie or letter index in the word
  * @returns number of words/leaf nodes removed
 */
-uint cw_trie::remove_children(shared_ptr<trie_node> node, uint index) {
+uint word_domain::remove_children(shared_ptr<trie_node> node, uint index) {
     assert(letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.count(node) > 0);
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_nodes.top().insert(node); // prune, add to ac3 layer
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node); 
@@ -480,7 +480,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, uint index) {
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
     letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
 
-    // for details on why these links aren't saved, see the proof in cw_trie_data_types.h
+    // for details on why these links aren't saved, see the proof in word_domain_data_types.h
     node->children.clear();
 
     return num_leafs;
@@ -491,7 +491,7 @@ uint cw_trie::remove_children(shared_ptr<trie_node> node, uint index) {
  * @note causes new layer to be added to ac3_pruned_assigned_val, and ac3_pruned_nodes in each element of letters_at_indices
  * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
 */
-void cw_trie::start_new_ac3_call() {
+void word_domain::start_new_ac3_call() {
     // check invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
@@ -516,7 +516,7 @@ void cw_trie::start_new_ac3_call() {
  * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes in each element of letters_at_indices must all be equal
  * @returns number of words/leaf nodes and assigned values restored
 */
-size_t cw_trie::undo_prev_ac3_call() {
+size_t word_domain::undo_prev_ac3_call() {
     // check precondition and invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
@@ -579,7 +579,7 @@ size_t cw_trie::undo_prev_ac3_call() {
 /**
  * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
 */
-size_t cw_trie::domain_size() const {
+size_t word_domain::domain_size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }
@@ -591,7 +591,7 @@ size_t cw_trie::domain_size() const {
  * @param index the index to get letters for
  * @returns set of chars, >= 'a', and <= 'z', which appear at the specific index in the current domain (taking into account assignment) 
 */
-unordered_set<char> cw_trie::get_all_letters_at_index(uint index) const {
+unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
     assert_m(index < MAX_WORD_LEN, "index out of bounds of max word length");
 
     unordered_set<char> result;
@@ -616,7 +616,7 @@ unordered_set<char> cw_trie::get_all_letters_at_index(uint index) const {
  * @brief get vector containing all words in the current domain
  * @returns unsorted vector of all words in the current domain
 */
-vector<word_t> cw_trie::get_cur_domain() {
+vector<word_t> word_domain::get_cur_domain() {
     vector<word_t> acc;
     collect_cur_domain(trie, "", acc);
     return acc;
@@ -629,7 +629,7 @@ vector<word_t> cw_trie::get_cur_domain() {
  * @param fragment letters from traversal so far up to and not including the current node
  * @param acc accumulator vector to write back valid words to
 */
-void cw_trie::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
+void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
     string fragment_with_cur_node = (node == trie) ? fragment : fragment + node->letter;
 
     // base case for leaf nodes
