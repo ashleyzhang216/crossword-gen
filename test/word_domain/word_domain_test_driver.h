@@ -4,6 +4,9 @@
 // Description: test driver declaration for word_domain
 // ==================================================================
 
+#ifndef WORD_DOMAIN_TEST_DRIVER_H
+#define WORD_DOMAIN_TEST_DRIVER_H
+
 #include "../../src/common/common_data_types.h"
 #include "../../src/common/common_parent.h"
 #include "../../src/word_domain/word_domain_data_types.h"
@@ -102,3 +105,5 @@ namespace word_domain_test_driver_ns {
             );
     }; // word_domain_test_driver
 } // word_domain_test_driver_ns
+
+#endif // WORD_DOMAIN_TEST_DRIVER_H
