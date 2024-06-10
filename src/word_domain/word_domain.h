@@ -62,13 +62,13 @@ namespace word_domain_ns {
             void unassign_domain() { assigned = false; assigned_value.reset(); }
 
             // get size of domain remaining, for ac3 validity checking
-            size_t domain_size() const;
+            size_t size() const;
 
             // get letters at an index, for AC-3 constraint satisfaction checking
             unordered_set<char> get_all_letters_at_index(uint index) const;
 
             // get all words in current domain to try to assign for backtracking
-            vector<word_t> get_cur_domain();
+            vector<word_t> get_cur_domain() const;
 
             // expose letters_at_indicies for testing
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
@@ -124,7 +124,7 @@ namespace word_domain_ns {
             uint remove_children(shared_ptr<trie_node> node, uint index);
 
             // helper for get_cur_domain() to traverse trie and collect words
-            void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc);
+            void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) const;
     }; // word_domain
 }; // word_domain_ns
 

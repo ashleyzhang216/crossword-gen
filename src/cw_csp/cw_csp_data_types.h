@@ -41,13 +41,13 @@ namespace cw_csp_data_types_ns {
 
     // a variable in a constraint satisfaction problem
     struct cw_variable {
-        uint origin_row;              // 0-indexed
-        uint origin_col;              // 0-indexed
-        uint length;                  // >= 0
-        word_direction dir;           // direction of word of this var
-        string pattern;               // original pattern used to populate domain
-        unordered_set<word_t> domain; // all possible words that fit
-        bool assigned = false;        // true iff assigned to single value --> domain.size() == 1
+        uint origin_row;       // 0-indexed
+        uint origin_col;       // 0-indexed
+        uint length;           // >= MIN_WORD_LEN && <= MAX_WORD_LEN
+        word_direction dir;    // direction of word of this var
+        string pattern;        // original pattern used to populate domain
+        word_domain domain;    // all possible words that fit
+        bool assigned = false; // true iff assigned to single value --> domain.size() == 1
 
         // standard constructor for cw_csp
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
@@ -56,10 +56,17 @@ namespace cw_csp_data_types_ns {
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
 
         // for AC-3 based CSP reduction
-        bool can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const;
+        // bool can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const;
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
+
+        // destructor
+        // ~cw_variable() = default;
+
+        // copy constructor
+
+        // copy assignment constructor
     };
 
     // operator to print out cw_variable for debug
@@ -80,7 +87,7 @@ namespace cw_csp_data_types_ns {
         cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        unordered_set<word_t> prune_domain(); 
+        bool prune_domain(); 
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         bool satisfied() const;

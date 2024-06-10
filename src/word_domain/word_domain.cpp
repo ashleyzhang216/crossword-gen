@@ -389,6 +389,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
             if(shared_ptr<trie_node> parent = node->parent.lock()) {
                 // downwards removal in trie
                 num_leafs = remove_children(node, index);
+                assert(num_leafs > 0);
                 total_leafs += num_leafs;
 
                 // upwards removal in trie
@@ -579,7 +580,7 @@ size_t word_domain::undo_prev_ac3_call() {
 /**
  * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
 */
-size_t word_domain::domain_size() const {
+size_t word_domain::size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }
@@ -616,7 +617,7 @@ unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
  * @brief get vector containing all words in the current domain
  * @returns unsorted vector of all words in the current domain
 */
-vector<word_t> word_domain::get_cur_domain() {
+vector<word_t> word_domain::get_cur_domain() const {
     vector<word_t> acc;
     collect_cur_domain(trie, "", acc);
     return acc;
@@ -629,7 +630,7 @@ vector<word_t> word_domain::get_cur_domain() {
  * @param fragment letters from traversal so far up to and not including the current node
  * @param acc accumulator vector to write back valid words to
 */
-void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
+void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) const {
     string fragment_with_cur_node = (node == trie) ? fragment : fragment + node->letter;
 
     // base case for leaf nodes

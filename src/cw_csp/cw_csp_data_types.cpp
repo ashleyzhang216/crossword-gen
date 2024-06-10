@@ -37,9 +37,9 @@ template bool map_to_set_contents_equal(
 bool cw_variable::operator==(const cw_variable& rhs) const {
     return origin_row == rhs.origin_row
         && origin_col == rhs.origin_col
-        && length == rhs.length 
-        && dir == rhs.dir
-        && set_contents_equal(&domain, &(rhs.domain), false);
+        && length == rhs.length  
+        && dir == rhs.dir;
+        // TODO: should domain contents also be equal?
 }
 
 /**
@@ -58,7 +58,7 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
        << var.pattern << ", assigned: " << var.assigned << ", domain: {";
-    for(word_t w : var.domain) {
+    for(word_t w : var.domain.get_cur_domain()) {
         os << w.word << ", ";
     }
     os << "}";
@@ -75,13 +75,14 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
  * @param pattern word pattern to find matches for to populate domain
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) {
-    this->origin_row = origin_row;
-    this->origin_col = origin_col;
-    this->length = length;
-    this->dir = dir;
-    this->pattern = pattern;
-    this->domain = domain;
+cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) 
+    : origin_row(origin_row),
+      origin_col(origin_col),
+      length(length),
+      dir(dir),
+      pattern(pattern),
+      domain("cw_variable domain", domain) {
+    // do nothing else
 }
 
 /**
@@ -93,13 +94,9 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
  * @param dir direction of this var
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) {
-    this->origin_row = origin_row;
-    this->origin_col = origin_col;
-    this->length = length;
-    this->dir = dir;
-    this->pattern = "(created w/ testing constructor)";
-    this->domain = domain;
+cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) 
+    : cw_variable(origin_row, origin_col, length, dir, "(created w/ testing constructor)", domain) {
+    // do nothing, delegated to constructor that does everything needed
 }
 
 /**
@@ -109,22 +106,22 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
  * @param letter_pos the index at which the letter must appear in the word
  * @return true iff this var contains 1+ word in its domain that contains letter at position letter_pos
 */
-bool cw_variable::can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const {
+// bool cw_variable::can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const {
 
-    stringstream ss;
-    cw_utils* utils = new cw_utils("satisfies_constraint()", VERBOSITY);
+//     stringstream ss;
+//     cw_utils* utils = new cw_utils("satisfies_constraint()", VERBOSITY);
     
-    if(param_word.at(param_letter_pos) < 'a' || param_word.at(param_letter_pos) > 'z') {
-        ss << "unknown target letter: " << param_word.at(param_letter_pos);
-        utils->print_msg(&ss, ERROR);
-    }
+//     if(param_word.at(param_letter_pos) < 'a' || param_word.at(param_letter_pos) > 'z') {
+//         ss << "unknown target letter: " << param_word.at(param_letter_pos);
+//         utils->print_msg(&ss, ERROR);
+//     }
 
-    for(word_t w : domain) {
-        if(w.word != param_word && w.word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
-    }
+//     for(word_t w : domain) {
+//         if(w.word != param_word && w.word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 // ############### cw_constraint ###############
 
@@ -172,23 +169,33 @@ cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_varia
 /**
  * @brief AC-3 step to prune words in lhs domain without valid rhs words
  * 
- * @return set of words pruned. i.e. size() == 0 iff domain not change
+ * @return true iff 1 or more words pruned, i.e. domain changed
 */
-unordered_set<word_t> cw_constraint::prune_domain() {
+bool cw_constraint::prune_domain() {
 
-    // find words to prune from domain
-    unordered_set<word_t> pruned_words;
-    for(word_t w : lhs->domain) {
-        if(!rhs->can_satisfy_constraint(w.word, lhs_index, rhs_index)) {
-            // queue word to be removed from lhs domain
-            pruned_words.insert(w);
+    // // find words to prune from domain
+    // unordered_set<word_t> pruned_words;
+    // for(word_t w : lhs->domain) {
+    //     if(!rhs->can_satisfy_constraint(w.word, lhs_index, rhs_index)) {
+    //         // queue word to be removed from lhs domain
+    //         pruned_words.insert(w);
+    //     }
+    // }
+
+    // // remove words
+    // for(word_t w : pruned_words) lhs->domain.erase(w);
+
+    // return pruned_words;
+
+    size_t num_removed = 0;
+    for(char letter : lhs->domain.get_all_letters_at_index(lhs_index)) {
+        if(rhs->domain.num_letters_at_index(rhs_index, letter) == 0) {
+            // cannot satisfy constraint for this letter
+            num_removed += lhs->domain.remove_matching_words(lhs_index, letter);
         }
     }
 
-    // remove words
-    for(word_t w : pruned_words) lhs->domain.erase(w);
-
-    return pruned_words;
+    return num_removed > 0;
 }
 
 /**
@@ -201,8 +208,8 @@ bool cw_constraint::satisfied() const {
     if(rhs->domain.size() != 1) return false;
 
     // since ac3() undoes invalid assignments, this should always be true
-    assert(*(lhs->domain.begin()) != *(rhs->domain.begin())); // word inequality
-    assert(lhs->domain.begin()->word.at(lhs_index) == rhs->domain.begin()->word.at(rhs_index)); // letter equality
+    assert_m(lhs->domain.get_cur_domain().at(0) != rhs->domain.get_cur_domain().at(0), "word equality between constrainted vars");
+    assert_m(lhs->domain.get_cur_domain().at(0).word.at(lhs_index) == rhs->domain.get_cur_domain().at(0).word.at(rhs_index), "letter inequality at constraint");
 
     return true;
 }
