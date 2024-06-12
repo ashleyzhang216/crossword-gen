@@ -124,6 +124,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             word_file.close();
 
         } else {
+            stringstream ss;
             ss << "word_domain got file of invalid type: " << filepath;
             utils->print_msg(&ss, FATAL);
             return;
@@ -214,6 +215,8 @@ void word_domain::add_word(word_t w) {
 
             add_word_to_trie(trie, w.word, 0);
 
+            stringstream ss;
+
             ss << "num_words: " << endl;
             for(uint i = 0; i < MAX_WORD_LEN; i++) {
                 for(char c = 'a'; c <= 'z'; c++) {
@@ -296,6 +299,7 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) {
  * @param fragment part of word matched already
 */
 void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+    stringstream ss;
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);
@@ -395,6 +399,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
                 // upwards removal in trie
                 remove_from_parents(node, num_leafs, static_cast<int>(index), true);
             } else {
+                stringstream ss;
                 ss << "parent of node index " << index << ", letter " << letter << " deleted early";
                 utils->print_msg(&ss, ERROR);
             }
@@ -547,6 +552,7 @@ size_t word_domain::undo_prev_ac3_call() {
                     assert_m(parent->children.count(node->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
                     parent->children.insert({node->letter, node});
                 } else {
+                    stringstream ss;
                     ss << "parent of node index " << i << ", letter " << j << " deleted early during restoration";
                     utils->print_msg(&ss, ERROR);
                 }
@@ -618,6 +624,10 @@ unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
  * @returns unsorted vector of all words in the current domain
 */
 vector<word_t> word_domain::get_cur_domain() const {
+    if(assigned) {
+        if(assigned_value.has_value()) return { assigned_value.value() };
+        return {};
+    }
     vector<word_t> acc;
     collect_cur_domain(trie, "", acc);
     return acc;

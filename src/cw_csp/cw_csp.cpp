@@ -87,6 +87,7 @@ unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_depend
 */
 void cw_csp::initialize_csp() {
 
+    stringstream ss;
     ss << "cw_csp starting csp initialization";
     utils->print_msg(&ss, DEBUG);
 
@@ -317,6 +318,7 @@ void cw_csp::initialize_csp() {
 */
 bool cw_csp::ac3() {
 
+    stringstream ss;
     ss << "starting AC-3 algorithm";
     utils->print_msg(&ss, DEBUG);
 
@@ -502,6 +504,7 @@ void cw_csp::overwrite_cw() {
                     }
                 }
             } else {
+                stringstream ss;
                 ss << "got unknown direction type: " << var_ptr->dir;
                 utils->print_msg(&ss, ERROR);
             }
@@ -573,6 +576,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
                 return solve_backtracking(var_strategy, print_progress_bar);
             } break;
         default: {
+                stringstream ss;
                 ss << "solve() got unknown strategy";
                 utils->print_msg(&ss, ERROR);
                 return false;
@@ -591,6 +595,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 */
 bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar) {
 
+    stringstream ss;
     ss << "entering solve_backtracking() with cw: " << cw;
     utils->print_msg(&ss, DEBUG);
 
