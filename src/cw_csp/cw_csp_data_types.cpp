@@ -99,30 +99,6 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
     // do nothing, delegated to constructor that does everything needed
 }
 
-/**
- * @brief tests if this var contains a word that satisifes one cw equality constraint and isn't the same word
- * @param param_word the other word to compare to
- * @param param_letter_pos index of the letter in param_word that this domain must contain
- * @param letter_pos the index at which the letter must appear in the word
- * @return true iff this var contains 1+ word in its domain that contains letter at position letter_pos
-*/
-// bool cw_variable::can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const {
-
-//     stringstream ss;
-//     cw_utils* utils = new cw_utils("satisfies_constraint()", VERBOSITY);
-    
-//     if(param_word.at(param_letter_pos) < 'a' || param_word.at(param_letter_pos) > 'z') {
-//         ss << "unknown target letter: " << param_word.at(param_letter_pos);
-//         utils->print_msg(&ss, ERROR);
-//     }
-
-//     for(word_t w : domain) {
-//         if(w.word != param_word && w.word.at(letter_pos) == param_word.at(param_letter_pos)) return true;
-//     }
-
-//     return false;
-// }
-
 // ############### cw_constraint ###############
 
 /**
@@ -172,20 +148,6 @@ cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_varia
  * @return true iff 1 or more words pruned, i.e. domain changed
 */
 bool cw_constraint::prune_domain() {
-
-    // // find words to prune from domain
-    // unordered_set<word_t> pruned_words;
-    // for(word_t w : lhs->domain) {
-    //     if(!rhs->can_satisfy_constraint(w.word, lhs_index, rhs_index)) {
-    //         // queue word to be removed from lhs domain
-    //         pruned_words.insert(w);
-    //     }
-    // }
-
-    // // remove words
-    // for(word_t w : pruned_words) lhs->domain.erase(w);
-
-    // return pruned_words;
 
     size_t num_removed = 0;
     for(char letter : lhs->domain.get_all_letters_at_index(lhs_index)) {

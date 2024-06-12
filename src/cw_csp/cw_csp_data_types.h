@@ -55,18 +55,8 @@ namespace cw_csp_data_types_ns {
         // testing-only constructor
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
 
-        // for AC-3 based CSP reduction
-        // bool can_satisfy_constraint(const string& param_word, const uint& param_letter_pos, const uint& letter_pos) const;
-        
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
-
-        // destructor
-        // ~cw_variable() = default;
-
-        // copy constructor
-
-        // copy assignment constructor
     };
 
     // operator to print out cw_variable for debug

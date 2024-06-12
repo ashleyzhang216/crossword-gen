@@ -86,9 +86,6 @@ namespace cw_csp_ns {
             // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
 
-            // previous domain pruned from each variable during calls to ac3()
-            // stack<unordered_map<shared_ptr<cw_variable>, unordered_set<word_t> > > prev_pruned_domains;
-
             // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
             stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 
 

@@ -329,10 +329,6 @@ bool cw_csp::ac3() {
     // a constraint c is in constraints_in_queue iff c also in constraint_queue
     unordered_set<shared_ptr<cw_constraint> > constraints_in_queue;
 
-    // map from variable --> words pruned from its domain
-    // tracks pruned words to undo AC-3 if resulting CSP is invalid
-    // unordered_map<shared_ptr<cw_variable>, unordered_set<word_t> > pruned_domains;
-
     // notify var domains of new AC-3 call
     for(shared_ptr<cw_variable> var_ptr : variables) {
         var_ptr->domain.start_new_ac3_call();
@@ -354,28 +350,13 @@ bool cw_csp::ac3() {
         assert(constraints_in_queue.count(constr) > 0);
         constraints_in_queue.erase(constr);
 
-        // prune invalid words in domain
-        // pruned_words = constr->prune_domain();
-
-        // track pruned words for each var in case undo is needed if CSP becomes invalid
-        // for(word_t pruned_word : pruned_words) {
-        //     pruned_domains[constr->lhs].insert(pruned_word);
-        // }
-        
-        // if domain was changed while pruning, add dependent arcs to constraint queue
-
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
         if(constr->prune_domain()) {
-        // if(pruned_words.size() > 0) {
             if(constr->lhs->domain.size() == 0) {
-            // if(constr->lhs->domain.size() == 0) {
                 // CSP is now invalid, i.e. var has empty domain
             
                 ss << "CSP became invalid, undo-ing pruning";
                 utils->print_msg(&ss, DEBUG);
-
-                // save record of all domain values pruned
-                // prev_pruned_domains.push(pruned_domains);
 
                 // undo pruning
                 undo_ac3();
@@ -392,9 +373,6 @@ bool cw_csp::ac3() {
         }
     }
 
-    // save record of all domain values pruned
-    // prev_pruned_domains.push(pruned_domains);
-
     // running AC-3 to completion does not make CSP invalid
     return true;
 }
@@ -403,16 +381,6 @@ bool cw_csp::ac3() {
  * @brief undo domain pruning from previous call of AC-3 algorithm
 */
 void cw_csp::undo_ac3() {
-    // assert(prev_pruned_domains.size() > 0);
-
-    // for(const auto& pair : prev_pruned_domains.top()) {
-    //     // re-add pruned words
-    //     for(word_t pruned_word : pair.second) {
-    //         pair.first->domain.insert(pruned_word);
-    //     }
-    // }
-    // prev_pruned_domains.pop();
-
     for(shared_ptr<cw_variable> var_ptr : variables) {
         var_ptr->domain.undo_prev_ac3_call();
     }
@@ -622,7 +590,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // search all possible values, sorted by word score, tiebroken by frequency
-    // vector<word_t> domain_copy(next_var->domain.begin(), next_var->domain.end());
     vector<word_t> domain_copy = next_var->domain.get_cur_domain();
     auto compare = [](const word_t& lhs, const word_t& rhs) {
         if(lhs.score != rhs.score) return lhs.score > rhs.score;
@@ -642,7 +609,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
             // assignment
-            // next_var->domain = {word}; // TODO: perhaps use std::swap here
             next_var->domain.assign_domain(word);
             next_var->assigned = true;
             assigned_words.insert(word);
