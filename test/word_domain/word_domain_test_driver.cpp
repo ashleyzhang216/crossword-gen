@@ -136,7 +136,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove(
 
             result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
             result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-            result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->domain_size());
+            result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->size());
         }
 
         for(int i = static_cast<int>(remove_params.size()) - 2; i >= 0; i--) {
@@ -145,7 +145,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove(
 
             result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[static_cast<uint>(i)], letters_at_indices, true));
             result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[static_cast<uint>(i)], letters_at_indices, false));
-            result &= check_condition("domain size preserved during restore", init_domain_size == num_removed + dut->domain_size());
+            result &= check_condition("domain size preserved during restore", init_domain_size == num_removed + dut->size());
         }
 
         if(remove_params.size() > 0) {
@@ -167,7 +167,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove(
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-        result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->domain_size());
+        result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->size());
     }
 
     return result;
@@ -214,7 +214,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths[i], letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths[i], letters_at_indices, false));
-        result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->domain_size());
+        result &= check_condition("domain size preserved during remove", init_domain_size == num_removed + dut->size());
     }
 
     if(last_remaining.has_value()) {
@@ -228,7 +228,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
 
     // try assigning candidates
     vector<word_t> candidates = dut->get_cur_domain();
-    result &= candidates.size() == dut->domain_size();
+    result &= candidates.size() == dut->size();
     for(word_t candidate : candidates) {
         dut->assign_domain(candidate);
         result &= test_num_letters_at_indicies_assign(candidate);
@@ -245,7 +245,7 @@ bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
 
         result &= check_condition("letters_at_indicies num_words", letters_at_indicies_entries_equal(num_words_ground_truths.back(), letters_at_indices, true));
         result &= check_condition("letters_at_indicies num nodes", letters_at_indicies_entries_equal(num_nodes_ground_truths.back(), letters_at_indices, false));
-        result &= check_condition("domain size preserved during restore", init_domain_size == num_removed + dut->domain_size());
+        result &= check_condition("domain size preserved during restore", init_domain_size == num_removed + dut->size());
     }
 
     // final undo
@@ -310,7 +310,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
 
     // try assigning candidates
     vector<word_t> candidates = dut->get_cur_domain();
-    result &= candidates.size() == dut->domain_size();
+    result &= candidates.size() == dut->size();
     for(word_t candidate : candidates) {
         dut->assign_domain(candidate);
         
@@ -359,7 +359,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
 
     // try assigning candidates, again
     candidates = dut->get_cur_domain();
-    result &= candidates.size() == dut->domain_size();
+    result &= candidates.size() == dut->size();
     for(word_t candidate : candidates) {
         dut->assign_domain(candidate);
         
@@ -418,6 +418,7 @@ bool word_domain_test_driver::letters_at_indicies_entries_equal(
                 (test_num_words  && expected[i][j] != ground_truth[i][j].num_words) || 
                 (!test_num_words && expected[i][j] != ground_truth[i][j].nodes.size())
             ) {
+                stringstream ss;
                 ss << "letters_at_indicies_entries_equal() inequal at index: " << i << ", letter: " << j << ", test_num_words: " << test_num_words 
                    << ", expected: " << expected[i][j] << ", actual nodes: " << ground_truth[i][j].nodes.size() << ", actual words: " << ground_truth[i][j].num_words;
                 utils->print_msg(&ss, WARNING);

@@ -71,7 +71,7 @@ namespace word_domain_test_driver_ns {
             );
             
             // basic check after remove tests that the domain is empty
-            bool test_domain_empty() { return dut->domain_size() == 0; }
+            bool test_domain_empty() { return dut->size() == 0; }
 
             // basic directed test for num_letters_at_index() after assigning domain
             bool test_num_letters_at_indicies_assign(word_t value);

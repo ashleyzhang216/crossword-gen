@@ -26,6 +26,7 @@ common_parent::common_parent(string name) {
 */
 bool common_parent::check_condition(string name, bool condition) {
     if(!condition) {
+        stringstream ss;
         ss << "failed condition: " << name;
         utils->print_msg(&ss, WARNING);
     }

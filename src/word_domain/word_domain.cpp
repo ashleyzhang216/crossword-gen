@@ -124,6 +124,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             word_file.close();
 
         } else {
+            stringstream ss;
             ss << "word_domain got file of invalid type: " << filepath;
             utils->print_msg(&ss, FATAL);
             return;
@@ -214,6 +215,8 @@ void word_domain::add_word(word_t w) {
 
             add_word_to_trie(trie, w.word, 0);
 
+            stringstream ss;
+
             ss << "num_words: " << endl;
             for(uint i = 0; i < MAX_WORD_LEN; i++) {
                 for(char c = 'a'; c <= 'z'; c++) {
@@ -296,6 +299,7 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) {
  * @param fragment part of word matched already
 */
 void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+    stringstream ss;
     ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
        << " @ node " << node->letter;
     utils->print_msg(&ss, DEBUG);
@@ -389,11 +393,13 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
             if(shared_ptr<trie_node> parent = node->parent.lock()) {
                 // downwards removal in trie
                 num_leafs = remove_children(node, index);
+                assert(num_leafs > 0);
                 total_leafs += num_leafs;
 
                 // upwards removal in trie
                 remove_from_parents(node, num_leafs, static_cast<int>(index), true);
             } else {
+                stringstream ss;
                 ss << "parent of node index " << index << ", letter " << letter << " deleted early";
                 utils->print_msg(&ss, ERROR);
             }
@@ -546,6 +552,7 @@ size_t word_domain::undo_prev_ac3_call() {
                     assert_m(parent->children.count(node->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
                     parent->children.insert({node->letter, node});
                 } else {
+                    stringstream ss;
                     ss << "parent of node index " << i << ", letter " << j << " deleted early during restoration";
                     utils->print_msg(&ss, ERROR);
                 }
@@ -579,7 +586,7 @@ size_t word_domain::undo_prev_ac3_call() {
 /**
  * @brief get size of domain remaining for ac3 validity checking, whether or not domain is assigned
 */
-size_t word_domain::domain_size() const {
+size_t word_domain::size() const {
     if(assigned) {
         return assigned_value.has_value() ? 1l : 0l;
     }
@@ -616,7 +623,11 @@ unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
  * @brief get vector containing all words in the current domain
  * @returns unsorted vector of all words in the current domain
 */
-vector<word_t> word_domain::get_cur_domain() {
+vector<word_t> word_domain::get_cur_domain() const {
+    if(assigned) {
+        if(assigned_value.has_value()) return { assigned_value.value() };
+        return {};
+    }
     vector<word_t> acc;
     collect_cur_domain(trie, "", acc);
     return acc;
@@ -629,7 +640,7 @@ vector<word_t> word_domain::get_cur_domain() {
  * @param fragment letters from traversal so far up to and not including the current node
  * @param acc accumulator vector to write back valid words to
 */
-void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) {
+void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) const {
     string fragment_with_cur_node = (node == trie) ? fragment : fragment + node->letter;
 
     // base case for leaf nodes

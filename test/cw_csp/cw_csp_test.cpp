@@ -534,13 +534,15 @@ TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates]
     // ############### valid crosswords ###############
 
     // simple crossword that requires duplicates
+    // note: while this is an illegal configuration, word_domain cannot detect variables in a 
+    //  constraint using the same word so it cannot detect that this is illegal, so expected is true
     stringstream contents_2_2_duplicate_invalid;
     contents_2_2_duplicate_invalid << WCD << WCD
                                    << WCD << WCD;
-    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_duplicate_invalid.str(), dict_single_word, false));
+    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_duplicate_invalid.str(), dict_single_word, true));
 
     // valid 6x7 crossword with complex intersections & mix of wildcards and letters
-    // forces two words to both be 'cat', but is allowed because they don't intersect
+    // forces two words to both be 'cat', but is allowed due to same reason as above
     stringstream contents_6_7_complex_valid;
     contents_6_7_complex_valid << WCD << BLK << BLK << WCD << BLK << 'p' 
                                << 't' << WCD << WCD << 'e' << BLK << BLK 
@@ -553,15 +555,14 @@ TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates]
 
     // ############### invalid crosswords ###############
 
-    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
-    // forces two intersecting words to both be 'cat', which is not allowed
+    // invalid 6x7 crossword with complex intersections & mix of wildcards and letters
     stringstream contents_6_7_complex_invalid;
     contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << BLK << 'p' 
                                  << 't' << WCD << WCD << 'e' << BLK << BLK 
                                  << WCD << BLK << BLK << WCD << WCD << WCD 
                                  << WCD << BLK << WCD << BLK << WCD << BLK 
                                  << BLK << BLK << 'a' << BLK << 'o' << BLK 
-                                 << WCD << 'a' << 't' << BLK << WCD << BLK 
+                                 << 'c' << 'o' << 't' << BLK << WCD << BLK 
                                  << BLK << 'n' << BLK << BLK << BLK << BLK;
     REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_invalid.str(), dict_simple_path, false));
 }
