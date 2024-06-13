@@ -399,7 +399,7 @@ bool cw_csp::solved() const {
     for(shared_ptr<cw_variable> var_ptr : variables) {
         // check that all vars satisifed w/ one domain value
         if(var_ptr->domain.size() != 1) return false;
-        if(!var_ptr->assigned) return false;
+        if(!var_ptr->domain.is_assigned()) return false;
 
         // check that domain value is unique
         if(used_words.count(var_ptr->domain.get_cur_domain().at(0)) > 0) return false;
@@ -435,7 +435,7 @@ void cw_csp::overwrite_cw() {
     // iterate across each variable to write onto cw
     for(shared_ptr<cw_variable> var_ptr : variables) {
         // only write assigned variables
-        if(var_ptr->assigned) {
+        if(var_ptr->domain.is_assigned()) {
             if(var_ptr->dir == HORIZONTAL) {
                 for(uint letter = 0; letter < var_ptr->length; letter++) {
                     // this square must be wildcard or the same letter about to be written
@@ -511,7 +511,7 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
                 unsigned long min_num_values = ULONG_MAX;
                 for(shared_ptr<cw_variable> var_ptr : variables) {
                     // if this variable is unassigned AND (no other variable selected OR has fewer remaining values in domain)
-                    if(!var_ptr->assigned && (min_num_values == ULONG_MAX || var_ptr->domain.size() < min_num_values)) {
+                    if(!var_ptr->domain.is_assigned() && (min_num_values == ULONG_MAX || var_ptr->domain.size() < min_num_values)) {
                         min_num_values = var_ptr->domain.size();
                         result = var_ptr;
                     }
@@ -577,7 +577,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     utils->print_msg(&ss, DEBUG);
 
     // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
-    if(!next_var->assigned && (next_var->domain.size() == 1 && assigned_words.count(next_var->domain.get_cur_domain().at(0)) > 0)) {
+    if(!next_var->domain.is_assigned() && (next_var->domain.size() == 1 && assigned_words.count(next_var->domain.get_cur_domain().at(0)) > 0)) {
         return false;
     }
 
@@ -610,7 +610,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         if(assigned_words.count(word) == 0) {
             // assignment
             next_var->domain.assign_domain(word);
-            next_var->assigned = true;
             assigned_words.insert(word);
 
             ss << "trying new word: " << word;
@@ -632,7 +631,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             utils->print_msg(&ss, DEBUG);
 
             // undo assignment
-            next_var->assigned = false;
+            next_var->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
             ss << "avoided duplicate word: " << word;
@@ -642,9 +641,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         // another word eliminated
         words_searched++;
     }
-
-    // failed assignment, undo assigning
-    next_var->domain.unassign_domain();
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
     return false;

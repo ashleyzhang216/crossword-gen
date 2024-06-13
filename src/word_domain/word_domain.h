@@ -61,6 +61,9 @@ namespace word_domain_ns {
             // unassign domain, restoring the preivous trie, used when all values fail in backtracking
             void unassign_domain() { assigned = false; assigned_value.reset(); }
 
+            // get assigned status
+            bool is_assigned() { return assigned; }
+
             // get size of domain remaining, for ac3 validity checking
             size_t size() const;
 

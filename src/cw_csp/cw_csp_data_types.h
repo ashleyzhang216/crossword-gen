@@ -47,7 +47,6 @@ namespace cw_csp_data_types_ns {
         word_direction dir;    // direction of word of this var
         string pattern;        // original pattern used to populate domain
         word_domain domain;    // all possible words that fit
-        bool assigned = false; // true iff assigned to single value --> domain.size() == 1
 
         // standard constructor for cw_csp
         cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);

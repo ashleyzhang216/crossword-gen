@@ -57,7 +57,7 @@ size_t hash<cw_variable>::operator()(const cw_variable& var) const {
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
-       << var.pattern << ", assigned: " << var.assigned << ", domain: {";
+       << var.pattern << ", domain: {";
     for(word_t w : var.domain.get_cur_domain()) {
         os << w.word << ", ";
     }
