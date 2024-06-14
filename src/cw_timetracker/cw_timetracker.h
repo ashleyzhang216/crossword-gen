@@ -11,8 +11,6 @@
 
 using namespace common_data_types_ns;
 
-using namespace std::chrono;
-
 namespace cw_timetracker_ns {
     /**
      * @brief type of tasks executed during a timestep
