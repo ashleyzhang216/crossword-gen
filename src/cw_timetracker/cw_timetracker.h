@@ -11,29 +11,66 @@
 
 using namespace common_data_types_ns;
 
+using namespace std::chrono;
+
 namespace cw_timetracker_ns {
+    /**
+     * @brief type of tasks executed during a timestep
+    */
+    enum ts_type_t {
+        // common
+        TS_TOTAL_EXEC, // execution of the entire program
+
+        // word_domain
+        TS_WORD_DOMAIN_BUILD, // building of a word_domain
+
+        // cw_csp
+        TS_CSP_BUILD,             // cw_csp constructor
+        TS_CSP_INITIALIZE,        // cw_csp.initialize_csp()
+        TS_CSP_SOLVE,             // cw_csp.solve()
+        TS_CSP_SOLVED,            // cw_csp.solved()
+        TS_CSP_AC3,               // cw_csp.ac3()
+        TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
+        TS_CSP_OVERWRITE_CW,      // cw_csp.overwrite_cw() 
+        TS_CSP_UNDO_OVERWRITE_CW, // cw_csp.undo_overwrite_cw()
+        TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
+        TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
+    };
+
     /**
      * @brief manages a tree of cw_timestep representing the whole search execution
     */
     class cw_timetracker {
         public:
             // start new timestep
-            uint start_timestep(string name);
+            uint start_timestep(ts_type_t type, string name);
             
             // end previous timestep
-            void end_timestep(uint id);
+            void end_timestep(uint id, string result = "");
 
             // write results into JSON file
             void save_results(string filepath);
 
             // basic constructor, initializes root timestep
-            cw_timetracker(string init_name);
+            cw_timetracker(string init_name, bool enabled);
 
         protected:
             /**
-             * @brief internal tree node representation of one division of time for a single execution step 
+             * @brief internal tree node representation of one interval of time for a single execution step 
             */
             struct cw_timestep {
+                // basic constructor, starts timestep measurement
+                cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
+
+                // ends timestep measurement
+                void resolve(uint id, string result = "");
+
+                // returns true iff timestep has been resolved
+                bool resolved() { return end.has_value(); }
+
+                // type of this timestep
+                ts_type_t type;
+
                 // description of this timestep
                 string name;
 
@@ -44,16 +81,16 @@ namespace cw_timetracker_ns {
                 weak_ptr<cw_timestep> prev;
 
                 // timestamp right before this step started
-                string pre; 
+                time_point<system_clock> start; 
 
                 // child timesteps nested in, or happened during, this timestep
                 vector<shared_ptr<cw_timestep> > children;
 
                 // timestamp right after this step ended, if finished
-                optional<string> post; 
+                optional<time_point<system_clock>> end; 
 
-                // basic constructor
-                cw_timestep(string name, uint id, shared_ptr<cw_timestep> parent);
+                // context as to how or why this timestep ended
+                optional<string> result;
             }; // cw_timestep
 
         private:
@@ -76,7 +113,10 @@ namespace cw_timetracker_ns {
     class cw_timestamper {
         public:
             // constructor to initialize new timestep
-            cw_timestamper(cw_timetracker& tracker, string name);
+            cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name);
+
+            // add result string to attach to timestep upon completion
+            void add_result(string result) { this->result = result; }
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();
@@ -84,8 +124,14 @@ namespace cw_timetracker_ns {
             // TODO: abide by rule of 5, make object non-copyable but movable
         
         private:
+            // cw_timetracker ref to make calls to
+            cw_timetracker& tracker;
+
             // id of timestep this object manages
             uint id;
+
+            // optional result string to attach to timestep upon completion
+            optional<string> result;
     }; // cw_timestamper
 }; // cw_timetracker_ns
 
