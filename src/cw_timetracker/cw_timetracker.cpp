@@ -48,15 +48,17 @@ void cw_timetracker::cw_timestep::resolve(uint id, string result) {
 // ############### cw_timetracker ###############
 
 /**
- * @brief constructor for cw_timetracker, creates root timestep to encompass entire execution
+ * @brief constructor for cw_timetracker for cw_csp, creates root timestep to encompass entire execution
  * 
  * @param init_name name for root level timestep
  * @param enabled behaviors hold for this object iff enabled is true, otherwise all calls are ignored
 */
 cw_timetracker::cw_timetracker(string init_name, bool enabled) : enabled(enabled), next_id(0) {
-    root = make_shared<cw_timestep>(init_name, next_id, nullptr);
-    cur = root;
-    next_id++;
+    if(enabled) {
+        root = make_shared<cw_timestep>(TS_CSP_TOTAL, init_name, next_id, nullptr);
+        cur = root;
+        next_id++;
+    }
 }
 
 /**
@@ -100,12 +102,14 @@ void cw_timetracker::end_timestep(uint id, string result) {
  * @brief saves the results in a JSON file at the specified path
  * @throws assertion_failure_exception iff not all timesteps are resolved
 */
-void cw_timetracker::save_results(string filepath) {
-    assert(root == cur);
-    assert(root->end.has_value());
+// void cw_timetracker::save_results(string filepath) {
+//     if(enabled) {
+//         assert(root == cur);
+//         assert(root->end.has_value());
 
-    // TODO: implement
-}
+//         // TODO: implement
+//     }
+// }
 
 // ############### cw_timestamper ###############
 

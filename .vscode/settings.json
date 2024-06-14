@@ -81,6 +81,8 @@
     "span": "cpp",
     "valarray": "cpp",
     "ranges": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "iterator": "cpp",
+    "memory_resource": "cpp"
   }
 }

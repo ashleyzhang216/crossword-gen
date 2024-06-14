@@ -18,13 +18,8 @@ namespace cw_timetracker_ns {
      * @brief type of tasks executed during a timestep
     */
     enum ts_type_t {
-        // common
-        TS_TOTAL_EXEC, // execution of the entire program
-
-        // word_domain
-        TS_WORD_DOMAIN_BUILD, // building of a word_domain
-
         // cw_csp
+        TS_CSP_TOTAL,             // all execution in cw_csp
         TS_CSP_BUILD,             // cw_csp constructor
         TS_CSP_INITIALIZE,        // cw_csp.initialize_csp()
         TS_CSP_SOLVE,             // cw_csp.solve()
@@ -120,9 +115,15 @@ namespace cw_timetracker_ns {
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();
-            
-            // TODO: abide by rule of 5, make object non-copyable but movable
-        
+
+            // explicitly not copyable  
+            cw_timestamper(const cw_timestamper& other) = delete;            // copy constructor
+            cw_timestamper& operator=(const cw_timestamper& other) = delete; // copy assignment
+
+            // explicitly not movable
+            cw_timestamper(cw_timestamper&&) = delete;            // move constructor
+            cw_timestamper& operator=(cw_timestamper&&) = delete; // move assignment
+                    
         private:
             // cw_timetracker ref to make calls to
             cw_timetracker& tracker;
