@@ -9,11 +9,9 @@
 
 #include "../common/common_data_types.h"
 #include "cw_timetracker_data_types.h"
-#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
 using namespace cw_timetracker_data_types_ns;
-using json = nlohmann::json;
 
 namespace cw_timetracker_ns {
     /**

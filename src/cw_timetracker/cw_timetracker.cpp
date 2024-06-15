@@ -117,12 +117,12 @@ void cw_timetracker::save_results(string filepath) {
 // ############### json conversion ###############
 
 void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
+    assert(step->end.has_value());
     j = json{
-        {"type", "hi"}, 
+        {"type", ts_type_name_map.at(step->type)}, 
         {"name", step->name}, 
-        // TODO: start
-        // TODO: children
-        // TODO: end 
+        {"duration", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
+        {"children", step->children},
         {"result", step->result.has_value() ? step->result.value() : ""},
     };
 }
