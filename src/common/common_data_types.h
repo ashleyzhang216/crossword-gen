@@ -54,7 +54,7 @@ using std::array;
 using std::pair;
 using std::optional;
 using std::chrono::time_point;
-using std::chrono::system_clock;
+using std::chrono::high_resolution_clock;
 
 // RAII
 using std::shared_ptr;

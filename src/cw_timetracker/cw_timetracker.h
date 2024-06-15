@@ -8,27 +8,51 @@
 #define CW_TIMETRACKER_H
 
 #include "../common/common_data_types.h"
+#include "cw_timetracker_data_types.h"
+#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
+using namespace cw_timetracker_data_types_ns;
+using json = nlohmann::json;
 
 namespace cw_timetracker_ns {
     /**
-     * @brief type of tasks executed during a timestep
+     * @brief internal tree node representation of one interval of time for a single execution step 
     */
-    enum ts_type_t {
-        // cw_csp
-        TS_CSP_TOTAL,             // all execution in cw_csp
-        TS_CSP_BUILD,             // cw_csp constructor
-        TS_CSP_INITIALIZE,        // cw_csp.initialize_csp()
-        TS_CSP_SOLVE,             // cw_csp.solve()
-        TS_CSP_SOLVED,            // cw_csp.solved()
-        TS_CSP_AC3,               // cw_csp.ac3()
-        TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
-        TS_CSP_OVERWRITE_CW,      // cw_csp.overwrite_cw() 
-        TS_CSP_UNDO_OVERWRITE_CW, // cw_csp.undo_overwrite_cw()
-        TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
-        TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
-    };
+    struct cw_timestep {
+        // basic constructor, starts timestep measurement
+        cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
+
+        // ends timestep measurement
+        void resolve(uint id, string result = "");
+
+        // returns true iff timestep has been resolved
+        bool resolved() { return end.has_value(); }
+
+        // type of this timestep
+        ts_type_t type;
+
+        // description of this timestep
+        string name;
+
+        // id of this timestep, for invariant validation
+        uint id;
+
+        // parent step that this step is nested in and is a subset of, or this step is the root step if null
+        weak_ptr<cw_timestep> prev;
+
+        // timestamp right before this step started
+        time_point<high_resolution_clock> start; 
+
+        // child timesteps nested in, or happened during, this timestep
+        vector<shared_ptr<cw_timestep> > children;
+
+        // timestamp right after this step ended, if finished
+        optional<time_point<high_resolution_clock>> end; 
+
+        // context as to how or why this timestep ended
+        optional<string> result;
+    }; // cw_timestep
 
     /**
      * @brief manages a tree of cw_timestep representing the whole search execution
@@ -45,46 +69,7 @@ namespace cw_timetracker_ns {
             void save_results(string filepath);
 
             // basic constructor, initializes root timestep
-            cw_timetracker(string init_name, bool enabled);
-
-        protected:
-            /**
-             * @brief internal tree node representation of one interval of time for a single execution step 
-            */
-            struct cw_timestep {
-                // basic constructor, starts timestep measurement
-                cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
-
-                // ends timestep measurement
-                void resolve(uint id, string result = "");
-
-                // returns true iff timestep has been resolved
-                bool resolved() { return end.has_value(); }
-
-                // type of this timestep
-                ts_type_t type;
-
-                // description of this timestep
-                string name;
-
-                // id of this timestep, for invariant validation
-                uint id;
-
-                // parent step that this step is nested in and is a subset of, or this step is the root step if null
-                weak_ptr<cw_timestep> prev;
-
-                // timestamp right before this step started
-                time_point<system_clock> start; 
-
-                // child timesteps nested in, or happened during, this timestep
-                vector<shared_ptr<cw_timestep> > children;
-
-                // timestamp right after this step ended, if finished
-                optional<time_point<system_clock>> end; 
-
-                // context as to how or why this timestep ended
-                optional<string> result;
-            }; // cw_timestep
+            cw_timetracker(string init_name, bool enabled);        
 
         private:
             // whether this object should do anything at all
@@ -99,6 +84,9 @@ namespace cw_timetracker_ns {
             // node of current deepest unresolved timestep
             shared_ptr<cw_timestep> cur;
     }; // cw_timetracker
+
+    // conversion from cw_timestep to json
+    void to_json(json& j, const shared_ptr<cw_timestep>& step); 
 
     /**
      * @brief manages calls to a cw_timetracker object during a single timestep

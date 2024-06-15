@@ -18,12 +18,12 @@ using namespace cw_timetracker_ns;
  * @param id the id of this timestep for invariant checking
  * @param prev ptr to parent step that this step is nested in and is a subset of, or this step is the root step if null
 */
-cw_timetracker::cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev) 
+cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev) 
     : type(type), 
       name(name), 
       id(id), 
       prev(prev), 
-      start(system_clock::now()), 
+      start(high_resolution_clock::now()), 
       end(std::nullopt), 
       result(std::nullopt) {
     // do nothing, initializer list is enough
@@ -36,13 +36,13 @@ cw_timetracker::cw_timestep::cw_timestep(ts_type_t type, string name, uint id, s
  * @param result optional message for why/how this timestep ended
  * @throws assertion_failure_exception iff id does not match
 */
-void cw_timetracker::cw_timestep::resolve(uint id, string result) {
+void cw_timestep::resolve(uint id, string result) {
     assert(this->id == id);
     assert(!resolved());
     assert(children.empty() || children.back()->resolved());
 
-    end = system_clock::now();
     if(result != "") this->result = result;
+    end = high_resolution_clock::now();
 }
 
 // ############### cw_timetracker ###############
@@ -102,14 +102,30 @@ void cw_timetracker::end_timestep(uint id, string result) {
  * @brief saves the results in a JSON file at the specified path
  * @throws assertion_failure_exception iff not all timesteps are resolved
 */
-// void cw_timetracker::save_results(string filepath) {
-//     if(enabled) {
-//         assert(root == cur);
-//         assert(root->end.has_value());
+void cw_timetracker::save_results(string filepath) {
+    if(enabled) {
+        assert(root);
+        assert(root == cur);
+        assert(root->resolved());
 
-//         // TODO: implement
-//     }
-// }
+        json j = root;
+        std::ofstream file(filepath);
+        file << j;
+    }
+}
+
+// ############### json conversion ###############
+
+void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
+    j = json{
+        {"type", "hi"}, 
+        {"name", step->name}, 
+        // TODO: start
+        // TODO: children
+        // TODO: end 
+        {"result", step->result.has_value() ? step->result.value() : ""},
+    };
+}
 
 // ############### cw_timestamper ###############
 

@@ -44,6 +44,7 @@ OFILES = \
 		cw_csp_data_types.o \
 		\
 		cw_timetracker.o \
+		cw_timetracker_data_types.o \
 		\
 		word_domain.o \
 		word_domain_data_types.o \
@@ -63,6 +64,7 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		\
 		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker.h \
+		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker_data_types.h \
 		\
 		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain.h \
 		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain_data_types.h \
