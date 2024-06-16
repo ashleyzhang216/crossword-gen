@@ -30,6 +30,7 @@ namespace cw_timetracker_data_types_ns {
         TS_CSP_UNDO_OVERWRITE_CW, // cw_csp.undo_overwrite_cw()
         TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
         TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
+        TS_CSP_GATHER_DOMAIN,     // get_cur_domain() call and sort in in cw_csp.solve_backtracking()
     };
 
     // mapping from timestep type to display name

@@ -11,6 +11,8 @@
 #include "../common/common_parent.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
+#include "../cw_timetracker/cw_timetracker_data_types.h"
+#include "../cw_timetracker/cw_timetracker.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
 
@@ -18,6 +20,8 @@ using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
+using namespace cw_timetracker_data_types_ns;
+using namespace cw_timetracker_ns;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
 
@@ -50,8 +54,8 @@ namespace cw_csp_ns {
             // get string representation of solved cw for printing when solved() == true
             string result() const;
 
-            // destructor, automatically destructs raii objects
-            ~cw_csp() {}
+            // save timetracker results for analysis
+            void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
         
         protected:
             // helper func to populate variables & constraints
@@ -73,6 +77,9 @@ namespace cw_csp_ns {
             bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar);
 
         private:
+            // timetracker object for analysis
+            mutable cw_timetracker tracker;
+
             // crossword to be solved
             crossword cw;
 
