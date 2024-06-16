@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <array>
+#include <chrono>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
@@ -52,6 +53,8 @@ using std::hash;
 using std::array;
 using std::pair;
 using std::optional;
+using std::chrono::time_point;
+using std::chrono::high_resolution_clock;
 
 // RAII
 using std::shared_ptr;

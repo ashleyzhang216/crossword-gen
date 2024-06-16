@@ -14,10 +14,12 @@ using namespace cw_csp_ns;
  * @param length the length of puzzle to be created
  * @param height the height of puzzle to be created
  * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true, default: false
+ * @param print_progress_bar displays progress bar iff true
+ * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar) 
+cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name), 
+          tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
           print_progress_bar(print_progress_bar) {
@@ -31,10 +33,12 @@ cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool prin
  * @param height the height of puzzle to be created
  * @param contents the contents to populate puzzle with
  * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true, default: false
+ * @param print_progress_bar displays progress bar iff true
+ * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar) 
+cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name), 
+          tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height, contents), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
           print_progress_bar(print_progress_bar) {
@@ -86,6 +90,7 @@ unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_depend
  * @brief constructor helper method to populate all csp variables/constraints based on cw
 */
 void cw_csp::initialize_csp() {
+    cw_timestamper stamper(tracker, TS_CSP_INITIALIZE, "");
 
     stringstream ss;
     ss << "cw_csp starting csp initialization";
@@ -136,7 +141,7 @@ void cw_csp::initialize_csp() {
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
-                        variables.insert(new_var);
+                        variables.push_back(new_var);
                     }
 
                 } else {
@@ -156,7 +161,7 @@ void cw_csp::initialize_csp() {
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
-            variables.insert(new_var);
+            variables.push_back(new_var);
         }
     }
 
@@ -200,7 +205,7 @@ void cw_csp::initialize_csp() {
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
-                        variables.insert(new_var);
+                        variables.push_back(new_var);
                     }
 
                 } else {
@@ -220,7 +225,7 @@ void cw_csp::initialize_csp() {
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
-            variables.insert(new_var);
+            variables.push_back(new_var);
         }
     }
 
@@ -295,8 +300,8 @@ void cw_csp::initialize_csp() {
                 utils->print_msg(&ss, DEBUG);
 
                 // add arcs
-                constraints.insert(forward_arc);
-                constraints.insert(backwards_arc);
+                constraints.push_back(forward_arc);
+                constraints.push_back(backwards_arc);
             }
         }
     }
@@ -317,6 +322,7 @@ void cw_csp::initialize_csp() {
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
 bool cw_csp::ac3() {
+    cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     stringstream ss;
     ss << "starting AC-3 algorithm";
@@ -360,6 +366,7 @@ bool cw_csp::ac3() {
 
                 // undo pruning
                 undo_ac3();
+                stamper.add_result("fail");
                 return false;
             }
 
@@ -374,6 +381,7 @@ bool cw_csp::ac3() {
     }
 
     // running AC-3 to completion does not make CSP invalid
+    stamper.add_result("pass");
     return true;
 }
 
@@ -381,6 +389,8 @@ bool cw_csp::ac3() {
  * @brief undo domain pruning from previous call of AC-3 algorithm
 */
 void cw_csp::undo_ac3() {
+    cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
+
     for(shared_ptr<cw_variable> var_ptr : variables) {
         var_ptr->domain.undo_prev_ac3_call();
     }
@@ -392,25 +402,27 @@ void cw_csp::undo_ac3() {
  * @return true iff CSP is solved
 */
 bool cw_csp::solved() const {
+    cw_timestamper stamper(tracker, TS_CSP_SOLVED, "");
 
     unordered_set<word_t> used_words;
 
     // check that all vars have one remaining domain value & satisfied
     for(shared_ptr<cw_variable> var_ptr : variables) {
         // check that all vars satisifed w/ one domain value
-        if(var_ptr->domain.size() != 1) return false;
-        if(!var_ptr->domain.is_assigned()) return false;
+        if(var_ptr->domain.size() != 1) { stamper.add_result("no"); return false; }
+        if(!var_ptr->domain.is_assigned()) { stamper.add_result("no"); return false; }
 
         // check that domain value is unique
-        if(used_words.count(var_ptr->domain.get_cur_domain().at(0)) > 0) return false;
+        if(used_words.count(var_ptr->domain.get_cur_domain().at(0)) > 0) { stamper.add_result("no"); return false; }
         used_words.insert(var_ptr->domain.get_cur_domain().at(0));
     }
 
     // check that all constraints satisfied
     for(shared_ptr<cw_constraint> constr_ptr : constraints) {
-        if(!constr_ptr->satisfied()) return false;
+        if(!constr_ptr->satisfied()) { stamper.add_result("no"); return false; }
     }
 
+    stamper.add_result("yes");
     return true;
 }
 
@@ -428,6 +440,7 @@ string cw_csp::result() const {
  * @brief overwrite wildcards in cw puzzle with progress so far
  */
 void cw_csp::overwrite_cw() {
+    cw_timestamper stamper(tracker, TS_CSP_OVERWRITE_CW, "");
 
     // used to track overwritten chars for undo-ing later
     vector<tuple<char, uint, uint> > overwritten_tiles;
@@ -485,7 +498,9 @@ void cw_csp::overwrite_cw() {
 /**
  * @brief undo previous call to overwrite_cw()
 */
-void cw_csp::undo_overwrite_cw() {
+void cw_csp::undo_overwrite_cw() { 
+    cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "");
+
     assert(prev_overwritten_tiles.size() > 0);
 
     for(const auto& tuple : prev_overwritten_tiles.top()) {
@@ -536,12 +551,20 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
  * @return true iff successful
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+    cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
+
     // base case for initially invalid crosswords
-    if(!ac3()) return false;
+    if(!ac3()) { stamper.add_result("fail initial ac3"); return false; }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
-                return solve_backtracking(var_strategy, print_progress_bar);
+                if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
+                    stamper.add_result("success");
+                    return true;
+                } else {
+                    stamper.add_result("fail");
+                    return false;
+                }
             } break;
         default: {
                 stringstream ss;
@@ -559,16 +582,21 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * 
  * @param var_strategy strategy to use to select next unassigned variable 
  * @param do_progress_bar true for top level call in prod to avoid printing during testing
+ * @param depth the depth of recursive calls, for analysis
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar) {
+bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
+    cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "depth: " + std::to_string(depth));
 
     stringstream ss;
     ss << "entering solve_backtracking() with cw: " << cw;
     utils->print_msg(&ss, DEBUG);
 
     // base case
-    if(solved()) return true;
+    if(solved()) {
+        stamper.add_result("solved");
+        return true;
+    }
 
     // select next variable
     shared_ptr<cw_variable> next_var = select_unassigned_var(var_strategy);
@@ -578,6 +606,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
     if(!next_var->domain.is_assigned() && (next_var->domain.size() == 1 && assigned_words.count(next_var->domain.get_cur_domain().at(0)) > 0)) {
+        stamper.add_result("invalid base case");
         return false;
     }
 
@@ -588,17 +617,25 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     if(do_progress_bar) {
         bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
     }
-
-    // search all possible values, sorted by word score, tiebroken by frequency
-    vector<word_t> domain_copy = next_var->domain.get_cur_domain();
-    auto compare = [](const word_t& lhs, const word_t& rhs) {
-        if(lhs.score != rhs.score) return lhs.score > rhs.score;
-        return lhs.freq > rhs.freq;
-    };
-    sort(domain_copy.begin(), domain_copy.end(), compare);
+    
+    // get domain of next variable as list of candidates to try to assign
+    vector<word_t> domain_copy;
+    {  
+        cw_timestamper gather_stamper(tracker, TS_CSP_GATHER_DOMAIN, "");
+        
+        // search all possible values, sorted by word score, tiebroken by frequency
+        domain_copy = next_var->domain.get_cur_domain();
+        auto compare = [](const word_t& lhs, const word_t& rhs) {
+            if(lhs.score != rhs.score) return lhs.score > rhs.score;
+            if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
+            return lhs.word > rhs.word;
+        };
+        sort(domain_copy.begin(), domain_copy.end(), compare);
+    }
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
+        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
         
         // update progress bar if 1% more of progress made
         if(do_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
@@ -622,10 +659,13 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 // add to crossword assignment
                 overwrite_cw();
-                if(solve_backtracking(var_strategy, false)) return true;
+                if(solve_backtracking(var_strategy, false, depth + 1)) return true;
                 undo_overwrite_cw();
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
-            } 
+                word_stamper.add_result("recursive fail");
+            } else {
+                word_stamper.add_result("fail ac3");
+            }
 
             ss << "word failed: " << word;
             utils->print_msg(&ss, DEBUG);
@@ -634,6 +674,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             next_var->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
+            word_stamper.add_result("duplicate");
             ss << "avoided duplicate word: " << word;
             utils->print_msg(&ss, DEBUG);
         }
@@ -643,5 +684,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
+    stamper.add_result("fail, exhausted domain");
     return false;
 }

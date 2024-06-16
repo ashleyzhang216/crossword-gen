@@ -11,6 +11,8 @@
 #include "../common/common_parent.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
+#include "../cw_timetracker/cw_timetracker_data_types.h"
+#include "../cw_timetracker/cw_timetracker.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
 
@@ -18,6 +20,8 @@ using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
+using namespace cw_timetracker_data_types_ns;
+using namespace cw_timetracker_ns;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
 
@@ -28,10 +32,10 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // constructor w/o puzzle contents
-            cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar = false);
+            cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker);
 
             // constructor with puzzle contents
-            cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar = false);
+            cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
             unordered_set<cw_variable>                                get_variables()        const;
@@ -50,8 +54,8 @@ namespace cw_csp_ns {
             // get string representation of solved cw for printing when solved() == true
             string result() const;
 
-            // destructor, automatically destructs raii objects
-            ~cw_csp() {}
+            // save timetracker results for analysis
+            void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
         
         protected:
             // helper func to populate variables & constraints
@@ -70,9 +74,12 @@ namespace cw_csp_ns {
             void undo_overwrite_cw();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar);
+            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth);
 
         private:
+            // timetracker object for analysis
+            mutable cw_timetracker tracker;
+
             // crossword to be solved
             crossword cw;
 
@@ -80,8 +87,8 @@ namespace cw_csp_ns {
             word_domain total_domain;
 
             // csp structures
-            unordered_set<shared_ptr<cw_variable> >   variables;
-            unordered_set<shared_ptr<cw_constraint> > constraints;
+            vector<shared_ptr<cw_variable> >   variables;
+            vector<shared_ptr<cw_constraint> > constraints;
 
             // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
