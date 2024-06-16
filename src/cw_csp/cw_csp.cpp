@@ -141,7 +141,7 @@ void cw_csp::initialize_csp() {
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
-                        variables.insert(new_var);
+                        variables.push_back(new_var);
                     }
 
                 } else {
@@ -161,7 +161,7 @@ void cw_csp::initialize_csp() {
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
-            variables.insert(new_var);
+            variables.push_back(new_var);
         }
     }
 
@@ -205,7 +205,7 @@ void cw_csp::initialize_csp() {
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
                         ss << "adding new variable: " << *new_var;
                         utils->print_msg(&ss, DEBUG);
-                        variables.insert(new_var);
+                        variables.push_back(new_var);
                     }
 
                 } else {
@@ -225,7 +225,7 @@ void cw_csp::initialize_csp() {
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
             ss << "adding new variable: " << *new_var;
             utils->print_msg(&ss, DEBUG);
-            variables.insert(new_var);
+            variables.push_back(new_var);
         }
     }
 
@@ -300,8 +300,8 @@ void cw_csp::initialize_csp() {
                 utils->print_msg(&ss, DEBUG);
 
                 // add arcs
-                constraints.insert(forward_arc);
-                constraints.insert(backwards_arc);
+                constraints.push_back(forward_arc);
+                constraints.push_back(backwards_arc);
             }
         }
     }
@@ -627,7 +627,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         domain_copy = next_var->domain.get_cur_domain();
         auto compare = [](const word_t& lhs, const word_t& rhs) {
             if(lhs.score != rhs.score) return lhs.score > rhs.score;
-            return lhs.freq > rhs.freq;
+            if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
+            return lhs.word > rhs.word;
         };
         sort(domain_copy.begin(), domain_copy.end(), compare);
     }

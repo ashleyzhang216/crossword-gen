@@ -87,8 +87,8 @@ namespace cw_csp_ns {
             word_domain total_domain;
 
             // csp structures
-            unordered_set<shared_ptr<cw_variable> >   variables;
-            unordered_set<shared_ptr<cw_constraint> > constraints;
+            vector<shared_ptr<cw_variable> >   variables;
+            vector<shared_ptr<cw_constraint> > constraints;
 
             // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
             unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
