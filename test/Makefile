@@ -24,7 +24,7 @@ CATCH_DIR=catch
 D = -D
 DEFINES = $(D) CW_TOP
 CPPFLAGS += -pipe
-CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -std=c++20 $(DEFINES)
+CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -Og -std=c++20 $(DEFINES)
 INC=-I$(SRC_DIR)
 
 BIN = cw_test_driver
