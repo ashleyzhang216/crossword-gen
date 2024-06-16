@@ -94,7 +94,7 @@ void cw_timetracker::end_timestep(uint id, string result) {
     if(enabled) {
         assert(cur);
         cur->resolve(id, result);
-        assert(cur = cur->prev.lock());
+        assert(cur == root || (cur = cur->prev.lock()));
     }
 }
 
@@ -106,11 +106,12 @@ void cw_timetracker::save_results(string filepath) {
     if(enabled) {
         assert(root);
         assert(root == cur);
-        assert(root->resolved());
+        assert(!root->resolved());
+        end_timestep(0);
 
         json j = root;
         std::ofstream file(filepath);
-        file << j;
+        file << std::setw(4) << j << endl;
     }
 }
 
@@ -121,7 +122,7 @@ void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
     j = json{
         {"type", ts_type_name_map.at(step->type)}, 
         {"name", step->name}, 
-        {"duration", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
+        {"duration_us", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
         {"children", step->children},
         {"result", step->result.has_value() ? step->result.value() : ""},
     };

@@ -14,11 +14,12 @@ using namespace cw_csp_ns;
  * @param length the length of puzzle to be created
  * @param height the height of puzzle to be created
  * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true, default: false
+ * @param print_progress_bar displays progress bar iff true
+ * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar) 
+cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name), 
-          tracker("cw_csp", false), 
+          tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
           print_progress_bar(print_progress_bar) {
@@ -32,11 +33,12 @@ cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool prin
  * @param height the height of puzzle to be created
  * @param contents the contents to populate puzzle with
  * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true, default: false
+ * @param print_progress_bar displays progress bar iff true
+ * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar) 
+cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name), 
-          tracker("cw_csp", false), 
+          tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height, contents), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
           print_progress_bar(print_progress_bar) {
@@ -407,19 +409,20 @@ bool cw_csp::solved() const {
     // check that all vars have one remaining domain value & satisfied
     for(shared_ptr<cw_variable> var_ptr : variables) {
         // check that all vars satisifed w/ one domain value
-        if(var_ptr->domain.size() != 1) return false;
-        if(!var_ptr->domain.is_assigned()) return false;
+        if(var_ptr->domain.size() != 1) { stamper.add_result("no"); return false; }
+        if(!var_ptr->domain.is_assigned()) { stamper.add_result("no"); return false; }
 
         // check that domain value is unique
-        if(used_words.count(var_ptr->domain.get_cur_domain().at(0)) > 0) return false;
+        if(used_words.count(var_ptr->domain.get_cur_domain().at(0)) > 0) { stamper.add_result("no"); return false; }
         used_words.insert(var_ptr->domain.get_cur_domain().at(0));
     }
 
     // check that all constraints satisfied
     for(shared_ptr<cw_constraint> constr_ptr : constraints) {
-        if(!constr_ptr->satisfied()) return false;
+        if(!constr_ptr->satisfied()) { stamper.add_result("no"); return false; }
     }
 
+    stamper.add_result("yes");
     return true;
 }
 

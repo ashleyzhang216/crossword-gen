@@ -32,10 +32,10 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // constructor w/o puzzle contents
-            cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar = false);
+            cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker);
 
             // constructor with puzzle contents
-            cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar = false);
+            cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
             unordered_set<cw_variable>                                get_variables()        const;

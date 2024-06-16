@@ -38,9 +38,9 @@ string cw_gen::squash_options(vector<string> options) {
 */
 void cw_gen::build() {
     if(has_grid_contents) {
-        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict], display_progress_bar);
+        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict], display_progress_bar, enable_timetracker);
     } else {
-        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict], display_progress_bar);
+        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict], display_progress_bar, enable_timetracker);
     }
 }
 
@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
+        ("a,analysis",  "Enable JSON analysis file output",                                      cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
 
@@ -158,6 +159,18 @@ int main(int argc, char** argv) {
         cwgen->enable_progress_bar();
     }
 
+    // ############### cw_timetracker ###############
+
+    if(result.count("analysis")) {
+        string filepath = result["analysis"].as<string>();
+        if(filepath == "") {
+            cout << "Error: analysis output filepath must be nonempty, got: " << endl;
+            exit(1);
+        }
+
+        cwgen->enable_analysis();
+    }
+
     // ############### cw_csp solving ###############
 
     cwgen->build();
@@ -167,6 +180,13 @@ int main(int argc, char** argv) {
         cout << "Error: no valid crossword generated for the given parameters. " 
              << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;
         exit(1);
+    }
+
+    // ############### cw_timetracker results ###############
+
+    if(result.count("analysis")) {
+        string filepath = result["analysis"].as<string>();
+        cwgen->save_analysis(filepath);
     }
 
     return 0;

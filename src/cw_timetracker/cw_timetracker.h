@@ -63,7 +63,7 @@ namespace cw_timetracker_ns {
             // end previous timestep
             void end_timestep(uint id, string result = "");
 
-            // write results into JSON file
+            // write results into JSON file and resolves root timestep
             void save_results(string filepath);
 
             // basic constructor, initializes root timestep

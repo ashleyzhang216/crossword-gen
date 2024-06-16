@@ -42,3 +42,6 @@ src/build
 # python
 src/data/scripts/__pycache__
 *.pyc
+
+# analysis output files
+/*.json

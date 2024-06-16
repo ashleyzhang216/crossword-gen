@@ -21,5 +21,6 @@ namespace cw_timetracker_data_types_ns {
         {TS_CSP_UNDO_OVERWRITE_CW, "Undo Overwrite CW"}, 
         {TS_CSP_BACKTRACK_STEP,    "Solve Backtracking"}, 
         {TS_CSP_TRY_ASSIGN,        "Try Assign"}, 
+        {TS_CSP_GATHER_DOMAIN,     "Gather Domain"}, 
     };
 };

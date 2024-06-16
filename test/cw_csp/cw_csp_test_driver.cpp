@@ -34,7 +34,7 @@ bool cw_csp_test_driver::test_constructor_empty(
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, filepath);
+    dut = new cw_csp(dut_name.str(), length, height, filepath, false, false);
 
     bool result = true;
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
@@ -68,7 +68,7 @@ bool cw_csp_test_driver::test_constructor_contents(
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_contents(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
 
     bool result = true;
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
@@ -95,7 +95,7 @@ bool cw_csp_test_driver::test_constructor_contents(
 bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result) {
     stringstream dut_name;
     dut_name << name << " test_ac3_validity(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
 
     bool result = true;
     unordered_set<cw_variable> original_variables = dut->get_variables();
@@ -123,7 +123,7 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
 bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables) {
     stringstream dut_name;
     dut_name << name << " test_ac3(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
 
     bool result = true;
     unordered_set<cw_variable> original_variables = dut->get_variables();
@@ -155,7 +155,7 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
 bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print) {
     stringstream dut_name;
     dut_name << name << " test_backtracking_validity(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath);
+    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
     stringstream cw_result;
 
     bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
