@@ -74,7 +74,7 @@ namespace cw_csp_ns {
             void undo_overwrite_cw();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar);
+            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth);
 
         private:
             // timetracker object for analysis

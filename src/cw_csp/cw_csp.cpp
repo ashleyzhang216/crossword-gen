@@ -90,7 +90,7 @@ unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_depend
  * @brief constructor helper method to populate all csp variables/constraints based on cw
 */
 void cw_csp::initialize_csp() {
-    cw_timestamper stamper(tracker, TS_CSP_INITIALIZE, "initialize");
+    cw_timestamper stamper(tracker, TS_CSP_INITIALIZE, "");
 
     stringstream ss;
     ss << "cw_csp starting csp initialization";
@@ -322,7 +322,7 @@ void cw_csp::initialize_csp() {
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
 bool cw_csp::ac3() {
-    cw_timestamper stamper(tracker, TS_CSP_AC3, "ac3");
+    cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     stringstream ss;
     ss << "starting AC-3 algorithm";
@@ -389,7 +389,7 @@ bool cw_csp::ac3() {
  * @brief undo domain pruning from previous call of AC-3 algorithm
 */
 void cw_csp::undo_ac3() {
-    cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "undo ac3");
+    cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
 
     for(shared_ptr<cw_variable> var_ptr : variables) {
         var_ptr->domain.undo_prev_ac3_call();
@@ -402,7 +402,7 @@ void cw_csp::undo_ac3() {
  * @return true iff CSP is solved
 */
 bool cw_csp::solved() const {
-    cw_timestamper stamper(tracker, TS_CSP_SOLVED, "solved");
+    cw_timestamper stamper(tracker, TS_CSP_SOLVED, "");
 
     unordered_set<word_t> used_words;
 
@@ -440,7 +440,7 @@ string cw_csp::result() const {
  * @brief overwrite wildcards in cw puzzle with progress so far
  */
 void cw_csp::overwrite_cw() {
-    cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "overwrite");
+    cw_timestamper stamper(tracker, TS_CSP_OVERWRITE_CW, "");
 
     // used to track overwritten chars for undo-ing later
     vector<tuple<char, uint, uint> > overwritten_tiles;
@@ -499,7 +499,7 @@ void cw_csp::overwrite_cw() {
  * @brief undo previous call to overwrite_cw()
 */
 void cw_csp::undo_overwrite_cw() { 
-    cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "undo overwrite");
+    cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "");
 
     assert(prev_overwritten_tiles.size() > 0);
 
@@ -551,14 +551,20 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
  * @return true iff successful
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
-    cw_timestamper stamper(tracker, TS_CSP_SOLVE, "solve");
+    cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
-    if(!ac3()) return false;
+    if(!ac3()) { stamper.add_result("fail initial ac3"); return false; }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
-                return solve_backtracking(var_strategy, print_progress_bar);
+                if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
+                    stamper.add_result("success");
+                    return true;
+                } else {
+                    stamper.add_result("fail");
+                    return false;
+                }
             } break;
         default: {
                 stringstream ss;
@@ -576,10 +582,11 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * 
  * @param var_strategy strategy to use to select next unassigned variable 
  * @param do_progress_bar true for top level call in prod to avoid printing during testing
+ * @param depth the depth of recursive calls, for analysis
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar) {
-    cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "backtrack step");
+bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
+    cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "depth: " + std::to_string(depth));
 
     stringstream ss;
     ss << "entering solve_backtracking() with cw: " << cw;
@@ -610,10 +617,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     if(do_progress_bar) {
         bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
     }
-
+    
+    // get domain of next variable as list of candidates to try to assign
     vector<word_t> domain_copy;
     {  
-        cw_timestamper gather_stamper(tracker, TS_CSP_GATHER_DOMAIN, "gather");
+        cw_timestamper gather_stamper(tracker, TS_CSP_GATHER_DOMAIN, "");
         
         // search all possible values, sorted by word score, tiebroken by frequency
         domain_copy = next_var->domain.get_cur_domain();
@@ -650,7 +658,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 // add to crossword assignment
                 overwrite_cw();
-                if(solve_backtracking(var_strategy, false)) return true;
+                if(solve_backtracking(var_strategy, false, depth + 1)) return true;
                 undo_overwrite_cw();
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
                 word_stamper.add_result("recursive fail");
