@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
-        ("a,analysis",  "Enable JSON analysis file output",                                      cxxopts::value<string>())
+        ("a,analysis",  "Name of JSON analysis file to generate if provided",                    cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
 
@@ -162,8 +162,7 @@ int main(int argc, char** argv) {
     // ############### cw_timetracker ###############
 
     if(result.count("analysis")) {
-        string filepath = result["analysis"].as<string>();
-        if(filepath == "") {
+        if(result["analysis"].as<string>() == "") {
             cout << "Error: analysis output filepath must be nonempty, got: " << endl;
             exit(1);
         }
@@ -185,8 +184,7 @@ int main(int argc, char** argv) {
     // ############### cw_timetracker results ###############
 
     if(result.count("analysis")) {
-        string filepath = result["analysis"].as<string>();
-        cwgen->save_analysis(filepath);
+        cwgen->save_analysis(result["analysis"].as<string>() + ".json");
     }
 
     return 0;

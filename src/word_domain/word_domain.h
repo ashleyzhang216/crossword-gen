@@ -108,7 +108,7 @@ namespace word_domain_ns {
             optional<word_t> assigned_value;
 
             // helper for filepath constructor to detect file type
-            bool has_suffix(const string& str, const string& suffix);
+            static bool has_suffix(const string& str, const string& suffix);
 
             // helper for filepath constructor to check if word is legal
             optional<string> parse_word(const string& word);
