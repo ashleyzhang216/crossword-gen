@@ -20,23 +20,67 @@ enum verbosity_t {
     DEBUG = 4
 };
 
+// mapping from verbosity value to name
+extern unordered_map<verbosity_t, string> verbosity_type_to_name;
+
 // global verbosity
 extern verbosity_t VERBOSITY;
 
+// class cw_utils {
+//     public:
+//         string name;
+//         verbosity_t min_verbosity;
+
+//         // base constructor
+//         cw_utils(string name, verbosity_t verbosity);
+
+//         // unused destructor
+//         ~cw_utils(){};
+
+//         // general message print
+//         bool print_msg(string s, verbosity_t verbosity = INFO);
+//         bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
+// };
+
+/**
+ * @brief object to handle message logging, and other functionalities in the future
+*/
 class cw_utils {
     public:
-        string name;
-        verbosity_t min_verbosity;
-
         // base constructor
-        cw_utils(string name, verbosity_t verbosity);
+        cw_utils(const string_view& name, const verbosity_t& min_verbosity);
 
-        // unused destructor
-        ~cw_utils(){};
+        // try to log
+        template <typename... Types>
+        void log(const verbosity_t& verbosity, const Types&... args) const;
 
-        // general message print
-        bool print_msg(string s, verbosity_t verbosity = INFO);
-        bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
+    private:
+        const string name;
+        const verbosity_t min_verbosity;
+        
+        /**
+         * @brief allowed types for printing
+         * @note the types are restricted so that with -O3 optimizations enabled, the arguments 
+         *       don't have to be actually loaded from memory if the verbosity check fails. with 
+         *       this optimization, the assembly for each call to log() is a compare instruction 
+         *       followed by a conditional jump. since these arguments have no external effect, 
+         *       they can safely be only loaded after the jump if it occurs, meaning that in 
+         *       prod, a call to log() only costs 2 instructions of no op 
+        */
+        template <typename T>
+        static constexpr bool is_printable = 
+            std::disjunction_v<
+                std::is_convertible<T, string_view>,
+                std::is_arithmetic<T>
+            >;
+        
+        // print to std::cout after verbosity check passed
+        template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
+        void log_std_cout(const T& msg, const Types&... args) const;
+
+        // print to std::cerr after verbosity check passed
+        template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
+        void log_std_cerr(const T& msg, const Types&... args) const;
 };
 
 struct assertion_failure_exception : public exception {

@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
         cout << "Error: got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
         exit(1);
     }
-    VERBOSITY = verbosity_map.at(verbosity);
+    VERBOSITY = verbosity_name_to_type.at(verbosity);
 
     // ############### progress bar ###############
 

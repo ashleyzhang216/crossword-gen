@@ -16,6 +16,7 @@
 #include <stack>
 #include <tuple>
 #include <string>
+#include <string_view>
 #include <fstream>
 #include <unordered_set>
 #include <unordered_map>
@@ -41,6 +42,7 @@ using std::endl;
 using std::exception;
 using std::string;
 using std::stringstream;
+using std::string_view;
 using std::vector;
 using std::queue;
 using std::stack;
@@ -119,7 +121,7 @@ namespace common_data_types_ns {
             string full_bar;
     };
     
-} // common_data_types_ns
+}; // common_data_types_ns
 
 /**
  * hash function declarations in global scope
