@@ -13,11 +13,11 @@ using namespace common_data_types_ns;
 
 // verbosity levels
 enum verbosity_t {
-    FATAL = 0,
-    ERROR = 1,
+    FATAL   = 4,
+    ERROR   = 3,
     WARNING = 2, 
-    INFO = 3,
-    DEBUG = 4
+    INFO    = 1,
+    DEBUG   = 0
 };
 
 // mapping from verbosity value to name
@@ -25,6 +25,27 @@ extern unordered_map<verbosity_t, string> verbosity_type_to_name;
 
 // global verbosity
 extern verbosity_t VERBOSITY;
+
+struct assertion_failure_exception : public exception {
+    const char *what() const throw() {
+        return "crossword-gen failed assertion";
+    }
+};
+
+#undef assert
+#define assert(x)                                                                                       \
+    if(!(x)) {                                                                                          \
+        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
+        throw assertion_failure_exception();                                                            \
+    }                                                                                                   \
+
+#undef assert_m
+#define assert_m(x, msg)                                                                                \
+    if(!(x)) {                                                                                          \
+        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
+            << msg << endl;                                                                             \
+        throw assertion_failure_exception();                                                            \
+    } 
 
 // class cw_utils {
 //     public:
@@ -50,9 +71,23 @@ class cw_utils {
         // base constructor
         cw_utils(const string_view& name, const verbosity_t& min_verbosity);
 
-        // try to log
+        /**
+         * @brief log messages to std::cout or std::cerr if verbosity is high enough
+         * 
+         * @param verbosity the verbosity of this message, which is logged if >= min verbosity
+         * @param args printable objects to log
+        */
         template <typename... Types>
-        void log(const verbosity_t& verbosity, const Types&... args) const;
+        void log(const verbosity_t& verbosity, const Types&... args) const {
+            if(verbosity >= min_verbosity) [[unlikely]] {
+                if(verbosity >= ERROR) {
+                    log_std_cerr(verbosity_type_to_name.at(verbosity), ": ", name, ' ', args..., '\n');
+                    throw assertion_failure_exception();
+                } else {
+                    log_std_cout(verbosity_type_to_name.at(verbosity), ": ", name, ' ', args..., '\n');
+                }
+            }
+        }
 
     private:
         const string name;
@@ -68,82 +103,86 @@ class cw_utils {
          *       prod, a call to log() only costs 2 instructions of no op 
         */
         template <typename T>
-        static constexpr bool is_printable = 
-            std::disjunction_v<
+        struct no_mov_on_verbosity_fail : 
+            std::disjunction<
                 std::is_convertible<T, string_view>,
                 std::is_arithmetic<T>
+            > {};
+
+        template <typename T>
+        static constexpr bool is_printable = 
+            std::disjunction_v<
+                no_mov_on_verbosity_fail<T>,
+                std::is_class<T>,
+                std::is_enum<T>,
+                std::is_pointer<T>
             >;
         
-        // print to std::cout after verbosity check passed
+
+        /**
+         * @brief log messages to std::cout, after verbosity check has passed
+         * 
+         * @param msg the next printable object to logged
+         * @param args the other arguments to be logged
+        */
         template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
-        void log_std_cout(const T& msg, const Types&... args) const;
+        void log_std_cout(const T& msg, const Types&... args) const {
+            cout << msg;
+            if constexpr(sizeof...(args) > 0) {
+                log_std_cout(args...);
+            }
+        }
 
-        // print to std::cerr after verbosity check passed
+        /**
+         * @brief log messages to std::cerr, after verbosity check has passed
+         * 
+         * @param msg the next printable object to logged
+         * @param args the other arguments to be logged
+        */
         template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
-        void log_std_cerr(const T& msg, const Types&... args) const;
+        void log_std_cerr(const T& msg, const Types&... args) const {
+            cerr << msg;
+            if constexpr(sizeof...(args) > 0) {
+                log_std_cerr(args...);
+            }
+        }
 };
-
-struct assertion_failure_exception : public exception {
-    const char *what() const throw() {
-        return "crossword-gen failed assertion";
-    }
-};
-
-#undef assert
-#define assert(x)                                                                                       \
-    if(!(x)) {                                                                                          \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
-        throw assertion_failure_exception();                                                            \
-    }                                                                                                   \
-
-#undef assert_m
-#define assert_m(x, msg)                                                                                \
-    if(!(x)) {                                                                                          \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
-            << msg << endl;                                                                             \
-        throw assertion_failure_exception();                                                            \
-    } 
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
- * TODO: switch to using shared_ptr or refs
  * 
- * @param lhs ptr to lhs set
- * @param rhs ptr to rhs set
+ * @param lhs ref to lhs set
+ * @param rhs ref to rhs set
  * @param debug_prints prints debug messages iff debug_prints == true
  * @returns true iff contents of lhs & rhs are identical
 */
 template <typename T> 
-inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<T>* rhs, bool debug_prints) {
+inline bool set_contents_equal(const unordered_set<T>& lhs, const unordered_set<T>& rhs, bool debug_prints) {
 
-    stringstream ss;
-    cw_utils* utils = new cw_utils("set_contents_equal()", VERBOSITY);
+    cw_utils utils("set_contents_equal()", VERBOSITY);
     bool result = true;
 
-    if(lhs->size() != rhs->size()) {
+    if(lhs.size() != rhs.size()) {
         if(debug_prints) {
-            ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
-            utils->print_msg(&ss, WARNING);
+            utils.log(WARNING, "mismatched size: ", lhs.size(), " & ", rhs.size());
         }
         result = false;
     }
 
-    for(const T& t : *lhs) {
-        if(rhs->count(t) == 0) {
+    for(const T& t : lhs) {
+        if(rhs.count(t) == 0) {
             if(debug_prints) {
-                ss << "missing from rhs: " << t;
-                utils->print_msg(&ss, WARNING);
+                utils.log(WARNING, "missing from rhs: ", t);
             }
             result = false;
         }
     }
 
     // not necessary for correctivity checking, only for debug
-    for(const T& t : *rhs) {
-        if(lhs->count(t) == 0) {
+    for(const T& t : rhs) {
+        if(lhs.count(t) == 0) {
             if(debug_prints) {
-                ss << "missing from lhs: " << t;
-                utils->print_msg(&ss, WARNING);
+                utils.log(WARNING, "missing from lhs: ", t);
             }
             result = false;
         }
@@ -155,39 +194,35 @@ inline bool set_contents_equal(const unordered_set<T>* lhs, const unordered_set<
 /**
  * @brief template function to compare contents of hashmap to hashset for testing
  * 
- * @param lhs ptr to lhs map
- * @param rhs ptr to rhs map
+ * @param lhs ref to lhs map
+ * @param rhs ref to rhs map
  * @param debug_prints prints debug messages iff debug_prints == true
  * @returns true iff contents of lhs & rhs are identical
 */
 template <typename K, typename V>
-inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >* lhs, const unordered_map<K, unordered_set<V> >* rhs, bool debug_prints) {
+inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >& lhs, const unordered_map<K, unordered_set<V> >& rhs, bool debug_prints) {
     
-    stringstream ss;
-    cw_utils* utils = new cw_utils("map_to_set_contents_equal()", VERBOSITY);
+    cw_utils utils("map_to_set_contents_equal()", VERBOSITY);
     bool result = true;
 
-    if(lhs->size() != rhs->size()) {
+    if(lhs.size() != rhs.size()) {
         if(debug_prints) {
-            ss << "mismatched size: " << lhs->size() << " & " << rhs->size();
-            utils->print_msg(&ss, WARNING);
+            utils.log(WARNING, "mismatched size: ", lhs.size(), " & ", rhs.size());
         }
         result = false;
     }
     
-    for(const auto& pair : *lhs) {
-        if(rhs->find(pair.first) == rhs->end()) {
+    for(const auto& pair : lhs) {
+        if(rhs.find(pair.first) == rhs.end()) {
             if(debug_prints) {
-                ss << "key missing from rhs: " << pair.first;
-                utils->print_msg(&ss, WARNING);
+                utils.log(WARNING, "key missing from rhs: ", pair.first);
             }
             result = false;
             continue;
         }
-        if(!set_contents_equal(&(rhs->at(pair.first)), &(pair.second), debug_prints)) {
+        if(!set_contents_equal(rhs.at(pair.first), pair.second, debug_prints)) {
             if(debug_prints) {
-                ss << "set contents for key " << pair.first << " not equal";
-                utils->print_msg(&ss, WARNING);
+                utils.log(WARNING, "set contents unequal for key: ", pair.first);
             }
             result = false;
         }

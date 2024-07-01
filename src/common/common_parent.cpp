@@ -15,8 +15,8 @@ using namespace common_parent_ns;
  * @param min_verbosity the min verbosity for the util object
 */
 common_parent::common_parent(const string_view& name, const verbosity_t& min_verbosity) 
-    : name(name), 
-      utils(make_unique<cw_utils>(name, min_verbosity)) {
+    : utils(name, min_verbosity), 
+      name(name) {
     // do nothing, initializer list is sufficient
 }
 
@@ -28,7 +28,7 @@ common_parent::common_parent(const string_view& name, const verbosity_t& min_ver
 */
 bool common_parent::check_condition(const string_view& condition_name, bool condition) {
     if(!condition) {
-        utils->log(WARNING, "failed condition: ", condition_name);
+        utils.log(WARNING, "failed condition: ", condition_name);
     }
 
     return condition;

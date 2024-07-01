@@ -9,9 +9,11 @@
 
 #include "../common/common_data_types.h"
 #include "cw_timetracker_data_types.h"
+#include "../common/common_parent.h"
 
 using namespace common_data_types_ns;
 using namespace cw_timetracker_data_types_ns;
+using namespace common_parent_ns;
 
 namespace cw_timetracker_ns {
     /**
@@ -55,7 +57,7 @@ namespace cw_timetracker_ns {
     /**
      * @brief manages a tree of cw_timestep representing the whole search execution
     */
-    class cw_timetracker {
+    class cw_timetracker : public common_parent {
         public:
             // start new timestep
             uint start_timestep(ts_type_t type, string name);
@@ -88,6 +90,7 @@ namespace cw_timetracker_ns {
 
     /**
      * @brief manages calls to a cw_timetracker object during a single timestep
+     * @note does not inherit common_parent for speed
     */
     class cw_timestamper {
         public:

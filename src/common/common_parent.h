@@ -21,10 +21,11 @@ namespace common_parent_ns {
 
             // shorthand for test drivers only to print failed tests
             bool check_condition(const string_view& condition_name, bool condition);
-            
+
+        protected:
+            cw_utils utils;
         private:
             const string name;
-            const unique_ptr<cw_utils> utils;
     };
 }
 

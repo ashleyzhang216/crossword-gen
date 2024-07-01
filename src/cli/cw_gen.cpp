@@ -11,7 +11,7 @@ using namespace cw_gen_ns;
 /**
  * @brief constructor for a crossword generation tool with all default values
 */
-cw_gen::cw_gen(string name) : common_parent(name) {
+cw_gen::cw_gen(string name) : common_parent(name, VERBOSITY) {
     // do nothing
 }
 
