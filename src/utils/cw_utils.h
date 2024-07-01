@@ -47,22 +47,6 @@ struct assertion_failure_exception : public exception {
         throw assertion_failure_exception();                                                            \
     } 
 
-// class cw_utils {
-//     public:
-//         string name;
-//         verbosity_t min_verbosity;
-
-//         // base constructor
-//         cw_utils(string name, verbosity_t verbosity);
-
-//         // unused destructor
-//         ~cw_utils(){};
-
-//         // general message print
-//         bool print_msg(string s, verbosity_t verbosity = INFO);
-//         bool print_msg(stringstream *s, verbosity_t verbosity = INFO);
-// };
-
 /**
  * @brief object to handle message logging, and other functionalities in the future
 */

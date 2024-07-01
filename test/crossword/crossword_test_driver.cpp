@@ -11,7 +11,7 @@ using namespace crossword_test_driver_ns;
 /**
  * @brief basic constructor for crossword test driver
 */
-crossword_test_driver::crossword_test_driver(string name) : common_parent(name) {
+crossword_test_driver::crossword_test_driver(string name) : common_parent(name, VERBOSITY) {
     // do nothing
 }
 

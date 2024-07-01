@@ -24,7 +24,6 @@ namespace common_parent_ns {
 
         protected:
             cw_utils utils;
-        private:
             const string name;
     };
 }
