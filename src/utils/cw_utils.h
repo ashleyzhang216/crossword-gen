@@ -34,14 +34,14 @@ struct assertion_failure_exception : public exception {
 
 #undef assert
 #define assert(x)                                                                                       \
-    if(!(x)) {                                                                                          \
+    if(!(x)) [[unlikely]] {                                                                             \
         cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
         throw assertion_failure_exception();                                                            \
     }                                                                                                   \
 
 #undef assert_m
 #define assert_m(x, msg)                                                                                \
-    if(!(x)) {                                                                                          \
+    if(!(x)) [[unlikely]] {                                                                             \
         cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
             << msg << endl;                                                                             \
         throw assertion_failure_exception();                                                            \
