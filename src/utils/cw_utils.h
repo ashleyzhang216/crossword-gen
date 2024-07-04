@@ -65,10 +65,10 @@ class cw_utils {
         void log(const verbosity_t& verbosity, const Types&... args) const {
             if(verbosity >= min_verbosity) [[unlikely]] {
                 if(verbosity >= ERROR) {
-                    log_std_cerr(verbosity_type_to_name.at(verbosity), ": ", name, ' ', args..., '\n');
+                    log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                     throw assertion_failure_exception();
                 } else {
-                    log_std_cout(verbosity_type_to_name.at(verbosity), ": ", name, ' ', args..., '\n');
+                    log_to_ostream(cout, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                 }
             }
         }
@@ -104,30 +104,19 @@ class cw_utils {
         
 
         /**
-         * @brief log messages to std::cout, after verbosity check has passed
+         * @brief log messages to ostream, after verbosity check has passed
          * 
+         * @param os the stream to print to
          * @param msg the next printable object to logged
          * @param args the other arguments to be logged
         */
         template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
-        void log_std_cout(const T& msg, const Types&... args) const {
-            cout << msg;
+        void log_to_ostream(ostream& os, const T& msg, const Types&... args) const {
+            os << msg;
             if constexpr(sizeof...(args) > 0) {
-                log_std_cout(args...);
-            }
-        }
-
-        /**
-         * @brief log messages to std::cerr, after verbosity check has passed
-         * 
-         * @param msg the next printable object to logged
-         * @param args the other arguments to be logged
-        */
-        template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
-        void log_std_cerr(const T& msg, const Types&... args) const {
-            cerr << msg;
-            if constexpr(sizeof...(args) > 0) {
-                log_std_cerr(args...);
+                log_to_ostream(os, args...);
+            } else {
+                os << endl;
             }
         }
 };
