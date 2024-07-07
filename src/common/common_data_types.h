@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <array>
 #include <chrono>
+#include <mutex>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
@@ -57,6 +58,8 @@ using std::pair;
 using std::optional;
 using std::chrono::time_point;
 using std::chrono::high_resolution_clock;
+using std::mutex;
+using std::lock_guard;
 
 // RAII
 using std::shared_ptr;

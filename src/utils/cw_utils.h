@@ -62,8 +62,9 @@ class cw_utils {
          * @param args printable objects to log
         */
         template <typename... Types>
-        void log(const verbosity_t& verbosity, const Types&... args) const {
+        void log(const verbosity_t& verbosity, const Types&... args) {
             if(verbosity >= min_verbosity) [[unlikely]] {
+                lock_guard print_lg(print_mx);
                 if(verbosity >= ERROR) {
                     log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                     throw assertion_failure_exception();
@@ -74,9 +75,13 @@ class cw_utils {
         }
 
     private:
+        // fields for printing
         const string name;
         const verbosity_t min_verbosity;
-        
+
+        // declaration of global mutex to protect print access 
+        static mutex print_mx;
+
         /**
          * @brief allowed types for printing
          * @note the types are restricted so that with -O3 optimizations enabled, the arguments 

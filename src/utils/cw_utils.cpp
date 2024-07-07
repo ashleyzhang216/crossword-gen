@@ -30,6 +30,11 @@ cw_utils::cw_utils(const string_view& name, const verbosity_t& min_verbosity) : 
     // do nothing, initializer list is sufficient
 }
 
+/**
+ * @brief definition of cw_util global mutex to protect print access 
+*/
+mutex cw_utils::print_mx;
+
 // ############### set_contents_equal() ###############
 
 template bool set_contents_equal<string>(const unordered_set<string>& lhs, const unordered_set<string>& rhs, bool debug_prints);
