@@ -101,6 +101,7 @@ namespace common_data_types_ns {
 
     /**
      * @brief progress bar to print cw search progress
+     * @warning behavior undefined if anything else printed during lifetime of this object
      * @cite https://codereview.stackexchange.com/a/186537
     */
     class progress_bar {
