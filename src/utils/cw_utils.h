@@ -55,6 +55,15 @@ class cw_utils {
         // base constructor
         cw_utils(const string_view& name, const verbosity_t& min_verbosity);
 
+        // register new bar always displayed on std::cout as the last line below log print statements
+        void add_fixed_bar(size_t line_width, string_view msg, char symbol_full, char symbol_empty);
+
+        // update fixed bar on to std::cout, 0 <= fraction <= 1.0
+        void request_write_bar(double fraction);
+
+        // completes to std::cout fixed bar to 100%
+        void end_bar();
+
         /**
          * @brief log messages to std::cout or std::cerr if verbosity is high enough
          * 
@@ -65,25 +74,58 @@ class cw_utils {
         void log(const verbosity_t& verbosity, const Types&... args) {
             if(verbosity >= min_verbosity) [[unlikely]] {
                 lock_guard print_lg(print_mx);
+                
+                // erase progress bar, if it exists
+                if(bar.has_value()) cout << bar.value().bar_flusher;
+
                 if(verbosity >= ERROR) {
                     log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                     throw assertion_failure_exception();
                 } else {
                     log_to_ostream(cout, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                 }
+
+                // restore progress bar, if it exists
+                if(bar.has_value()) write_bar(bar.value().filled_ratio);
             }
         }
 
-    private:
+    protected:
         // fields for printing
         const string name;
         const verbosity_t min_verbosity;
 
-        // declaration of global mutex to protect print access 
+        // declaration of global mutex to protect printing
         static mutex print_mx;
 
+        // settings for fixed bar
+        struct bar_settings {
+            // print settings
+            size_t bar_width;
+            string msg;
+
+            // util helper objects
+            string full_bar;
+            string bar_flusher;
+
+            // current fraction of bar filled, [0.0, 1.0]
+            double filled_ratio;
+            
+            // base constructor
+            bar_settings(size_t line_width, string_view msg, char symbol_full, char symbol_empty);
+        };
+        
+        // declaration of global mutex to protect bar creation access  
+        static mutex bar_mx;
+        
+        // settings for fixed bar, if it exists
+        static optional<bar_settings> bar;
+
+        // with print_max locked, update fixed bar, 0 <= fraction <= 1.0
+        void write_bar(double fraction);
+
         /**
-         * @brief allowed types for printing
+         * @brief preferred types for printing
          * @note the types are restricted so that with -O3 optimizations enabled, the arguments 
          *       don't have to be actually loaded from memory if the verbosity check fails. with 
          *       this optimization, the assembly for each call to log() is a compare instruction 
@@ -97,7 +139,8 @@ class cw_utils {
                 std::is_convertible<T, string_view>,
                 std::is_arithmetic<T>
             > {};
-
+        
+        // allowed types for printing, is a superset of preferred print types
         template <typename T>
         static constexpr bool is_printable = 
             std::disjunction_v<
@@ -121,7 +164,7 @@ class cw_utils {
             if constexpr(sizeof...(args) > 0) {
                 log_to_ostream(os, args...);
             } else {
-                os << endl;
+                os << endl << std::flush;
             }
         }
 };

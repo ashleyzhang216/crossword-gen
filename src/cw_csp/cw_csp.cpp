@@ -609,7 +609,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
         
         // update progress bar if 1% more of progress made
-        if(do_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
+        if(do_progress_bar && static_cast<double>(words_searched)/domain_copy.size() >= prev_progress + 0.01) {
             prev_progress += 0.01;
             bar->write(prev_progress);
         }
