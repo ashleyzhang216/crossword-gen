@@ -13,11 +13,11 @@ using namespace common_data_types_ns;
 
 // verbosity levels
 enum verbosity_t {
-    FATAL   = 4,
-    ERROR   = 3,
+    FATAL   = 0,
+    ERROR   = 1,
     WARNING = 2, 
-    INFO    = 1,
-    DEBUG   = 0
+    INFO    = 3,
+    DEBUG   = 4
 };
 
 // mapping from verbosity value to name
@@ -53,7 +53,7 @@ struct assertion_failure_exception : public exception {
 class cw_utils {
     public:
         // base constructor
-        cw_utils(const string_view& name, const verbosity_t& min_verbosity);
+        cw_utils(const string_view& name, const verbosity_t& max_verbosity);
 
         // register new bar always displayed on std::cout as the last line below log print statements
         void add_fixed_bar(size_t line_width, string_view msg, char symbol_full, char symbol_empty);
@@ -67,18 +67,18 @@ class cw_utils {
         /**
          * @brief log messages to std::cout or std::cerr if verbosity is high enough
          * 
-         * @param verbosity the verbosity of this message, which is logged if >= min verbosity
+         * @param verbosity the verbosity of this message, which is logged if <= max verbosity
          * @param args printable objects to log
         */
         template <typename... Types>
         void log(const verbosity_t& verbosity, const Types&... args) {
-            if(verbosity >= min_verbosity) [[unlikely]] {
+            if(verbosity <= max_verbosity) [[unlikely]] {
                 lock_guard print_lg(print_mx);
                 
                 // erase progress bar, if it exists
                 if(bar.has_value()) cout << bar.value().bar_flusher;
 
-                if(verbosity >= ERROR) {
+                if(verbosity <= ERROR) {
                     log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                     throw assertion_failure_exception();
                 } else {
@@ -93,7 +93,7 @@ class cw_utils {
     protected:
         // fields for printing
         const string name;
-        const verbosity_t min_verbosity;
+        const verbosity_t max_verbosity;
 
         // declaration of global mutex to protect printing
         static mutex print_mx;

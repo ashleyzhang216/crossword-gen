@@ -24,9 +24,9 @@ unordered_map<verbosity_t, string> verbosity_type_to_name = {
  * @brief construct new utils object
  * 
  * @param name name of this util object
- * @param min_verbosity min verbosity of messages to be printed
+ * @param max_verbosity min verbosity of messages to be printed
 */
-cw_utils::cw_utils(const string_view& name, const verbosity_t& min_verbosity) : name(name), min_verbosity(min_verbosity) {
+cw_utils::cw_utils(const string_view& name, const verbosity_t& max_verbosity) : name(name), max_verbosity(max_verbosity) {
     // do nothing, initializer list is sufficient
 }
 
