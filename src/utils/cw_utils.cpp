@@ -35,12 +35,12 @@ cw_utils::cw_utils(const string_view& name, const verbosity_t& max_verbosity) : 
  * @pre no prior fixed bar still exists
  * TODO: add support for multiple simultaneous progress bars, if needed
 */
-void cw_utils::add_fixed_bar(size_t line_width, string_view msg, char symbol_full, char symbol_empty) {
+void cw_utils::add_fixed_bar(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty) {
     if(!bar_mx.try_lock()) {
         log(FATAL, "Support for multiple bars requested and is unimplemented");
     }
     assert(!bar.has_value());
-    bar = cw_utils::bar_settings(line_width, msg, symbol_full, symbol_empty);
+    bar.emplace(line_width, msg, symbol_full, symbol_empty);
     request_write_bar(0.0);
 }
 
@@ -92,7 +92,7 @@ void cw_utils::end_bar() {
  * @param symbol_full char to represent filled portion of fixed bar
  * @param symbol_empty char to represent empty portion of fixed bar
 */
-cw_utils::bar_settings::bar_settings(size_t line_width, string_view msg, char symbol_full, char symbol_empty) 
+cw_utils::bar_settings::bar_settings(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty) 
         : bar_width(line_width - sizeof("] 100%")), 
           msg(string(msg) + " ["), 
           full_bar(string(bar_width, symbol_full) + string(bar_width, symbol_empty)), 

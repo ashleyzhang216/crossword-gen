@@ -56,7 +56,7 @@ class cw_utils {
         cw_utils(const string_view& name, const verbosity_t& max_verbosity);
 
         // register new bar always displayed on std::cout as the last line below log print statements
-        void add_fixed_bar(size_t line_width, string_view msg, char symbol_full, char symbol_empty);
+        void add_fixed_bar(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty);
 
         // update fixed bar on to std::cout, 0 <= fraction <= 1.0
         void request_write_bar(double fraction);
@@ -101,18 +101,18 @@ class cw_utils {
         // settings for fixed bar
         struct bar_settings {
             // print settings
-            size_t bar_width;
-            string msg;
+            const size_t bar_width;
+            const string msg;
 
             // util helper objects
-            string full_bar;
-            string bar_flusher;
+            const string full_bar;
+            const string bar_flusher;
 
             // current fraction of bar filled, [0.0, 1.0]
             double filled_ratio;
             
             // base constructor
-            bar_settings(size_t line_width, string_view msg, char symbol_full, char symbol_empty);
+            bar_settings(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty);
         };
         
         // declaration of global mutex to protect bar creation access  
@@ -168,6 +168,11 @@ class cw_utils {
             }
         }
 };
+
+// class progress_bar {
+//     public:
+        
+// };
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
