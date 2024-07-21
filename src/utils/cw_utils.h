@@ -169,10 +169,36 @@ class cw_utils {
         }
 };
 
-// class progress_bar {
-//     public:
-        
-// };
+/**
+ * @brief object to manage a progress bar lifetime and printing with cw_utils
+ * @cite https://codereview.stackexchange.com/a/186537
+*/
+class progress_bar {
+    public:
+        // base constructor
+        template <typename... Types>
+        progress_bar(cw_utils& utils, uint denominator, double granularity, const Types&... args) 
+                : utils(utils), 
+                  numerator(0), 
+                  progress_ratio(0.0), 
+                  denominator(denominator), 
+                  granularity(granularity) {
+            utils.add_fixed_bar(args...);
+        }
+
+        // add one to numerator of progress
+        void incr_numerator();
+
+        // destructor, terminates bar and prints newline
+        ~progress_bar();
+
+    private:
+        cw_utils& utils;
+        uint numerator;
+        double progress_ratio; // [0.0, 1.0]
+        const uint denominator;
+        const double granularity;
+};
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined

@@ -99,31 +99,31 @@ namespace common_data_types_ns {
         bool operator!=(const word_t& rhs) const { return word != rhs.word; }
     };
 
-    /**
-     * @brief progress bar to print cw search progress
-     * @warning behavior undefined if anything else printed during lifetime of this object
-     * @cite https://codereview.stackexchange.com/a/186537
-    */
-    class progress_bar {
-        public:
-            // basic constructor, starts printing bar
-            progress_bar(ostream& os, size_t line_width, string msg, const char symbol_full, const char symbol_empty);
+    // /**
+    //  * @brief progress bar to print cw search progress
+    //  * @warning behavior undefined if anything else printed during lifetime of this object
+    //  * @cite https://codereview.stackexchange.com/a/186537
+    // */
+    // class progress_bar {
+    //     public:
+    //         // basic constructor, starts printing bar
+    //         progress_bar(ostream& os, size_t line_width, string msg, const char symbol_full, const char symbol_empty);
 
-            // write fraction, 0 <= fraction <= 1.0
-            void write(double fraction);
+    //         // write fraction, 0 <= fraction <= 1.0
+    //         void write(double fraction);
 
-            // not copyable
-            progress_bar(const progress_bar&) = delete;
-            progress_bar& operator=(const progress_bar&) = delete;
+    //         // not copyable
+    //         progress_bar(const progress_bar&) = delete;
+    //         progress_bar& operator=(const progress_bar&) = delete;
 
-            // destructor, terminates bar and prints newline
-            ~progress_bar();
-        private:
-            ostream& os;
-            size_t bar_width;
-            string msg;
-            string full_bar;
-    };
+    //         // destructor, terminates bar and prints newline
+    //         ~progress_bar();
+    //     private:
+    //         ostream& os;
+    //         size_t bar_width;
+    //         string msg;
+    //         string full_bar;
+    // };
     
 }; // common_data_types_ns
 

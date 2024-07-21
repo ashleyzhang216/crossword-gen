@@ -46,16 +46,24 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         string filepath = filepath_opt.value();
         string word;
         optional<string> parsed_word;
+        unique_ptr<progress_bar> bar = nullptr;
 
         // initialize progress bar fields
-        unique_ptr<progress_bar> bar = nullptr;
-        double prev_progress = 0.0;
-        uint words_added = 0;
-        if(print_progress_bar) {
-            bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        }
+        // unique_ptr<progress_bar> bar = nullptr;
+        // double prev_progress = 0.0;
+        // uint words_added = 0;
+        // if(print_progress_bar) {
+        //     bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+        // }
+
+        // unique_ptr<progress_bar> bar = nullptr;
+        // // double prev_progress = 0.0;
+        // // int words_searched = 0;
+        // if(do_progress_bar) {
+        //     bar = make_unique<progress_bar>(utils, domain_copy.size(), 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+        //     // bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+        // }
         
-        // TODO: should .txt file support be removed?
         if(has_suffix(filepath, ".txt")) {
             // open file
             ifstream word_file;
@@ -68,6 +76,11 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                 while(getline(word_file, word)) num_lines++;
                 word_file.clear(); // clear EOF flag
                 word_file.seekg(0, std::ios::beg); // rewind file indicator
+            }
+            
+            // create progress bar, now that denominator (num_lines) is known
+            if(print_progress_bar) {
+                bar = make_unique<progress_bar>(utils, num_lines, 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
             }
 
             // parse word file
@@ -84,14 +97,15 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     } 
                 }
 
-                // update progress bar if 1% more of progress made
-                if(print_progress_bar && (double)words_added/num_lines >= prev_progress + 0.01) {
-                    prev_progress += 0.01;
-                    bar->write(prev_progress);
-                }
+                // // update progress bar if 1% more of progress made
+                // if(print_progress_bar && (double)words_added/num_lines >= prev_progress + 0.01) {
+                //     prev_progress += 0.01;
+                //     bar->write(prev_progress);
+                // }
 
                 // another word added
-                words_added++;
+                // words_added++;
+                if(bar) bar->incr_numerator();
             }
             word_file.close();
 
@@ -100,6 +114,11 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             ifstream word_file(filepath);
             assert_m(word_file.is_open(), "could not open json file " + filepath);
             json j = json::parse(word_file);
+            
+            // create progress bar, now that denominator (j.size()) is known
+            if(print_progress_bar) {
+                bar = make_unique<progress_bar>(utils, j.size(), 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+            }
 
             for(const auto& [item, data] : j.items()) {
                 // incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
@@ -112,14 +131,15 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     add_word(word_t(word, data["Score"], data["Frequency"]));
                 } 
 
-                // update progress bar if 1% more of progress made
-                if(print_progress_bar && (double)words_added/j.size() >= prev_progress + 0.01) {
-                    prev_progress += 0.01;
-                    bar->write(prev_progress);
-                }
+                // // update progress bar if 1% more of progress made
+                // if(print_progress_bar && (double)words_added/j.size() >= prev_progress + 0.01) {
+                //     prev_progress += 0.01;
+                //     bar->write(prev_progress);
+                // }
 
                 // another word added
-                words_added++;
+                // words_added++;
+                if(bar) bar->incr_numerator();
             }
             word_file.close();
 

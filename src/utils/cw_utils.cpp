@@ -20,6 +20,8 @@ unordered_map<verbosity_t, string> verbosity_type_to_name = {
     {DEBUG, "DEBUG"},
 };
 
+// ############### cw_utils ###############
+
 /**
  * @brief construct new utils object
  * 
@@ -32,7 +34,12 @@ cw_utils::cw_utils(const string_view& name, const verbosity_t& max_verbosity) : 
 
 /**
  * @brief adds new fixed bar
+ * @param line_width total width occupied by progress bar
+ * @param msg message 
+ * @param symbol_full char to represent a tick on the progress bar
+ * @param symbol_empty char to represent a blank on the progress bar
  * @pre no prior fixed bar still exists
+ * 
  * TODO: add support for multiple simultaneous progress bars, if needed
 */
 void cw_utils::add_fixed_bar(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty) {
@@ -76,8 +83,10 @@ void cw_utils::write_bar(double fraction) {
  * @brief closes out the current fixed bar, allows a new one to be created
 */
 void cw_utils::end_bar() {
-    assert(bar.has_value());
     lock_guard print_lg(print_mx);
+    assert(bar.has_value());
+    assert(!bar_mx.try_lock());
+    
     write_bar(1.0);
     cout << endl;
 
@@ -106,6 +115,28 @@ cw_utils::bar_settings::bar_settings(size_t line_width, const string_view& msg, 
 mutex cw_utils::print_mx;
 mutex cw_utils::bar_mx;
 optional<cw_utils::bar_settings> cw_utils::bar;
+
+// ############### progress_bar ###############
+
+/**
+ * @brief adds one to numerator, and updates progress bar 
+*/
+void progress_bar::incr_numerator() {
+    numerator++;
+
+    // update progress bar if change in completion surpasses granularity
+    if(static_cast<double>(numerator)/denominator >= progress_ratio + granularity) {
+        progress_ratio += granularity;
+        utils.request_write_bar(progress_ratio);
+    }
+}
+
+/**
+ * @brief destructor that finishes writing last line
+*/
+progress_bar::~progress_bar() {
+    utils.end_bar();
+}
 
 // ############### set_contents_equal() ###############
 
