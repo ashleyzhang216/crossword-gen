@@ -149,7 +149,8 @@ class cw_utils {
                 std::is_enum<T>,
                 std::is_pointer<T>
             >;
-        
+        static_assert(is_printable<const char*>);
+        static_assert(is_printable<string>);
 
         /**
          * @brief log messages to ostream, after verbosity check has passed
@@ -158,7 +159,8 @@ class cw_utils {
          * @param msg the next printable object to logged
          * @param args the other arguments to be logged
         */
-        template <class T, typename = std::enable_if_t<is_printable<T>>, typename... Types>
+        template <class T, typename... Types> 
+        requires is_printable<T> 
         void log_to_ostream(ostream& os, const T& msg, const Types&... args) const {
             os << msg;
             if constexpr(sizeof...(args) > 0) {
