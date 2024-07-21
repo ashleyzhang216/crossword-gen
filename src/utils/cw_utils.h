@@ -59,7 +59,7 @@ class cw_utils {
         void add_fixed_bar(size_t line_width, const string_view& msg, char symbol_full, char symbol_empty);
 
         // update fixed bar on to std::cout, 0 <= fraction <= 1.0
-        void request_write_bar(double fraction);
+        void request_write_bar(double fraction) const;
 
         // completes to std::cout fixed bar to 100%
         void end_bar();
@@ -71,7 +71,7 @@ class cw_utils {
          * @param args printable objects to log
         */
         template <typename... Types>
-        void log(const verbosity_t& verbosity, const Types&... args) {
+        void log(const verbosity_t& verbosity, const Types&... args) const {
             if(verbosity <= max_verbosity) [[unlikely]] {
                 lock_guard print_lg(print_mx);
                 
@@ -122,7 +122,7 @@ class cw_utils {
         static optional<bar_settings> bar;
 
         // with print_max locked, update fixed bar, 0 <= fraction <= 1.0
-        void write_bar(double fraction);
+        void write_bar(double fraction) const;
 
         /**
          * @brief preferred types for printing
@@ -167,7 +167,7 @@ class cw_utils {
                 os << endl << std::flush;
             }
         }
-        
+
 }; // class cw_utils
 
 /**

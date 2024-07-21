@@ -55,7 +55,7 @@ void cw_utils::add_fixed_bar(size_t line_width, const string_view& msg, char sym
  * @brief print fixed bar with a ratio filled to std::cout
  * @param fraction ratio of bar to be filled, [0.0, 1.0]
 */
-void cw_utils::request_write_bar(double fraction) {
+void cw_utils::request_write_bar(double fraction) const {
     lock_guard print_lg(print_mx);
     write_bar(fraction);
 }
@@ -65,7 +65,7 @@ void cw_utils::request_write_bar(double fraction) {
  * @param fraction ratio of bar to be filled, [0.0, 1.0]
  * @pre print_mx has been locked for this operation
 */
-void cw_utils::write_bar(double fraction) {
+void cw_utils::write_bar(double fraction) const {
     assert(bar.has_value());
     if(fraction < 0) fraction = 0;
     else if(fraction > 1) fraction = 1;
@@ -86,7 +86,7 @@ void cw_utils::end_bar() {
     lock_guard print_lg(print_mx);
     assert(bar.has_value());
     assert(!bar_mx.try_lock());
-    
+
     write_bar(1.0);
     cout << endl;
 

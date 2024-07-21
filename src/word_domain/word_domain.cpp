@@ -251,7 +251,7 @@ bool word_domain::is_word(string& word) const {
  * @param pattern the pattern to compare against
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-unordered_set<word_t> word_domain::find_matches(const string& pattern) {
+unordered_set<word_t> word_domain::find_matches(const string& pattern) const {
     unordered_set<word_t> matches;
     traverse_to_find_matches(matches, pattern, 0, trie, "");
     return matches;
@@ -266,7 +266,7 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) {
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
+void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) const {
     utils.log(DEBUG, "entering traverse_to_find_matches() w/ pattern ", pattern, " at pos ", pos, " @ node ", node->letter);
 
     // pattern fully matched
