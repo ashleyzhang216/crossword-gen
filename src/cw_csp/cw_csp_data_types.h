@@ -91,16 +91,19 @@ namespace cw_csp_data_types_ns {
 } // cw_csp_data_types_ns
 
 /**
- * hash function declarations in global scope
+ * hash function specialization declarations
 */
-template <>
-struct hash<cw_csp_data_types_ns::cw_variable> {
-    size_t operator()(const cw_csp_data_types_ns::cw_variable& var) const;
-};
+namespace std {
+    template <>
+    struct hash<cw_csp_data_types_ns::cw_variable> {
+        size_t operator()(const cw_csp_data_types_ns::cw_variable& var) const;
+    };
 
-template <>
-struct hash<cw_csp_data_types_ns::cw_constraint> {
-    size_t operator()(const cw_csp_data_types_ns::cw_constraint& var) const;
-};
+    template <>
+    struct hash<cw_csp_data_types_ns::cw_constraint> {
+        size_t operator()(const cw_csp_data_types_ns::cw_constraint& var) const;
+    };
+} // std
+
 
 #endif // CW_CSP_DATA_TYPES_H

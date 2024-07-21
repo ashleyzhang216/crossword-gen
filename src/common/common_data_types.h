@@ -102,11 +102,13 @@ namespace common_data_types_ns {
 }; // common_data_types_ns
 
 /**
- * hash function declarations in global scope
+ * hash function specialization declarations
 */
-template <>
-struct hash<common_data_types_ns::word_t> {
-    size_t operator()(const common_data_types_ns::word_t& w) const;
-};
+namespace std {
+    template <>
+    struct hash<common_data_types_ns::word_t> {
+        size_t operator()(const common_data_types_ns::word_t& w) const;
+    };
+}; // std
 
 #endif // COMMON_DATA_TYPES_H

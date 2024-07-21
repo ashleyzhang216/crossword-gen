@@ -19,6 +19,6 @@ ostream& common_data_types_ns::operator<<(ostream& os, const word_t& w) {
 /**
  * @brief hash function for word_t
 */
-size_t hash<word_t>::operator()(const word_t& w) const {
+size_t std::hash<word_t>::operator()(const word_t& w) const {
     return hash<string>{}(w.word);
 }

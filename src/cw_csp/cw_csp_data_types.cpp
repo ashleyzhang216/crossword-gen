@@ -44,7 +44,7 @@ bool cw_variable::operator==(const cw_variable& rhs) const {
 /**
  * @brief hash function for cw_variable
 */
-size_t hash<cw_variable>::operator()(const cw_variable& var) const {
+size_t std::hash<cw_variable>::operator()(const cw_variable& var) const {
     size_t hash_row = hash<uint>{}(var.origin_row);
     size_t hash_col = hash<uint>{}(var.origin_col);
     return hash_row ^ hash_col; 
@@ -113,7 +113,7 @@ bool cw_constraint::operator==(const cw_constraint& other) const {
 /**
  * @brief hash function for cw_constraint
 */
-size_t hash<cw_constraint>::operator()(const cw_constraint& var) const {
+size_t std::hash<cw_constraint>::operator()(const cw_constraint& var) const {
     return hash<uint>{}(var.lhs_index) ^ hash<uint>{}(var.rhs_index) ^ hash<cw_variable>{}(*(var.lhs)) ^ hash<cw_variable>{}(*(var.rhs));
 }
 
