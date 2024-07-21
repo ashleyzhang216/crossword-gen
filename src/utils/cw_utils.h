@@ -167,7 +167,8 @@ class cw_utils {
                 os << endl << std::flush;
             }
         }
-};
+        
+}; // class cw_utils
 
 /**
  * @brief object to manage a progress bar lifetime and printing with cw_utils
@@ -198,7 +199,8 @@ class progress_bar {
         double progress_ratio; // [0.0, 1.0]
         const uint denominator;
         const double granularity;
-};
+
+}; // class progress_bar
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined

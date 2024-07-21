@@ -598,22 +598,13 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // only initialize if this is top level solve_backtracking() call in prod
     unique_ptr<progress_bar> bar = nullptr;
-    // double prev_progress = 0.0;
-    // int words_searched = 0;
     if(do_progress_bar) {
         bar = make_unique<progress_bar>(utils, domain_copy.size(), 0.01, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        // bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
     }
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
         cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
-
-        // // update progress bar if 1% more of progress made
-        // if(do_progress_bar && static_cast<double>(words_searched)/domain_copy.size() >= prev_progress + 0.01) {
-        //     prev_progress += 0.01;
-        //     bar->write(prev_progress);
-        // }
 
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
@@ -647,8 +638,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
-        // another word eliminated
-        // words_searched++;
+        // another word searched
         if(bar) bar->incr_numerator();
     }
 

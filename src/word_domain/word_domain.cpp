@@ -48,22 +48,6 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         optional<string> parsed_word;
         unique_ptr<progress_bar> bar = nullptr;
 
-        // initialize progress bar fields
-        // unique_ptr<progress_bar> bar = nullptr;
-        // double prev_progress = 0.0;
-        // uint words_added = 0;
-        // if(print_progress_bar) {
-        //     bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        // }
-
-        // unique_ptr<progress_bar> bar = nullptr;
-        // // double prev_progress = 0.0;
-        // // int words_searched = 0;
-        // if(do_progress_bar) {
-        //     bar = make_unique<progress_bar>(utils, domain_copy.size(), 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        //     // bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        // }
-        
         if(has_suffix(filepath, ".txt")) {
             // open file
             ifstream word_file;
@@ -97,14 +81,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     } 
                 }
 
-                // // update progress bar if 1% more of progress made
-                // if(print_progress_bar && (double)words_added/num_lines >= prev_progress + 0.01) {
-                //     prev_progress += 0.01;
-                //     bar->write(prev_progress);
-                // }
-
                 // another word added
-                // words_added++;
                 if(bar) bar->incr_numerator();
             }
             word_file.close();
@@ -131,14 +108,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     add_word(word_t(word, data["Score"], data["Frequency"]));
                 } 
 
-                // // update progress bar if 1% more of progress made
-                // if(print_progress_bar && (double)words_added/j.size() >= prev_progress + 0.01) {
-                //     prev_progress += 0.01;
-                //     bar->write(prev_progress);
-                // }
-
                 // another word added
-                // words_added++;
                 if(bar) bar->incr_numerator();
             }
             word_file.close();
