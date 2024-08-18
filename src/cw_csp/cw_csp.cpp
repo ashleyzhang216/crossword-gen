@@ -18,7 +18,7 @@ using namespace cw_csp_ns;
  * @param use_timetracker enables cw_timetracker iff true
 */
 cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name), 
+        : common_parent(name, VERBOSITY), 
           tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
@@ -37,7 +37,7 @@ cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool prin
  * @param use_timetracker enables cw_timetracker iff true
 */
 cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name), 
+        : common_parent(name, VERBOSITY), 
           tracker("cw_csp", use_timetracker), 
           cw(name + " cw", length, height, contents), 
           total_domain(name + " total_domain", filepath, print_progress_bar), 
@@ -92,17 +92,14 @@ unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_depend
 void cw_csp::initialize_csp() {
     cw_timestamper stamper(tracker, TS_CSP_INITIALIZE, "");
 
-    stringstream ss;
-    ss << "cw_csp starting csp initialization";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp starting csp initialization");
 
     // local vars for finding horizontal & vertical cw_variable
     bool traversing_word; // currently iterating through variable
     stringstream word_pattern; // pattern formed by word so far
     uint cur_var_row, cur_var_col, cur_var_len; // valid iff traversing_word
 
-    ss << "cw_csp searching for horizontal variables";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp searching for horizontal variables");
 
     // find horizontal variables
     for(uint row = 0; row < cw.rows(); row++) {
@@ -139,8 +136,7 @@ void cw_csp::initialize_csp() {
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-                        ss << "adding new variable: " << *new_var;
-                        utils->print_msg(&ss, DEBUG);
+                        utils.log(DEBUG, "adding new variable: ", *new_var);
                         variables.push_back(new_var);
                     }
 
@@ -159,14 +155,12 @@ void cw_csp::initialize_csp() {
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last space in a row is blank
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-            ss << "adding new variable: " << *new_var;
-            utils->print_msg(&ss, DEBUG);
+            utils.log(DEBUG, "adding new variable: ", *new_var);
             variables.push_back(new_var);
         }
     }
 
-    ss << "cw_csp searching for vertical variables";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp searching for vertical variables");
 
     // find vertical variables
     for(uint col = 0; col < cw.cols(); col++) {
@@ -203,8 +197,7 @@ void cw_csp::initialize_csp() {
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
                         shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-                        ss << "adding new variable: " << *new_var;
-                        utils->print_msg(&ss, DEBUG);
+                        utils.log(DEBUG, "adding new variable: ", *new_var);
                         variables.push_back(new_var);
                     }
 
@@ -223,8 +216,7 @@ void cw_csp::initialize_csp() {
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last 2+ spaces in a row are blank
             shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-            ss << "adding new variable: " << *new_var;
-            utils->print_msg(&ss, DEBUG);
+            utils.log(DEBUG, "adding new variable: ", *new_var);
             variables.push_back(new_var);
         }
     }
@@ -233,8 +225,7 @@ void cw_csp::initialize_csp() {
     // var_intersect_table[i][j] corresponds to cw[i][j] 
     vector<vector<cw_constraint> > var_intersect_table(cw.rows(), vector<cw_constraint>(cw.cols()));
 
-    ss << "cw_csp building var_intersect_table";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp building var_intersect_table");
 
     // iterate across each variable to populate var_intersect_table
     for(shared_ptr<cw_variable> var_ptr : variables) {
@@ -263,13 +254,11 @@ void cw_csp::initialize_csp() {
                 }
             }
         } else {
-            ss << "got unknown direction type: " << var_ptr->dir;
-            utils->print_msg(&ss, ERROR);
+            utils.log(ERROR, "got unknown direction type: ", var_ptr->dir);
         }
     }
 
-    ss << "cw_csp populating constraints";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp populating constraints");
 
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
@@ -277,8 +266,7 @@ void cw_csp::initialize_csp() {
             if(var_intersect_table[row][col].rhs != nullptr) {
                 // assert that 2 variables exist in constraint
                 if(var_intersect_table[row][col].lhs == nullptr) {
-                    ss << "var_intersect_table has nullptr lhs with non-nullptr rhs";
-                    utils->print_msg(&ss, ERROR);
+                    utils.log(ERROR, "var_intersect_table has nullptr lhs with non-nullptr rhs");
                 }
 
                 shared_ptr<cw_constraint> forward_arc = make_shared<cw_constraint>(
@@ -287,8 +275,7 @@ void cw_csp::initialize_csp() {
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 );
-                ss << "adding forward arc: " << *forward_arc;
-                utils->print_msg(&ss, DEBUG);
+                utils.log(DEBUG, "adding forward arc: ", *forward_arc);
                 
                 shared_ptr<cw_constraint> backwards_arc = make_shared<cw_constraint>(
                     var_intersect_table[row][col].rhs_index,
@@ -296,8 +283,7 @@ void cw_csp::initialize_csp() {
                     var_intersect_table[row][col].rhs,
                     var_intersect_table[row][col].lhs
                 );
-                ss << "adding backwards arc: " << *backwards_arc;
-                utils->print_msg(&ss, DEBUG);
+                utils.log(DEBUG, "adding backwards arc: ", *backwards_arc);
 
                 // add arcs
                 constraints.push_back(forward_arc);
@@ -306,8 +292,7 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    ss << "cw_csp building arc_dependencies";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "cw_csp building arc_dependencies");
 
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     arc_dependencies.clear();
@@ -324,9 +309,7 @@ void cw_csp::initialize_csp() {
 bool cw_csp::ac3() {
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
-    stringstream ss;
-    ss << "starting AC-3 algorithm";
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "starting AC-3 algorithm");
 
     // constraints to be checked
     queue<shared_ptr<cw_constraint> > constraint_queue;
@@ -360,9 +343,7 @@ bool cw_csp::ac3() {
         if(constr->prune_domain()) {
             if(constr->lhs->domain.size() == 0) {
                 // CSP is now invalid, i.e. var has empty domain
-            
-                ss << "CSP became invalid, undo-ing pruning";
-                utils->print_msg(&ss, DEBUG);
+                utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
 
                 // undo pruning
                 undo_ac3();
@@ -485,9 +466,7 @@ void cw_csp::overwrite_cw() {
                     }
                 }
             } else {
-                stringstream ss;
-                ss << "got unknown direction type: " << var_ptr->dir;
-                utils->print_msg(&ss, ERROR);
+                utils.log(ERROR, "got unknown direction type: ", var_ptr->dir);
             }
         }
     }
@@ -533,10 +512,7 @@ shared_ptr<cw_variable> cw_csp::select_unassigned_var(var_selection_method strat
                 }
             } break;
         default: {
-                cw_utils* utils = new cw_utils("select_unassigned_var()", VERBOSITY);
-                stringstream ss;
-                ss << "got unknown var_selection_method";
-                utils->print_msg(&ss, ERROR);
+                utils.log(ERROR, "select_unassigned_var() got unknown var_selection_method: ", strategy);
             } break;
     }
 
@@ -567,9 +543,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
                 }
             } break;
         default: {
-                stringstream ss;
-                ss << "solve() got unknown strategy";
-                utils->print_msg(&ss, ERROR);
+                utils.log(ERROR, "solve() got unknown strategy: ", var_strategy);
                 return false;
             } break;
     }
@@ -588,9 +562,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
     cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "depth: " + std::to_string(depth));
 
-    stringstream ss;
-    ss << "entering solve_backtracking() with cw: " << cw;
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "entering solve_backtracking() with depth ", depth);
 
     // base case
     if(solved()) {
@@ -601,21 +573,12 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     // select next variable
     shared_ptr<cw_variable> next_var = select_unassigned_var(var_strategy);
 
-    ss << "selected next var: " << *next_var;
-    utils->print_msg(&ss, DEBUG);
+    utils.log(DEBUG, "selected next var: ", *next_var);
 
     // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
     if(!next_var->domain.is_assigned() && (next_var->domain.size() == 1 && assigned_words.count(next_var->domain.get_cur_domain().at(0)) > 0)) {
         stamper.add_result("invalid base case");
         return false;
-    }
-
-    // only initialize if this is top level solve_backtracking() call in prod
-    unique_ptr<progress_bar> bar = nullptr;
-    double prev_progress = 0.0;
-    int words_searched = 0;
-    if(do_progress_bar) {
-        bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
     }
     
     // get domain of next variable as list of candidates to try to assign
@@ -633,15 +596,15 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         sort(domain_copy.begin(), domain_copy.end(), compare);
     }
 
+    // only initialize if this is top level solve_backtracking() call in prod
+    unique_ptr<progress_bar> bar = nullptr;
+    if(do_progress_bar) {
+        bar = make_unique<progress_bar>(utils, domain_copy.size(), 0.01, PROGRESS_BAR_WIDTH, "Searching", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+    }
+
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
         cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
-        
-        // update progress bar if 1% more of progress made
-        if(do_progress_bar && (double)words_searched/domain_copy.size() >= prev_progress + 0.01) {
-            prev_progress += 0.01;
-            bar->write(prev_progress);
-        }
 
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
@@ -649,13 +612,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             next_var->domain.assign_domain(word);
             assigned_words.insert(word);
 
-            ss << "trying new word: " << word;
-            utils->print_msg(&ss, DEBUG);
+            utils.log(DEBUG, "trying new word: ", word);
 
             // if does not result in invalid CSP, recurse
             if(ac3()) {
-                ss << "adding new word: " << word << " to var: " << *next_var;
-                utils->print_msg(&ss, DEBUG);
+                utils.log(DEBUG, "adding new word: ", word, " to var: ", *next_var);
 
                 // add to crossword assignment
                 overwrite_cw();
@@ -667,20 +628,18 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 word_stamper.add_result("fail ac3");
             }
 
-            ss << "word failed: " << word;
-            utils->print_msg(&ss, DEBUG);
+            utils.log(DEBUG, "word failed: ", word);
 
             // undo assignment
             next_var->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
             word_stamper.add_result("duplicate");
-            ss << "avoided duplicate word: " << word;
-            utils->print_msg(&ss, DEBUG);
+            utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
-        // another word eliminated
-        words_searched++;
+        // another word searched
+        if(bar) bar->incr_numerator();
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor

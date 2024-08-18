@@ -13,7 +13,7 @@ using namespace word_domain_test_driver_ns;
  * 
  * @param name name of driver
 */
-word_domain_test_driver::word_domain_test_driver(string name) : common_parent(name) {
+word_domain_test_driver::word_domain_test_driver(string name) : common_parent(name, VERBOSITY) {
     dut = make_unique<word_domain>(name);
 }
 
@@ -23,7 +23,7 @@ word_domain_test_driver::word_domain_test_driver(string name) : common_parent(na
  * @param name name of driver
  * @param filepath path to .txt or .json file containing word data
 */
-word_domain_test_driver::word_domain_test_driver(string name, string filepath) : common_parent(name) {
+word_domain_test_driver::word_domain_test_driver(string name, string filepath) : common_parent(name, VERBOSITY) {
     dut = make_unique<word_domain>(name, filepath);
 }
 
@@ -36,7 +36,7 @@ word_domain_test_driver::word_domain_test_driver(string name, string filepath) :
 */
 bool word_domain_test_driver::test_trie_basic(string pattern, unordered_set<word_t>& ground_truth) {
     unordered_set<word_t> result = dut->find_matches(pattern);
-    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(&ground_truth, &result, true));
+    return check_condition("find_matches for \"" + pattern + "\"", set_contents_equal(ground_truth, result, true));
 }
 
 /**
@@ -284,7 +284,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         expected = get_all_letters_at_index(i, num_words);
         actual = dut->get_all_letters_at_index(i);
-        result &= set_contents_equal(&expected, &actual, false);
+        result &= set_contents_equal(expected, actual, false);
     }
 
     // add words
@@ -302,7 +302,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint i = 0; i < MAX_WORD_LEN; i++) {
             expected = get_all_letters_at_index(i, num_words);
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(&expected, &actual, false);
+            result &= set_contents_equal(expected, actual, false);
         }
     }
 
@@ -318,7 +318,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint i = 0; i < candidate.word.size(); i++) {
             expected = { candidate.word.at(i) };
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(&expected, &actual, false);
+            result &= set_contents_equal(expected, actual, false);
         }
 
         dut->remove_matching_words(0, candidate.word.at(0));
@@ -353,7 +353,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint j = 0; j < MAX_WORD_LEN; j++) {
             expected = get_all_letters_at_index(j, num_words);
             actual = dut->get_all_letters_at_index(j);
-            result &= set_contents_equal(&expected, &actual, false);
+            result &= set_contents_equal(expected, actual, false);
         }
     }
 
@@ -367,7 +367,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint i = 0; i < candidate.word.size(); i++) {
             expected = { candidate.word.at(i) };
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(&expected, &actual, false);
+            result &= set_contents_equal(expected, actual, false);
         }
 
         dut->remove_matching_words(0, candidate.word.at(0));
@@ -418,10 +418,9 @@ bool word_domain_test_driver::letters_at_indicies_entries_equal(
                 (test_num_words  && expected[i][j] != ground_truth[i][j].num_words) || 
                 (!test_num_words && expected[i][j] != ground_truth[i][j].nodes.size())
             ) {
-                stringstream ss;
-                ss << "letters_at_indicies_entries_equal() inequal at index: " << i << ", letter: " << j << ", test_num_words: " << test_num_words 
-                   << ", expected: " << expected[i][j] << ", actual nodes: " << ground_truth[i][j].nodes.size() << ", actual words: " << ground_truth[i][j].num_words;
-                utils->print_msg(&ss, WARNING);
+                utils.log(WARNING, "letters_at_indicies_entries_equal() inequal at index: ", i, ", letter: ", j, ", test_num_words: ", test_num_words, 
+                    ", expected: ", expected[i][j], ", actual nodes: ", ground_truth[i][j].nodes.size(), ", actual words: ", ground_truth[i][j].num_words
+                );
                 result = false;
             }
         }

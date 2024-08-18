@@ -35,7 +35,7 @@ word_domain::word_domain(string name, string filepath, bool print_progress_bar) 
  * @param filepath_opt optional, may contain path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name) {
+word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name, VERBOSITY) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     this->filepath_opt = filepath_opt;
     unassigned_domain_size = 0;
@@ -46,16 +46,8 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         string filepath = filepath_opt.value();
         string word;
         optional<string> parsed_word;
-
-        // initialize progress bar fields
         unique_ptr<progress_bar> bar = nullptr;
-        double prev_progress = 0.0;
-        uint words_added = 0;
-        if(print_progress_bar) {
-            bar = make_unique<progress_bar>(cout, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
-        }
-        
-        // TODO: should .txt file support be removed?
+
         if(has_suffix(filepath, ".txt")) {
             // open file
             ifstream word_file;
@@ -68,6 +60,11 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                 while(getline(word_file, word)) num_lines++;
                 word_file.clear(); // clear EOF flag
                 word_file.seekg(0, std::ios::beg); // rewind file indicator
+            }
+            
+            // create progress bar, now that denominator (num_lines) is known
+            if(print_progress_bar) {
+                bar = make_unique<progress_bar>(utils, num_lines, 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
             }
 
             // parse word file
@@ -84,14 +81,8 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     } 
                 }
 
-                // update progress bar if 1% more of progress made
-                if(print_progress_bar && (double)words_added/num_lines >= prev_progress + 0.01) {
-                    prev_progress += 0.01;
-                    bar->write(prev_progress);
-                }
-
                 // another word added
-                words_added++;
+                if(bar) bar->incr_numerator();
             }
             word_file.close();
 
@@ -100,6 +91,11 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             ifstream word_file(filepath);
             assert_m(word_file.is_open(), "could not open json file " + filepath);
             json j = json::parse(word_file);
+            
+            // create progress bar, now that denominator (j.size()) is known
+            if(print_progress_bar) {
+                bar = make_unique<progress_bar>(utils, j.size(), 0.01, PROGRESS_BAR_WIDTH, "Building", PROGRESS_BAR_SYMBOL_FULL, PROGRESS_BAR_SYMBOL_EMPTY);
+            }
 
             for(const auto& [item, data] : j.items()) {
                 // incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
@@ -112,21 +108,13 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                     add_word(word_t(word, data["Score"], data["Frequency"]));
                 } 
 
-                // update progress bar if 1% more of progress made
-                if(print_progress_bar && (double)words_added/j.size() >= prev_progress + 0.01) {
-                    prev_progress += 0.01;
-                    bar->write(prev_progress);
-                }
-
                 // another word added
-                words_added++;
+                if(bar) bar->incr_numerator();
             }
             word_file.close();
 
         } else {
-            stringstream ss;
-            ss << "word_domain got file of invalid type: " << filepath;
-            utils->print_msg(&ss, FATAL);
+            utils.log(FATAL, "word_domain got file of invalid type: ", filepath);
             return;
         }
     } 
@@ -139,7 +127,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
  * @param name the name of this object
  * @param domain set of words to add to domain, whose words must all be equal length
 */
-word_domain::word_domain(string name, unordered_set<word_t> domain) : common_parent(name) {
+word_domain::word_domain(string name, unordered_set<word_t> domain) : common_parent(name, VERBOSITY) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     filepath_opt = std::nullopt;
     unassigned_domain_size = 0;
@@ -214,26 +202,6 @@ void word_domain::add_word(word_t w) {
             }
 
             add_word_to_trie(trie, w.word, 0);
-
-            stringstream ss;
-
-            ss << "num_words: " << endl;
-            for(uint i = 0; i < MAX_WORD_LEN; i++) {
-                for(char c = 'a'; c <= 'z'; c++) {
-                    ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].num_words << " ";
-                }
-                ss << endl;
-            }
-            utils->print_msg(&ss, DEBUG);
-
-            ss << "num nodes: " << endl;
-            for(uint i = 0; i < MAX_WORD_LEN; i++) {
-                for(char c = 'a'; c <= 'z'; c++) {
-                    ss << letters_at_indices[i][static_cast<size_t>(c - 'a')].nodes.size() << " ";
-                }
-                ss << endl;
-            }
-            utils->print_msg(&ss, DEBUG);
         }
     }
 }
@@ -283,7 +251,7 @@ bool word_domain::is_word(string& word) const {
  * @param pattern the pattern to compare against
  * @note behavior undefined if domain assigned, only intended to be called in cw_variable initialization
 */
-unordered_set<word_t> word_domain::find_matches(const string& pattern) {
+unordered_set<word_t> word_domain::find_matches(const string& pattern) const {
     unordered_set<word_t> matches;
     traverse_to_find_matches(matches, pattern, 0, trie, "");
     return matches;
@@ -298,17 +266,13 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) {
  * @param node current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) {
-    stringstream ss;
-    ss << "entering traverse_to_find_matches() w/ pattern " << pattern << " at pos " << pos 
-       << " @ node " << node->letter;
-    utils->print_msg(&ss, DEBUG);
+void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) const {
+    utils.log(DEBUG, "entering traverse_to_find_matches() w/ pattern ", pattern, " at pos ", pos, " @ node ", node->letter);
 
     // pattern fully matched
     if(pos >= pattern.size()) {
         // AND this is a valid word
-        ss << "pattern fully matched, valid check: " << node->valid;
-        utils->print_msg(&ss, DEBUG);
+        utils.log(DEBUG, "pattern fully matched, valid check: ", node->valid);
 
         if(node->valid) { 
             matches.insert(word_map.at(fragment));
@@ -318,8 +282,7 @@ void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const
 
     if(pattern.at(pos) == WILDCARD) {
         // wildcard at this index, add all possible matches
-        ss << "traversing for wild card";
-        utils->print_msg(&ss, DEBUG);
+        utils.log(DEBUG, "traversing for wild card");
 
         for(auto& pair : node->children) {
             traverse_to_find_matches(matches, pattern, pos + 1, pair.second, fragment + pair.first);
@@ -327,8 +290,7 @@ void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const
 
     } else if(node->children.count(pattern.at(pos)) > 0) {
         // next letter progresses towards a valid word, continue
-        ss << "traversing for letter " << pattern.at(pos);
-        utils->print_msg(&ss, DEBUG);
+        utils.log(DEBUG, "traversing for letter ", pattern.at(pos));
         traverse_to_find_matches(matches, pattern, pos + 1, node->children[pattern.at(pos)], fragment + pattern.at(pos));
 
     } else {
@@ -399,9 +361,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
                 // upwards removal in trie
                 remove_from_parents(node, num_leafs, static_cast<int>(index), true);
             } else {
-                stringstream ss;
-                ss << "parent of node index " << index << ", letter " << letter << " deleted early";
-                utils->print_msg(&ss, ERROR);
+                utils.log(ERROR, "parent of node index ", index, ", letter ", letter, " deleted early");
             }
         }
 
@@ -552,9 +512,7 @@ size_t word_domain::undo_prev_ac3_call() {
                     assert_m(parent->children.count(node->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
                     parent->children.insert({node->letter, node});
                 } else {
-                    stringstream ss;
-                    ss << "parent of node index " << i << ", letter " << j << " deleted early during restoration";
-                    utils->print_msg(&ss, ERROR);
+                    utils.log(ERROR, "parent of node index ", i, ", letter ", j, " deleted early during restoration");
                 }
             }
             letters_at_indices[i][j].ac3_pruned_nodes.pop();

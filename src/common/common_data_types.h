@@ -16,11 +16,13 @@
 #include <stack>
 #include <tuple>
 #include <string>
+#include <string_view>
 #include <fstream>
 #include <unordered_set>
 #include <unordered_map>
 #include <array>
 #include <chrono>
+#include <mutex>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
@@ -41,6 +43,7 @@ using std::endl;
 using std::exception;
 using std::string;
 using std::stringstream;
+using std::string_view;
 using std::vector;
 using std::queue;
 using std::stack;
@@ -55,6 +58,8 @@ using std::pair;
 using std::optional;
 using std::chrono::time_point;
 using std::chrono::high_resolution_clock;
+using std::mutex;
+using std::lock_guard;
 
 // RAII
 using std::shared_ptr;
@@ -92,41 +97,18 @@ namespace common_data_types_ns {
         // equality operators
         bool operator==(const word_t& rhs) const { return word == rhs.word; }
         bool operator!=(const word_t& rhs) const { return word != rhs.word; }
-    };
-
-    /**
-     * @brief progress bar to print cw search progress
-     * @cite https://codereview.stackexchange.com/a/186537
-    */
-    class progress_bar {
-        public:
-            // basic constructor, starts printing bar
-            progress_bar(ostream& os, size_t line_width, string msg, const char symbol_full, const char symbol_empty);
-
-            // write fraction, 0 <= fraction <= 1.0
-            void write(double fraction);
-
-            // not copyable
-            progress_bar(const progress_bar&) = delete;
-            progress_bar& operator=(const progress_bar&) = delete;
-
-            // destructor, terminates bar and prints newline
-            ~progress_bar();
-        private:
-            ostream& os;
-            size_t bar_width;
-            string msg;
-            string full_bar;
-    };
+    }; // struct word_t
     
-} // common_data_types_ns
+}; // common_data_types_ns
 
 /**
- * hash function declarations in global scope
+ * hash function specialization declarations
 */
-template <>
-struct hash<common_data_types_ns::word_t> {
-    size_t operator()(const common_data_types_ns::word_t& w) const;
-};
+namespace std {
+    template <>
+    struct hash<common_data_types_ns::word_t> {
+        size_t operator()(const common_data_types_ns::word_t& w) const;
+    };
+}; // std
 
 #endif // COMMON_DATA_TYPES_H

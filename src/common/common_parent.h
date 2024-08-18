@@ -16,17 +16,15 @@ namespace common_parent_ns {
     */
     class common_parent {
         public:
-            string name;
-            cw_utils* utils; // TODO: make this unique_ptr
-
             // base constructor
-            common_parent(string name);
+            common_parent(const string_view& name, const verbosity_t& min_verbosity);
 
             // shorthand for test drivers only to print failed tests
-            bool check_condition(string name, bool condition);
-            
-        private:
-            // TODO: implement
+            bool check_condition(const string_view& condition_name, bool condition);
+
+        protected:
+            cw_utils utils;
+            const string name;
     };
 }
 

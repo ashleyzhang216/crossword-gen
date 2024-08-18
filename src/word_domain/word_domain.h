@@ -38,8 +38,7 @@ namespace word_domain_ns {
             bool is_word(string& word) const;
 
             // find all words that match a pattern
-            // TODO: add const correctness
-            unordered_set<word_t> find_matches(const string& pattern);
+            unordered_set<word_t> find_matches(const string& pattern) const;
 
             // read function for entries in letters_at_indices
             uint num_letters_at_index(uint index, char letter) const;
@@ -117,8 +116,7 @@ namespace word_domain_ns {
             void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);
 
             // helper function for find_matches()
-            // TODO: add const correctness
-            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment);
+            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) const;
 
             // upwards recursive deletion helper func for remove_matching_words()
             void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
