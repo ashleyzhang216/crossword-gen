@@ -53,7 +53,7 @@ void cw_timestep::resolve(uint id, string result) {
  * @param init_name name for root level timestep
  * @param enabled behaviors hold for this object iff enabled is true, otherwise all calls are ignored
 */
-cw_timetracker::cw_timetracker(string init_name, bool enabled) : enabled(enabled), next_id(0) {
+cw_timetracker::cw_timetracker(string init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0) {
     if(enabled) {
         root = make_shared<cw_timestep>(TS_CSP_TOTAL, init_name, next_id, nullptr);
         cur = root;

@@ -14,7 +14,7 @@ using namespace common_data_types_ns;
 namespace cw_gen_data_types_ns {
 
     // mapping from verbosity name to value
-    unordered_map<string, verbosity_t> verbosity_map = {
+    unordered_map<string, verbosity_t> verbosity_name_to_type = {
         {"fatal", FATAL},
         {"error", ERROR},
         {"warning", WARNING},

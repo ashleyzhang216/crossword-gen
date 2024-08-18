@@ -11,7 +11,7 @@ using namespace cw_gen_ns;
 /**
  * @brief constructor for a crossword generation tool with all default values
 */
-cw_gen::cw_gen(string name) : common_parent(name) {
+cw_gen::cw_gen(string name) : common_parent(name, VERBOSITY) {
     // do nothing
 }
 
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
         cout << "Error: got invalid verbosity option " << verbosity << ", allowed " << cw_gen::squash_options(param_vals["verbosity"]) << endl;
         exit(1);
     }
-    VERBOSITY = verbosity_map.at(verbosity);
+    VERBOSITY = verbosity_name_to_type.at(verbosity);
 
     // ############### progress bar ###############
 
