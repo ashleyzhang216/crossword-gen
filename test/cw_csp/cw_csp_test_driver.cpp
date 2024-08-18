@@ -11,7 +11,7 @@ using namespace cw_csp_test_driver_ns;
 /**
  * @brief basic constructor for cw_csp test driver
 */
-cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name, VERBOSITY) {
+cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name) {
     // do nothing
 }
 
@@ -41,9 +41,9 @@ bool cw_csp_test_driver::test_constructor_empty(
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
     unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
 
-    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   *expected_variables, true));
-    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, *expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, *expected_arc_dependencies, true));
+    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
+    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies, true));
 
     return result;
 }
@@ -75,9 +75,9 @@ bool cw_csp_test_driver::test_constructor_contents(
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
     unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
 
-    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   *expected_variables, true));
-    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, *expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, *expected_arc_dependencies, true));
+    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(&result_variables,   expected_variables, true));
+    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(&result_constraints, expected_constraints, true));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(&result_arc_dependencies, expected_arc_dependencies, true));
 
     return result;
 }
@@ -103,7 +103,7 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
     result &= check_condition(dut_name.str() + " ac3 validity", expected_result == dut->ac3());
     if(!expected_result) {
         unordered_set<cw_variable> unchanged_variables = dut->get_variables();
-        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(original_variables, unchanged_variables, true));
+        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(&original_variables, &unchanged_variables, true));
     }
 
     return result;
@@ -132,10 +132,10 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
     unordered_set<cw_variable> result_variables = dut->get_variables();
     if(!expected_result) {
         // invalid crosswords
-        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(result_variables, original_variables, true));
+        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(&result_variables, &original_variables, true));
     } else {
         // valid crosswords
-        result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(result_variables, *expected_variables, true));
+        result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(&result_variables, expected_variables, true));
     }
 
     return result;
@@ -156,10 +156,12 @@ bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, st
     stringstream dut_name;
     dut_name << name << " test_backtracking_validity(): " << length << ", " << height;
     dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
+    stringstream cw_result;
 
     bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
     if(result && expected_result && do_print) {
-        utils.log(DEBUG, dut->result());
+        cw_result << dut->result();
+        utils->print_msg(&cw_result, DEBUG);
     }
     return result;
 }
