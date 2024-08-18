@@ -16,13 +16,11 @@
 #include <stack>
 #include <tuple>
 #include <string>
-#include <string_view>
 #include <fstream>
 #include <unordered_set>
 #include <unordered_map>
 #include <array>
 #include <chrono>
-#include <mutex>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
@@ -43,7 +41,6 @@ using std::endl;
 using std::exception;
 using std::string;
 using std::stringstream;
-using std::string_view;
 using std::vector;
 using std::queue;
 using std::stack;
@@ -58,8 +55,6 @@ using std::pair;
 using std::optional;
 using std::chrono::time_point;
 using std::chrono::high_resolution_clock;
-using std::mutex;
-using std::lock_guard;
 
 // RAII
 using std::shared_ptr;
@@ -101,7 +96,6 @@ namespace common_data_types_ns {
 
     /**
      * @brief progress bar to print cw search progress
-     * @warning behavior undefined if anything else printed during lifetime of this object
      * @cite https://codereview.stackexchange.com/a/186537
     */
     class progress_bar {
@@ -125,7 +119,7 @@ namespace common_data_types_ns {
             string full_bar;
     };
     
-}; // common_data_types_ns
+} // common_data_types_ns
 
 /**
  * hash function declarations in global scope

@@ -56,10 +56,10 @@ namespace cw_csp_data_types_ns {
 
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
-
-        // operator to print out cw_variable for debug
-        friend ostream& operator<<(ostream& os, const cw_variable& var);
     };
+
+    // operator to print out cw_variable for debug
+    ostream& operator<<(ostream& os, const cw_variable& var);
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
@@ -83,10 +83,10 @@ namespace cw_csp_data_types_ns {
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_constraint& rhs) const;
-
-        // operator to print out cw_constraint for debug
-        friend ostream& operator<<(ostream& os, const cw_constraint& var);
     };
+
+    // operator to print out cw_constraint for debug
+    ostream& operator<<(ostream& os, const cw_constraint& var);
 
 } // cw_csp_data_types_ns
 

@@ -15,7 +15,7 @@ using namespace crossword_ns;
  * @param length # of columns
  * @param height # of rows
 */
-crossword::crossword(string name, uint length, uint height) : common_parent(name, VERBOSITY) {
+crossword::crossword(string name, uint length, uint height) : common_parent(name) {
     assert(length > 0);
     assert(height > 0);
 

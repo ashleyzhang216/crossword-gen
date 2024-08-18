@@ -9,26 +9,26 @@
 using namespace common_parent_ns;
 
 /**
- * @brief common constructor for all cw objects and test drivers
+ * @brief common constructor for all blocks
  * 
- * @param name the name of this object
- * @param min_verbosity the min verbosity for the util object
+ * @param name name of this block
 */
-common_parent::common_parent(const string_view& name, const verbosity_t& min_verbosity) 
-    : utils(name, min_verbosity), 
-      name(name) {
-    // do nothing, initializer list is sufficient
+common_parent::common_parent(string name) {
+    this->name = name;
+    utils = new cw_utils(name, VERBOSITY);
 }
 
 /**
  * @brief shorthand for test drivers; prints error message if condition is false, returns condition
  * 
- * @param condition_name name of this condition
+ * @param name name of this condition
  * @param condition the condition to test
 */
-bool common_parent::check_condition(const string_view& condition_name, bool condition) {
+bool common_parent::check_condition(string name, bool condition) {
     if(!condition) {
-        utils.log(WARNING, "failed condition: ", condition_name);
+        stringstream ss;
+        ss << "failed condition: " << name;
+        utils->print_msg(&ss, WARNING);
     }
 
     return condition;

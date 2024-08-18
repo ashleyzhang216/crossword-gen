@@ -11,21 +11,21 @@ using namespace cw_csp_data_types_ns;
 // ############### set_contents_equal() ###############
 
 template bool set_contents_equal<cw_variable>(
-    const unordered_set<cw_variable>& lhs, 
-    const unordered_set<cw_variable>& rhs, 
+    const unordered_set<cw_variable>* lhs, 
+    const unordered_set<cw_variable>* rhs, 
     bool debug_prints
 );
 template bool set_contents_equal<cw_constraint>(
-    const unordered_set<cw_constraint>& lhs, 
-    const unordered_set<cw_constraint>& rhs, 
+    const unordered_set<cw_constraint>* lhs, 
+    const unordered_set<cw_constraint>* rhs, 
     bool debug_prints
 );
 
 // ############### map_to_set_contents_equal() ###############
 
 template bool map_to_set_contents_equal(
-    const unordered_map<cw_variable, unordered_set<cw_constraint> >& lhs, 
-    const unordered_map<cw_variable, unordered_set<cw_constraint> >& rhs, 
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >* lhs, 
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >* rhs, 
     bool debug_prints
 );
 
@@ -39,6 +39,7 @@ bool cw_variable::operator==(const cw_variable& rhs) const {
         && origin_col == rhs.origin_col
         && length == rhs.length  
         && dir == rhs.dir;
+        // TODO: should domain contents also be equal?
 }
 
 /**
