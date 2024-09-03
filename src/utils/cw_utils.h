@@ -205,6 +205,67 @@ class progress_bar {
 }; // class progress_bar
 
 /**
+ * @brief helpers to check if struct has 'id' field of a certain type
+*/
+template <typename T, typename F>
+struct has_id : std::false_type {};
+
+template <typename T>
+struct has_id<T, decltype(std::declval<T>().id)>
+    : std::true_type {};
+
+/**
+ * @brief holds fixed size vector of elements containing a unique uint 'id' field equal to its index
+*/
+template <class T>
+requires has_id<T, uint>::value
+class id_obj_manager {
+    public:
+        id_obj_manager () = default;
+        ~id_obj_manager() = default;
+
+        // initialize with data
+        inline void init(vector<unique_ptr<T> >&& data) {
+            assert(!vec.has_value());
+            vec = std::move(data);
+        }
+
+        // access size
+        inline size_t size() const {
+            assert(vec.has_value());
+            return vec.value().size();
+        }
+
+        // access vector element
+        inline unique_ptr<T>& operator[](size_t n) {
+            assert(vec.has_value());
+            assert(vec.value()[n]->id == n);
+            return vec.value()[n];
+        }
+
+        // explicitly not copyable
+        id_obj_manager(const id_obj_manager&) = delete;
+        id_obj_manager& operator=(const id_obj_manager&) = delete;
+
+        // movable
+        id_obj_manager(id_obj_manager&& other) : id_obj_manager() {
+            if(other.vec.has_value()) {
+                init(std::move(other.vec.value()));
+            }
+        }
+        id_obj_manager& operator=(id_obj_manager&& other) {
+            assert(!vec.has_value()); // cannot hold existing objects
+            if(other.vec.has_value()) {
+                init(std::move(other.vec.value()));
+            }
+        }
+
+    protected:
+        // underlying data
+        optional<vector<unique_ptr<T> > > vec;
+};
+
+/**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
  * 
  * @param lhs ref to lhs set
