@@ -41,6 +41,7 @@ namespace cw_csp_data_types_ns {
 
     // a variable in a constraint satisfaction problem
     struct cw_variable {
+        size_t id;             // for indexing in id_obj_manager
         uint origin_row;       // 0-indexed
         uint origin_col;       // 0-indexed
         uint length;           // >= MIN_WORD_LEN && <= MAX_WORD_LEN
@@ -64,22 +65,23 @@ namespace cw_csp_data_types_ns {
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
     struct cw_constraint {
-        uint lhs_index; // index of shared letter in lhs
-        uint rhs_index; // index of shared letter in rhs
-        shared_ptr<cw_variable> lhs = nullptr;
-        shared_ptr<cw_variable> rhs = nullptr;
+        size_t id;            // for indexing in id_obj_manager
+        uint lhs_index;       // index of shared letter in lhs
+        uint rhs_index;       // index of shared letter in rhs
+        size_t lhs{UINT_MAX}; // index of lhs var in an id_obj_manager, UINT_MAX == invalid
+        size_t rhs{UINT_MAX}; // index of rhs var in an id_obj_manager, UINT_MAX == invalid
 
-        // blank constructor for initialization
-        cw_constraint() {}
+        // default constructor for initialization in var_intersect_table
+        cw_constraint() = default;
         
         // value constructor
-        cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
+        cw_constraint(uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        bool prune_domain(); 
+        bool prune_domain(id_obj_manager<cw_variable>& vars); 
 
         // used by solved() in cw_csp to check that this constraint is satisfied
-        bool satisfied() const;
+        bool satisfied(const id_obj_manager<cw_variable>& vars) const;
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_constraint& rhs) const;

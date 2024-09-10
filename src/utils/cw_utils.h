@@ -215,10 +215,10 @@ struct has_id<T, decltype(std::declval<T>().id)>
     : std::true_type {};
 
 /**
- * @brief holds fixed size vector of elements containing a unique uint 'id' field equal to its index
+ * @brief holds fixed size vector of elements containing a unique size_t 'id' field equal to its index
 */
 template <class T>
-requires has_id<T, uint>::value
+requires has_id<T, size_t>::value
 class id_obj_manager {
     public:
         id_obj_manager () = default;
@@ -228,11 +228,14 @@ class id_obj_manager {
         inline void init(vector<unique_ptr<T> >&& data) {
             assert(!vec.has_value());
             vec = std::move(data);
+            for(size_t i = 0; i < size(); ++i) {
+                assert(vec.value()[i]->id == i);
+            }
         }
 
         // access size
         inline size_t size() const {
-            assert(vec.has_value());
+            if(!vec.has_value()) return 0;
             return vec.value().size();
         }
 
@@ -241,6 +244,18 @@ class id_obj_manager {
             assert(vec.has_value());
             assert(vec.value()[n]->id == n);
             return vec.value()[n];
+        }
+        inline const unique_ptr<T>& operator[](size_t n) const {
+            return const_cast<const unique_ptr<T>&>(const_cast<id_obj_manager*>(this)->operator[](n));
+        }
+        
+        // ids of all managed elements
+        vector<size_t> ids() const {
+            vector<size_t> res(size());
+            for(size_t i = 0; i < size(); ++i) {
+                res[i] = i;
+            }
+            return res;
         }
 
         // explicitly not copyable
