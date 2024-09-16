@@ -52,8 +52,8 @@ cw_csp::cw_csp(string name, uint length, uint height, string contents, string fi
 */
 unordered_set<cw_variable> cw_csp::get_variables() const {
     unordered_set<cw_variable> result;
-    for(size_t var : variables.ids()) {
-        result.insert(*variables[var]);
+    for(const unique_ptr<cw_variable>& var : variables) {
+        result.insert(*var);
     }
     return result;
 }
@@ -65,8 +65,8 @@ unordered_set<cw_variable> cw_csp::get_variables() const {
 */
 unordered_set<cw_constraint> cw_csp::get_constraints() const {
     unordered_set<cw_constraint> result;
-    for(size_t constr : constraints.ids()) {
-        result.insert(*constraints[constr]);
+    for(const unique_ptr<cw_constraint>& constr : constraints) {
+        result.insert(*constr);
     }
     return result;
 }
@@ -267,7 +267,7 @@ void cw_csp::initialize_csp() {
                 //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].rhs = var_ptr;
                 //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].rhs_index = letter;
                 // }
-                assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == UINT_MAX);
+                assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs_index = letter;
             }
@@ -282,7 +282,7 @@ void cw_csp::initialize_csp() {
                 //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].rhs = var_ptr;
                 //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].rhs_index = letter;
                 // }
-                assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == UINT_MAX);
+                assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs_index = letter;
             }
@@ -296,9 +296,9 @@ void cw_csp::initialize_csp() {
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
         for(uint col = 0; col < cw.cols(); col++) {
-            if(var_intersect_table[row][col].rhs != UINT_MAX) {
+            if(var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID) {
                 // assert that 2 variables exist in constraint
-                if(var_intersect_table[row][col].lhs == UINT_MAX) {
+                if(var_intersect_table[row][col].lhs == id_obj_manager<cw_variable>::INVALID_ID) {
                     utils.log(ERROR, "var_intersect_table has invalid lhs with valid rhs");
                 }
 
@@ -372,28 +372,28 @@ bool cw_csp::ac3() {
     unordered_set<size_t> constraints_in_queue;
 
     // notify var domains of new AC-3 call
-    for(size_t var : variables.ids()) {
-        variables[var]->domain.start_new_ac3_call();
+    for(unique_ptr<cw_variable>& var : variables) {
+        var->domain.start_new_ac3_call();
     }
 
     // initialize constraint_queue
-    for(size_t constr : constraints.ids()) {
-        constraint_queue.push(constr);
-        constraints_in_queue.insert(constr);
+    for(size_t constr_id : constraints.ids()) {
+        constraint_queue.push(constr_id);
+        constraints_in_queue.insert(constr_id);
     }
 
     // run AC-3 algo
-    size_t constr;
+    size_t constr_id;
     while(!constraint_queue.empty()) {
         // pop top constraint
-        constr = constraint_queue.front();
+        constr_id = constraint_queue.front();
         constraint_queue.pop();
-        assert(constraints_in_queue.count(constr) > 0);
-        constraints_in_queue.erase(constr);
+        assert(constraints_in_queue.count(constr_id) > 0);
+        constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
-        if(constraints[constr]->prune_domain(variables)) {
-            if(variables[constraints[constr]->lhs]->domain.size() == 0) {
+        if(constraints[constr_id]->prune_domain(variables)) {
+            if(variables[constraints[constr_id]->lhs]->domain.size() == 0) {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
 
@@ -404,7 +404,7 @@ bool cw_csp::ac3() {
             }
 
             // add dependent arcs to queue
-            for(size_t dep_arc : arc_dependencies.at(constraints[constr]->lhs)) {
+            for(size_t dep_arc : arc_dependencies.at(constraints[constr_id]->lhs)) {
                 if(constraints_in_queue.count(dep_arc) == 0) {
                     constraint_queue.push(dep_arc);
                     constraints_in_queue.insert(dep_arc);
@@ -424,8 +424,8 @@ bool cw_csp::ac3() {
 void cw_csp::undo_ac3() {
     cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
 
-    for(size_t var : variables.ids()) {
-        variables[var]->domain.undo_prev_ac3_call();
+    for(unique_ptr<cw_variable>& var : variables) {
+        var->domain.undo_prev_ac3_call();
     }
 }
 
@@ -440,19 +440,19 @@ bool cw_csp::solved() const {
     unordered_set<word_t> used_words;
 
     // check that all vars have one remaining domain value & satisfied
-    for(size_t var : variables.ids()) {
+    for(const unique_ptr<cw_variable>& var : variables) {
         // check that all vars satisifed w/ one domain value
-        if(variables[var]->domain.size() != 1) { stamper.add_result("no"); return false; }
-        if(!variables[var]->domain.is_assigned()) { stamper.add_result("no"); return false; }
+        if(var->domain.size() != 1) { stamper.add_result("no"); return false; }
+        if(!var->domain.is_assigned()) { stamper.add_result("no"); return false; }
 
         // check that domain value is unique
-        if(used_words.count(variables[var]->domain.get_cur_domain().at(0)) > 0) { stamper.add_result("no"); return false; }
-        used_words.insert(variables[var]->domain.get_cur_domain().at(0));
+        if(used_words.count(var->domain.get_cur_domain().at(0)) > 0) { stamper.add_result("no"); return false; }
+        used_words.insert(var->domain.get_cur_domain().at(0));
     }
 
     // check that all constraints satisfied
-    for(size_t constr : constraints.ids()) {
-        if(!constraints[constr]->satisfied(variables)) { stamper.add_result("no"); return false; }
+    for(const unique_ptr<cw_constraint>& constr : constraints) {
+        if(!constr->satisfied(variables)) { stamper.add_result("no"); return false; }
     }
 
     stamper.add_result("yes");
@@ -479,46 +479,46 @@ void cw_csp::overwrite_cw() {
     vector<tuple<char, uint, uint> > overwritten_tiles;
 
     // iterate across each variable to write onto cw
-    for(size_t var : variables.ids()) {
+    for(unique_ptr<cw_variable>& var : variables) {
         // only write assigned variables
-        if(variables[var]->domain.is_assigned()) {
-            if(variables[var]->dir == HORIZONTAL) {
-                for(uint letter = 0; letter < variables[var]->length; letter++) {
+        if(var->domain.is_assigned()) {
+            if(var->dir == HORIZONTAL) {
+                for(uint letter = 0; letter < var->length; letter++) {
                     // this square must be wildcard or the same letter about to be written
                     assert(
-                        cw.read_at(variables[var]->origin_row, variables[var]->origin_col + letter) == WILDCARD ||
-                        cw.read_at(variables[var]->origin_row, variables[var]->origin_col + letter) == variables[var]->domain.get_cur_domain().at(0).word.at(letter)
+                        cw.read_at(var->origin_row, var->origin_col + letter) == WILDCARD ||
+                        cw.read_at(var->origin_row, var->origin_col + letter) == var->domain.get_cur_domain().at(0).word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
-                    if(cw.read_at(variables[var]->origin_row, variables[var]->origin_col + letter) == WILDCARD) {
+                    if(cw.read_at(var->origin_row, var->origin_col + letter) == WILDCARD) {
                         // record overwritting
-                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, variables[var]->origin_row, variables[var]->origin_col + letter));
+                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var->origin_row, var->origin_col + letter));
 
                         // overwrite cw
-                        cw.write_at(variables[var]->domain.get_cur_domain().at(0).word.at(letter), variables[var]->origin_row, variables[var]->origin_col + letter);
+                        cw.write_at(var->domain.get_cur_domain().at(0).word.at(letter), var->origin_row, var->origin_col + letter);
                     }
                 }
-            } else if(variables[var]->dir == VERTICAL) { 
-                for(uint letter = 0; letter < variables[var]->length; letter++) {
+            } else if(var->dir == VERTICAL) { 
+                for(uint letter = 0; letter < var->length; letter++) {
 
                     // this square must be wildcard or the same letter about to be written
                     assert(
-                        cw.read_at(variables[var]->origin_row + letter, variables[var]->origin_col) == WILDCARD ||
-                        cw.read_at(variables[var]->origin_row + letter, variables[var]->origin_col) == variables[var]->domain.get_cur_domain().at(0).word.at(letter)
+                        cw.read_at(var->origin_row + letter, var->origin_col) == WILDCARD ||
+                        cw.read_at(var->origin_row + letter, var->origin_col) == var->domain.get_cur_domain().at(0).word.at(letter)
                     );
 
                     // if this will actually overwrite a wildcard
-                    if(cw.read_at(variables[var]->origin_row + letter, variables[var]->origin_col) == WILDCARD) {
+                    if(cw.read_at(var->origin_row + letter, var->origin_col) == WILDCARD) {
                         // record overwriting
-                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, variables[var]->origin_row + letter, variables[var]->origin_col));
+                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var->origin_row + letter, var->origin_col));
 
                         // overwrite cw
-                        cw.write_at(variables[var]->domain.get_cur_domain().at(0).word.at(letter), variables[var]->origin_row + letter, variables[var]->origin_col);
+                        cw.write_at(var->domain.get_cur_domain().at(0).word.at(letter), var->origin_row + letter, var->origin_col);
                     }
                 }
             } else {
-                utils.log(ERROR, "got unknown direction type: ", variables[var]->dir);
+                utils.log(ERROR, "got unknown direction type: ", var->dir);
             }
         }
     }
@@ -550,16 +550,19 @@ void cw_csp::undo_overwrite_cw() {
  *       this helps backtracking detect invalid assignments asap but this method needs to change if new strategy added
 */
 size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
-    size_t result = UINT_MAX;
+    size_t result = id_obj_manager<cw_variable>::INVALID_ID;
 
     switch(strategy) {
         case MIN_REMAINING_VALUES: {
                 size_t min_num_values = UINT_MAX;
-                for(size_t var : variables.ids()) {
+                for(unique_ptr<cw_variable>& var : variables) {
                     // if this variable is unassigned AND (no other variable selected OR has fewer remaining values in domain)
-                    if(!variables[var]->domain.is_assigned() && variables[var]->domain.size() < min_num_values) {
-                        min_num_values = variables[var]->domain.size();
-                        result = variables[var]->id;
+                    if(
+                        !var->domain.is_assigned() && 
+                        (result == id_obj_manager<cw_variable>::INVALID_ID || var->domain.size() < min_num_values)
+                    ) {
+                        min_num_values = var->domain.size();
+                        result = var->id;
                     }
                 }
             } break;
@@ -627,6 +630,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
 
+    // TODO: remove this
     // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
     if(!variables[next_var]->domain.is_assigned() && (variables[next_var]->domain.size() == 1 && assigned_words.count(variables[next_var]->domain.get_cur_domain().at(0)) > 0)) {
         stamper.add_result("invalid base case");

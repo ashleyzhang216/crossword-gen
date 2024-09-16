@@ -224,6 +224,9 @@ class id_obj_manager {
         id_obj_manager () = default;
         ~id_obj_manager() = default;
 
+        // for id placeholders
+        static constexpr size_t INVALID_ID = UINT_MAX;
+
         // initialize with data
         inline void init(vector<unique_ptr<T> >&& data) {
             assert(!vec.has_value());
@@ -258,6 +261,24 @@ class id_obj_manager {
             return res;
         }
 
+        // shorthand for iterators
+        using iterator = typename vector<unique_ptr<T> >::iterator;
+        using const_iterator = typename vector<unique_ptr<T> >::const_iterator;
+
+        // iterators
+        iterator begin() {
+            return vec.has_value() ? vec->begin() : empty_vec.begin();
+        }
+        const_iterator begin() const {
+            return vec.has_value() ? vec->begin() : empty_vec.begin();
+        }
+        iterator end() {
+            return vec.has_value() ? vec->end() : empty_vec.end();
+        }
+        const_iterator end() const {
+            return vec.has_value() ? vec->end() : empty_vec.end();
+        }
+
         // explicitly not copyable
         id_obj_manager(const id_obj_manager&) = delete;
         id_obj_manager& operator=(const id_obj_manager&) = delete;
@@ -278,7 +299,15 @@ class id_obj_manager {
     protected:
         // underlying data
         optional<vector<unique_ptr<T> > > vec;
+
+        // fallback for iterators when vec is empty
+        static vector<unique_ptr<T> > empty_vec;
 };
+
+// define empty_vec
+template <class T>
+requires has_id<T, size_t>::value
+vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
