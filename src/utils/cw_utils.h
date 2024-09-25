@@ -38,13 +38,6 @@ struct assertion_failure_exception : public exception {
         std::string message;
 };
 
-
-// struct assertion_failure_exception : public exception {
-//     const char *what() const throw() {
-//         return "crossword-gen failed assertion";
-//     }
-// };
-
 #undef assert
 #define assert(x)                                                                                         \
     if(!(x)) [[unlikely]] {                                                                               \

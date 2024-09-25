@@ -586,7 +586,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     stringstream contents_2_2;
     contents_2_2 << WCD << BLK 
                  << WCD << WCD;
-    REQUIRE(dut->test_ac3(2, 2, contents_2_2.str(), dict_barebones_path, true, &vars_2_2));
+    REQUIRE(dut->test_ac3(2, 2, contents_2_2.str(), dict_barebones_path, true, vars_2_2));
 
     // simple valid H-shaped 3x3 crossword
     unordered_set<cw_variable> vars_3_3_h = {
@@ -598,7 +598,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     contents_3_3_h << WCD << BLK << WCD 
                    << WCD << WCD << WCD 
                    << WCD << BLK << WCD;
-    REQUIRE(dut->test_ac3(3, 3, contents_3_3_h.str(), dict_simple_path, true, &vars_3_3_h));
+    REQUIRE(dut->test_ac3(3, 3, contents_3_3_h.str(), dict_simple_path, true, vars_3_3_h));
 
     // simple valid H-shaped 4x4 crossword
     unordered_set<cw_variable> vars_4_4_h = {
@@ -611,7 +611,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                    << WCD << WCD << WCD << WCD 
                    << WCD << BLK << BLK << WCD 
                    << WCD << BLK << BLK << WCD;
-    REQUIRE(dut->test_ac3(4, 4, contents_4_4_h.str(), dict_simple_path, true, &vars_4_4_h));
+    REQUIRE(dut->test_ac3(4, 4, contents_4_4_h.str(), dict_simple_path, true, vars_4_4_h));
 
     // 5x5 nytimes crossword 8/28/2023
     unordered_set<cw_variable> vars_nytimes_8_28_23 = {
@@ -632,7 +632,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                              << WCD << WCD << WCD << WCD << WCD 
                              << WCD << WCD << WCD << WCD << BLK 
                              << WCD << WCD << WCD << WCD << BLK;
-    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_8_28_23.str(), dict_nytimes_8_28_23, true, &vars_nytimes_8_28_23));
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_8_28_23.str(), dict_nytimes_8_28_23, true, vars_nytimes_8_28_23));
 
     // 5x5 nytimes crossword 10/17/13
     unordered_set<cw_variable> vars_nytimes_10_17_13 = {
@@ -653,7 +653,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                               << WCD << WCD << WCD << WCD << WCD 
                               << WCD << WCD << WCD << BLK << WCD 
                               << BLK << WCD << WCD << WCD << WCD;
-    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_10_17_13.str(), dict_nytimes_10_17_13, true, &vars_nytimes_10_17_13));
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_10_17_13.str(), dict_nytimes_10_17_13, true, vars_nytimes_10_17_13));
 
     // 5x5 nytimes crossword 2/3/17
     unordered_set<cw_variable> vars_nytimes_2_3_17 = {
@@ -674,7 +674,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                             << WCD << WCD << WCD << WCD << WCD 
                             << WCD << WCD << WCD << WCD << WCD 
                             << WCD << WCD << WCD << WCD << BLK;
-    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, &vars_nytimes_2_3_17));
+    REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, vars_nytimes_2_3_17));
 }
 
 /**

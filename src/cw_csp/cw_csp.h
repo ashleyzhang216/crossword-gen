@@ -87,12 +87,10 @@ namespace cw_csp_ns {
             word_domain total_domain;
 
             // csp structures
-            // vector<shared_ptr<cw_variable> >   variables;
-            // vector<shared_ptr<cw_constraint> > constraints;
             id_obj_manager<cw_variable>   variables;
             id_obj_manager<cw_constraint> constraints;
 
-            // arc_dependencies[var_i] contains ptrs to all ids of arcs of the form (var_k, var_i) 
+            // arc_dependencies[id of var_i] contains all ids of arcs of the form (var_k, var_i) 
             unordered_map<size_t, unordered_set<size_t> > arc_dependencies;
 
             // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()

@@ -138,10 +138,6 @@ void cw_csp::initialize_csp() {
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
-                        // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-                        // utils.log(DEBUG, "adding new variable: ", *new_var);
-                        // variables.push_back(new_var);
-
                         variables_vec.push_back(make_unique<cw_variable>(
                             variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
@@ -160,11 +156,7 @@ void cw_csp::initialize_csp() {
         }
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last 2+ spaces in a row are blank
-            // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-            // utils.log(DEBUG, "adding new variable: ", *new_var);
-            // variables.push_back(new_var);
-
+            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
             variables_vec.push_back(make_unique<cw_variable>(
                 variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
@@ -206,11 +198,6 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
-                        // save new variable
-                        // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-                        // utils.log(DEBUG, "adding new variable: ", *new_var);
-                        // variables.push_back(new_var);
-
                         variables_vec.push_back(make_unique<cw_variable>(
                             variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
@@ -229,11 +216,7 @@ void cw_csp::initialize_csp() {
         }
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last space in a row is blank
-            // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-            // utils.log(DEBUG, "adding new variable: ", *new_var);
-            // variables.push_back(new_var);
-
+            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
             variables_vec.push_back(make_unique<cw_variable>(
                 variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
@@ -255,30 +238,12 @@ void cw_csp::initialize_csp() {
     for(size_t i = 0; i < variables.size(); ++i) {
         if(variables[i]->dir == HORIZONTAL) {
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
-                // if(var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].lhs == nullptr) {
-                //     // first variable for this tile
-                //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].lhs = var_ptr;
-                //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].lhs_index = letter;
-                // } else {
-                //     // second variable for this tile
-                //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].rhs = var_ptr;
-                //     var_intersect_table[var_ptr->origin_row][var_ptr->origin_col + letter].rhs_index = letter;
-                // }
                 assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs_index = letter;
             }
         } else if(variables[i]->dir == VERTICAL) { 
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
-                // if(var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].lhs == nullptr) {
-                //     // first variable for this tile
-                //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].lhs = var_ptr;
-                //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].lhs_index = letter;
-                // } else {
-                //     // second variable for this tile
-                //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].rhs = var_ptr;
-                //     var_intersect_table[var_ptr->origin_row + letter][var_ptr->origin_col].rhs_index = letter;
-                // }
                 assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs_index = letter;
@@ -301,22 +266,6 @@ void cw_csp::initialize_csp() {
                 var_intersect_table[row][col].lhs != id_obj_manager<cw_variable>::INVALID_ID && 
                 var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID
             ) {
-                // shared_ptr<cw_constraint> forward_arc = make_shared<cw_constraint>(
-                //     var_intersect_table[row][col].lhs_index,
-                //     var_intersect_table[row][col].rhs_index,
-                //     var_intersect_table[row][col].lhs,
-                //     var_intersect_table[row][col].rhs
-                // );
-                // utils.log(DEBUG, "adding forward arc: ", *forward_arc);
-                
-                // shared_ptr<cw_constraint> backwards_arc = make_shared<cw_constraint>(
-                //     var_intersect_table[row][col].rhs_index,
-                //     var_intersect_table[row][col].lhs_index,
-                //     var_intersect_table[row][col].rhs,
-                //     var_intersect_table[row][col].lhs
-                // );
-                // utils.log(DEBUG, "adding backwards arc: ", *backwards_arc);
-
                 // add arcs
                 constraints_vec.push_back(make_unique<cw_constraint>(
                     constraints_vec.size(), 
@@ -336,22 +285,15 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building arc_dependencies");
-
-    // populate id fields for all constraints
-    // build arc table to list out all dependencies for easy arc queueing in AC-3
-    for(size_t i = 0; i < constraints_vec.size(); ++i) {
-        constraints_vec[i]->id = i;
-        arc_dependencies[constraints_vec[i]->rhs].insert(i);
-    }
-
-    // // build arc table to list out all dependencies for easy arc queueing in AC-3
-    // for(unique_ptr<cw_constraint>& constraint_ptr : constraints_vec) {
-    //     arc_dependencies[constraint_ptr->rhs].insert(constraint_ptr->id);
-    // }
-
     // initialize constrs from temp storage
     constraints.init(std::move(constraints_vec));
+
+    utils.log(DEBUG, "cw_csp building arc_dependencies");
+
+    // build arc table to list out all dependencies for easy arc queueing in AC-3
+    for(size_t i = 0; i < constraints.size(); ++i) {
+        arc_dependencies[constraints[i]->rhs].insert(i);
+    }
 }
 
 /**

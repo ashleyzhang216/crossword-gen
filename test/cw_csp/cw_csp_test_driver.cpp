@@ -28,9 +28,9 @@ cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name, VERBOS
 */
 bool cw_csp_test_driver::test_constructor_empty(
     uint length, uint height, string filepath,
-    unordered_set<cw_variable>& expected_variables,
-    unordered_set<cw_constraint>& expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
+    const unordered_set<cw_variable>& expected_variables,
+    const unordered_set<cw_constraint>& expected_constraints,
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
@@ -73,9 +73,9 @@ bool cw_csp_test_driver::test_constructor_empty(
 */
 bool cw_csp_test_driver::test_constructor_contents(
     uint length, uint height, string contents, string filepath,
-    unordered_set<cw_variable>& expected_variables,
-    unordered_set<cw_constraint>& expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
+    const unordered_set<cw_variable>& expected_variables,
+    const unordered_set<cw_constraint>& expected_constraints,
+    const unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_contents(): " << length << ", " << height;
@@ -124,10 +124,22 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
 
     result &= check_condition(dut_name.str() + " ac3 validity", expected_result == dut->ac3());
     if(!expected_result) {
+        // check var equality
         unordered_set<cw_variable> unchanged_variables = dut->get_variables();
         result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(original_variables, unchanged_variables, true));
 
-        // TODO: check domain values
+        // check var domain equality
+        unordered_map<cw_variable, unordered_set<word_t> > result_var_domains;
+        unordered_map<cw_variable, unordered_set<word_t> > expected_var_domains;
+        for(const cw_variable& var : unchanged_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            result_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        for(const cw_variable& var : original_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            expected_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
     }
 
     return result;
@@ -141,10 +153,10 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
  * @param contents str representation of predefined crossword contents
  * @param filepath relative filepath to dictionary of words file 
  * @param expected_result expected validity of resulting CSP
- * @param expected_variables ptr to expected contents of variables set after running AC-3
+ * @param expected_variables ref to expected contents of variables set after running AC-3
  * @return true iff successful
 */
-bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, unordered_set<cw_variable>* expected_variables) {
+bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, const unordered_set<cw_variable>& expected_variables) {
     stringstream dut_name;
     dut_name << name << " test_ac3(): " << length << ", " << height;
     dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
@@ -158,12 +170,34 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
         // invalid crosswords
         result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(result_variables, original_variables, true));
 
-        // TODO: check domain values
+        // check var domain equality
+        unordered_map<cw_variable, unordered_set<word_t> > result_var_domains;
+        unordered_map<cw_variable, unordered_set<word_t> > expected_var_domains;
+        for(const cw_variable& var : result_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            result_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        for(const cw_variable& var : original_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            expected_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
     } else {
         // valid crosswords
-        result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(result_variables, *expected_variables, true));
+        result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(result_variables, expected_variables, true));
 
-        // TODO: check domain values
+        // check var domain equality
+        unordered_map<cw_variable, unordered_set<word_t> > result_var_domains;
+        unordered_map<cw_variable, unordered_set<word_t> > expected_var_domains;
+        for(const cw_variable& var : result_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            result_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        for(const cw_variable& var : expected_variables) {
+            vector<word_t> domain_vec = var.domain.get_cur_domain();
+            expected_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+        }
+        result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
     }
 
     return result;
