@@ -23,14 +23,14 @@ cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name, VERBOS
  * @param filepath relative filepath to dictionary of words file 
  * @param expected_variables ptr to expected contents of variables set after initialization
  * @param expected_constraints ptr to expected contents of constraints set after initialization
- * @param expected_arc_dependencies expected dereferenced contents of arc dependencies map after initialization
+ * @param expected_arc_dependencies ref to expected dereferenced contents of arc dependencies map after initialization
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_empty(
     uint length, uint height, string filepath,
-    unordered_set<cw_variable>* expected_variables,
-    unordered_set<cw_constraint>* expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
+    unordered_set<cw_variable>& expected_variables,
+    unordered_set<cw_constraint>& expected_constraints,
+    unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
@@ -40,10 +40,21 @@ bool cw_csp_test_driver::test_constructor_empty(
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
     unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
+    unordered_map<cw_variable, unordered_set<word_t> > result_var_domains;
+    unordered_map<cw_variable, unordered_set<word_t> > expected_var_domains;
+    for(const cw_variable& var : result_variables) {
+        vector<word_t> domain_vec = var.domain.get_cur_domain();
+        result_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+    }
+    for(const cw_variable& var : expected_variables) {
+        vector<word_t> domain_vec = var.domain.get_cur_domain();
+        expected_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+    }
 
-    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   *expected_variables, true));
-    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, *expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, *expected_arc_dependencies, true));
+    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   expected_variables, true));
+    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, true));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, expected_arc_dependencies, true));    
+    result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
 
     return result;
 }
@@ -55,16 +66,16 @@ bool cw_csp_test_driver::test_constructor_empty(
  * @param height the height of the crossword
  * @param contents str representation of predefined crossword contents
  * @param filepath relative filepath to dictionary of words file 
- * @param expected_variables ptr to expected contents of variables set after initialization
- * @param expected_constraints ptr to expected contents of constraints set after initialization
- * @param expected_arc_dependencies expected dereferenced contents of arc dependencies map after initialization
+ * @param expected_variables ref to expected contents of variables set after initialization
+ * @param expected_constraints ref to expected contents of constraints set after initialization
+ * @param expected_arc_dependencies ref to expected dereferenced contents of arc dependencies map after initialization
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_contents(
     uint length, uint height, string contents, string filepath,
-    unordered_set<cw_variable>* expected_variables,
-    unordered_set<cw_constraint>* expected_constraints,
-    unordered_map<cw_variable, unordered_set<cw_constraint> >* expected_arc_dependencies
+    unordered_set<cw_variable>& expected_variables,
+    unordered_set<cw_constraint>& expected_constraints,
+    unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
 ) {
     stringstream dut_name;
     dut_name << name << " test_constructor_contents(): " << length << ", " << height;
@@ -74,10 +85,21 @@ bool cw_csp_test_driver::test_constructor_contents(
     unordered_set<cw_variable>   result_variables   = dut->get_variables();
     unordered_set<cw_constraint> result_constraints = dut->get_constraints();
     unordered_map<cw_variable, unordered_set<cw_constraint> > result_arc_dependencies = dut->get_arc_dependencies();
+    unordered_map<cw_variable, unordered_set<word_t> > result_var_domains;
+    unordered_map<cw_variable, unordered_set<word_t> > expected_var_domains;
+    for(const cw_variable& var : result_variables) {
+        vector<word_t> domain_vec = var.domain.get_cur_domain();
+        result_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+    }
+    for(const cw_variable& var : expected_variables) {
+        vector<word_t> domain_vec = var.domain.get_cur_domain();
+        expected_var_domains.insert({var, unordered_set<word_t>(domain_vec.begin(), domain_vec.end())});
+    }
 
-    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   *expected_variables, true));
-    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, *expected_constraints, true));
-    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, *expected_arc_dependencies, true));
+    result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   expected_variables, true));
+    result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, true));
+    result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_arc_dependencies, expected_arc_dependencies, true));
+    result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
 
     return result;
 }
@@ -104,6 +126,8 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
     if(!expected_result) {
         unordered_set<cw_variable> unchanged_variables = dut->get_variables();
         result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(original_variables, unchanged_variables, true));
+
+        // TODO: check domain values
     }
 
     return result;
@@ -133,9 +157,13 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
     if(!expected_result) {
         // invalid crosswords
         result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(result_variables, original_variables, true));
+
+        // TODO: check domain values
     } else {
         // valid crosswords
         result &= check_condition(dut_name.str() + " simplified vars", set_contents_equal(result_variables, *expected_variables, true));
+
+        // TODO: check domain values
     }
 
     return result;

@@ -50,10 +50,10 @@ namespace cw_csp_data_types_ns {
         word_domain domain;    // all possible words that fit
 
         // standard constructor for cw_csp
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
 
         // testing-only constructor
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
 
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
@@ -65,17 +65,17 @@ namespace cw_csp_data_types_ns {
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
     struct cw_constraint {
-        size_t id;            // for indexing in id_obj_manager
-        uint lhs_index;       // index of shared letter in lhs
-        uint rhs_index;       // index of shared letter in rhs
-        size_t lhs{UINT_MAX}; // index of lhs var in an id_obj_manager, UINT_MAX == invalid
-        size_t rhs{UINT_MAX}; // index of rhs var in an id_obj_manager, UINT_MAX == invalid
+        size_t id;                                           // for indexing in id_obj_manager
+        uint lhs_index;                                      // index of shared letter in lhs
+        uint rhs_index;                                      // index of shared letter in rhs
+        size_t lhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of lhs var in an id_obj_manager
+        size_t rhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of rhs var in an id_obj_manager
 
         // default constructor for initialization in var_intersect_table
         cw_constraint() = default;
         
         // value constructor
-        cw_constraint(uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
+        cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
         bool prune_domain(id_obj_manager<cw_variable>& vars); 

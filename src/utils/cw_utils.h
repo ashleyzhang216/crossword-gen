@@ -27,24 +27,39 @@ extern unordered_map<verbosity_t, string> verbosity_type_to_name;
 extern verbosity_t VERBOSITY;
 
 struct assertion_failure_exception : public exception {
-    const char *what() const throw() {
-        return "crossword-gen failed assertion";
-    }
+    public:
+        explicit assertion_failure_exception(const std::string& msg) : message(msg) {}
+        
+        const char* what() const noexcept override {
+            return message.c_str();
+        }
+
+    private:
+        std::string message;
 };
 
+
+// struct assertion_failure_exception : public exception {
+//     const char *what() const throw() {
+//         return "crossword-gen failed assertion";
+//     }
+// };
+
 #undef assert
-#define assert(x)                                                                                       \
-    if(!(x)) [[unlikely]] {                                                                             \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
-        throw assertion_failure_exception();                                                            \
-    }                                                                                                   \
+#define assert(x)                                                                                         \
+    if(!(x)) [[unlikely]] {                                                                               \
+        stringstream ss;                                                                                  \
+        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl;     \
+        throw assertion_failure_exception(ss.str());                                                      \
+    }                                                                                                     \
 
 #undef assert_m
-#define assert_m(x, msg)                                                                                \
-    if(!(x)) [[unlikely]] {                                                                             \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
-            << msg << endl;                                                                             \
-        throw assertion_failure_exception();                                                            \
+#define assert_m(x, msg)                                                                                  \
+    if(!(x)) [[unlikely]] {                                                                               \
+        stringstream ss;                                                                                  \
+        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << ", Msg: " \
+            << msg << endl;                                                                               \
+        throw assertion_failure_exception(ss.str());                                                      \
     } 
 
 /**
@@ -80,7 +95,7 @@ class cw_utils {
 
                 if(verbosity <= ERROR) {
                     log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
-                    throw assertion_failure_exception();
+                    throw assertion_failure_exception("Log with verbosity: " + verbosity_type_to_name.at(verbosity));
                 } else {
                     log_to_ostream(cout, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                 }

@@ -55,19 +55,20 @@ size_t std::hash<cw_variable>::operator()(const cw_variable& var) const {
  * @brief operator to print out cw_variable for debug
 */
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
-    os << "row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
+    os << "cw_variable(row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
        << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
        << var.pattern << ", domain: {";
     for(word_t w : var.domain.get_cur_domain()) {
         os << w.word << ", ";
     }
-    os << "}";
+    os << "})";
     return os;
 }
 
 /**
  * @brief constructor for cw_variable to be used by cw_csp
  * 
+ * @param id index of this cw_variable in an id_obj_manager
  * @param origin_row row of top-left square in var
  * @param origin_col col of top-left square in var
  * @param length num of letters in this var
@@ -75,8 +76,9 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
  * @param pattern word pattern to find matches for to populate domain
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) 
-    : origin_row(origin_row),
+cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) 
+    : id(id), 
+      origin_row(origin_row),
       origin_col(origin_col),
       length(length),
       dir(dir),
@@ -88,14 +90,15 @@ cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_dir
 /**
  * @brief testing-only constructor for cw_variable to be used by test driver
  * 
+ * @param id index of this cw_variable in an id_obj_manager
  * @param origin_row row of top-left square in var
  * @param origin_col col of top-left square in var
  * @param length num of letters in this var
  * @param dir direction of this var
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) 
-    : cw_variable(origin_row, origin_col, length, dir, "(created w/ testing constructor)", domain) {
+cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) 
+    : cw_variable(id, origin_row, origin_col, length, dir, "(created w/ testing constructor)", domain) {
     // do nothing, delegated to constructor that does everything needed
 }
 
@@ -122,21 +125,22 @@ size_t std::hash<cw_constraint>::operator()(const cw_constraint& var) const {
  * @brief operator to print out cw_constraint for debug
 */
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var) {
-    os << "lhs: " << var.lhs << " @ index " << var.lhs_index
-       << ", rhs: " << var.rhs << " @ index " << var.rhs_index;
+    os << "cw_constraint(id: " << var.id << ", lhs: " << var.lhs << " @ index " << var.lhs_index
+       << ", rhs: " << var.rhs << " @ index " << var.rhs_index << ")";
     return os;
 }
 
 /**
  * @brief testing-only constructor for cw_constraint to be used by test driver
  * 
+ * @param id index of this cw_constraint in an id_obj_manager
  * @param lhs_index value of lhs_index to populate
  * @param rhs_index value of rhs_index to populate
  * @param lhs value of lhs index in an id_obj_manager to populate
  * @param rhs value of rhs index in an id_obj_manager to populate
 */
-cw_constraint::cw_constraint(uint lhs_index, uint rhs_index, size_t lhs, size_t rhs) 
-    : lhs_index(lhs_index), rhs_index(rhs_index), lhs(lhs), rhs(rhs)
+cw_constraint::cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs) 
+    : id(id), lhs_index(lhs_index), rhs_index(rhs_index), lhs(lhs), rhs(rhs)
 {
     // do nothing, initialization is sufficient
 }

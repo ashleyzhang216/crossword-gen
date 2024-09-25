@@ -74,13 +74,13 @@ unordered_set<cw_constraint> cw_csp::get_constraints() const {
 /**
  * @brief getter function for arc_depenencies by value
  * 
- * @return copy of arc_depenencies with all pointers de-referenced
+ * @return copy of all objects that arc_depenencies items index to
 */
 unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_dependencies() const {
     unordered_map<cw_variable, unordered_set<cw_constraint> > result;
     for(const auto& pair : arc_dependencies) {
-        for(const auto& idx : pair.second) {
-            result[*(variables[pair.first])].insert(*(constraints[idx]));
+        for(const size_t constr : pair.second) {
+            result[*variables[pair.first]].insert(*constraints[constr]);
         }
     }
     return result;
@@ -94,83 +94,13 @@ void cw_csp::initialize_csp() {
 
     utils.log(DEBUG, "cw_csp starting csp initialization");
 
-    // temporary storage of vars/constraints
+    // temporary storage of vars
     vector<unique_ptr<cw_variable> >   variables_vec;
-    vector<unique_ptr<cw_constraint> > constraints_vec;
 
     // local vars for finding horizontal & vertical cw_variable
     bool traversing_word; // currently iterating through variable
     stringstream word_pattern; // pattern formed by word so far
     uint cur_var_row, cur_var_col, cur_var_len; // valid iff traversing_word
-
-    utils.log(DEBUG, "cw_csp searching for horizontal variables");
-
-    // find horizontal variables
-    for(uint row = 0; row < cw.rows(); row++) {
-
-        // reset
-        traversing_word = false;
-        word_pattern.str("");
-
-        for(uint col = 0; col < cw.cols(); col++) {
-            if(cw.read_at(row, col) != BLACK) {
-                // not black tile, in a word
-                
-                if(!traversing_word) {
-                    // not already in a word, is new
-                    cur_var_row = row;
-                    cur_var_col = col;
-                    cur_var_len = 0;
-                    word_pattern.str("");
-                    traversing_word = true;
-                }
-
-                // add current char to pattern
-                word_pattern << cw.read_at(row, col);
-                cur_var_len++;
-
-            } else {
-                // black tile, not in a word
-
-                if(traversing_word) {
-                    // was previously iterating word
-                    // save progress as new word
-
-                    // single letters are not full words
-                    if(cur_var_len >= MIN_WORD_LEN) {
-                        // save new variable
-                        // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-                        // utils.log(DEBUG, "adding new variable: ", *new_var);
-                        // variables.push_back(new_var);
-
-                        variables_vec.push_back(make_unique<cw_variable>(
-                            cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
-                        ));
-                    }
-
-                } else {
-                    // was not previously iterating word
-                    // caused by black tile in first col of row, or 2+ consecutive black tiles
-                    
-                    // do nothing
-                }
-
-                traversing_word = false;
-                word_pattern.str("");
-            }
-        }
-
-        if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last space in a row is blank
-            // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
-            // utils.log(DEBUG, "adding new variable: ", *new_var);
-            // variables.push_back(new_var);
-
-            variables_vec.push_back(make_unique<cw_variable>(
-                cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
-            ));
-        }
-    }
 
     utils.log(DEBUG, "cw_csp searching for vertical variables");
 
@@ -213,7 +143,7 @@ void cw_csp::initialize_csp() {
                         // variables.push_back(new_var);
 
                         variables_vec.push_back(make_unique<cw_variable>(
-                            cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
                     }
 
@@ -236,15 +166,82 @@ void cw_csp::initialize_csp() {
             // variables.push_back(new_var);
 
             variables_vec.push_back(make_unique<cw_variable>(
-                cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
         }
     }
 
-    // populate id fields for all variables
-    for(uint i = 0; i < variables_vec.size(); ++i) {
-        variables_vec[i]->id = i;
+    utils.log(DEBUG, "cw_csp searching for horizontal variables");
+
+    // find horizontal variables
+    for(uint row = 0; row < cw.rows(); row++) {
+
+        // reset
+        traversing_word = false;
+        word_pattern.str("");
+
+        for(uint col = 0; col < cw.cols(); col++) {
+            if(cw.read_at(row, col) != BLACK) {
+                // not black tile, in a word
+                
+                if(!traversing_word) {
+                    // not already in a word, is new
+                    cur_var_row = row;
+                    cur_var_col = col;
+                    cur_var_len = 0;
+                    word_pattern.str("");
+                    traversing_word = true;
+                }
+
+                // add current char to pattern
+                word_pattern << cw.read_at(row, col);
+                cur_var_len++;
+
+            } else {
+                // black tile, not in a word
+
+                if(traversing_word) {
+                    // was previously iterating word
+                    // save progress as new word
+
+                    // single letters are not full words
+                    if(cur_var_len >= MIN_WORD_LEN) {
+                        // save new variable
+                        // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
+                        // utils.log(DEBUG, "adding new variable: ", *new_var);
+                        // variables.push_back(new_var);
+
+                        variables_vec.push_back(make_unique<cw_variable>(
+                            variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                        ));
+                    }
+
+                } else {
+                    // was not previously iterating word
+                    // caused by black tile in first col of row, or 2+ consecutive black tiles
+                    
+                    // do nothing
+                }
+
+                traversing_word = false;
+                word_pattern.str("");
+            }
+        }
+
+        if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
+            // applicable if the last space in a row is blank
+            // shared_ptr<cw_variable> new_var = make_shared<cw_variable>(cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str()));
+            // utils.log(DEBUG, "adding new variable: ", *new_var);
+            // variables.push_back(new_var);
+
+            variables_vec.push_back(make_unique<cw_variable>(
+                variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+            ));
+        }
     }
+
+    // initialize vars from temp storage
+    variables.init(std::move(variables_vec));
 
     // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
@@ -293,15 +290,17 @@ void cw_csp::initialize_csp() {
 
     utils.log(DEBUG, "cw_csp populating constraints");
 
+    // temporary storage of constraints
+    vector<unique_ptr<cw_constraint> > constraints_vec;
+
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
         for(uint col = 0; col < cw.cols(); col++) {
-            if(var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID) {
-                // assert that 2 variables exist in constraint
-                if(var_intersect_table[row][col].lhs == id_obj_manager<cw_variable>::INVALID_ID) {
-                    utils.log(ERROR, "var_intersect_table has invalid lhs with valid rhs");
-                }
-
+            // two variables intersect in this tile
+            if(
+                var_intersect_table[row][col].lhs != id_obj_manager<cw_variable>::INVALID_ID && 
+                var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID
+            ) {
                 // shared_ptr<cw_constraint> forward_arc = make_shared<cw_constraint>(
                 //     var_intersect_table[row][col].lhs_index,
                 //     var_intersect_table[row][col].rhs_index,
@@ -320,12 +319,14 @@ void cw_csp::initialize_csp() {
 
                 // add arcs
                 constraints_vec.push_back(make_unique<cw_constraint>(
+                    constraints_vec.size(), 
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 ));
                 constraints_vec.push_back(make_unique<cw_constraint>(
+                    constraints_vec.size(), 
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs,
@@ -349,8 +350,7 @@ void cw_csp::initialize_csp() {
     //     arc_dependencies[constraint_ptr->rhs].insert(constraint_ptr->id);
     // }
 
-    // initialize vars/constrs from temp storage
-    variables.init(std::move(variables_vec));
+    // initialize constrs from temp storage
     constraints.init(std::move(constraints_vec));
 }
 
