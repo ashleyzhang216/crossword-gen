@@ -127,7 +127,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
  * @param name the name of this object
  * @param domain set of words to add to domain, whose words must all be equal length
 */
-word_domain::word_domain(string name, unordered_set<word_t> domain) : common_parent(name, VERBOSITY) {
+word_domain::word_domain(string name, unordered_set<word_t>&& domain) : common_parent(name, VERBOSITY) {
     trie = make_shared<trie_node>(false, '_', nullptr);
     filepath_opt = std::nullopt;
     unassigned_domain_size = 0;

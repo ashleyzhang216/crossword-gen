@@ -29,7 +29,7 @@ namespace word_domain_ns {
             word_domain(string name, optional<string> filepath_opt, bool print_progress_bar = false);
 
             // constructor with set of domain, exclusively for cw_variable domain representation
-            word_domain(string name, unordered_set<word_t> domain);
+            word_domain(string name, unordered_set<word_t>&& domain);
 
             // add word to trie
             void add_word(word_t w); 

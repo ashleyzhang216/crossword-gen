@@ -50,10 +50,10 @@ namespace cw_csp_data_types_ns {
         word_domain domain;    // all possible words that fit
 
         // standard constructor for cw_csp
-        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t>&& domain);
 
         // testing-only constructor
-        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t>&& domain);
 
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;

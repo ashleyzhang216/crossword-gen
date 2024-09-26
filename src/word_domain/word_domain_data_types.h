@@ -24,11 +24,20 @@ namespace word_domain_data_types_ns {
         // ptr to parent, nullptr if is_root
         weak_ptr<trie_node> parent;
 
+        // // idx in id_obj_manager of parent, id_obj_manager::INVALID_ID if is root
+        // size_t parent;
+
         // ptr to child words
         unordered_map<char, shared_ptr<trie_node> > children;
 
+        // // maps next letters -> idx of child trie node in id_obj_manager
+        // unordered_map<char, size_t> children;
+
         // constructor to initialize new words/head
         trie_node(bool v, char l, shared_ptr<trie_node> p) : valid(v), letter(l), parent(p) {}
+
+        // // constructor to initialize new words/head
+        // trie_node(bool v, char l, size_t p) : valid(v), letter(l), parent(p) {}
     };
 
     /**

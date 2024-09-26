@@ -76,14 +76,14 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
  * @param pattern word pattern to find matches for to populate domain
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain) 
+cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t>&& domain) 
     : id(id), 
       origin_row(origin_row),
       origin_col(origin_col),
       length(length),
       dir(dir),
       pattern(pattern),
-      domain("cw_variable domain", domain) {
+      domain("cw_variable domain", std::move(domain)) {
     // do nothing else
 }
 
@@ -97,8 +97,8 @@ cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint lengt
  * @param dir direction of this var
  * @param domain contents of domain of this var
 */
-cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain) 
-    : cw_variable(id, origin_row, origin_col, length, dir, "(created w/ testing constructor)", domain) {
+cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t>&& domain) 
+    : cw_variable(id, origin_row, origin_col, length, dir, "(created w/ testing constructor)", std::move(domain)) {
     // do nothing, delegated to constructor that does everything needed
 }
 
