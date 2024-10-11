@@ -68,13 +68,13 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
 /**
  * @brief copy constructor for cw_variable
 */
-cw_variable::cw_variable(const cw_variable& other) 
-    : id(other.id), 
+cw_variable::cw_variable(const cw_variable& other)
+    : id(other.id),
       origin_row(other.origin_row),
       origin_col(other.origin_col),
       length(other.length),
       dir(other.dir),
-      pattern(other.pattern), 
+      pattern(other.pattern),
       domain(other.domain) {
     // do nothing else
 }

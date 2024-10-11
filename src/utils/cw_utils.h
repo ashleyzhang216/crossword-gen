@@ -98,14 +98,6 @@ class cw_utils {
             }
         }
 
-        // // copyable
-        // cw_utils(const cw_utils& other);
-        // cw_utils& operator=(const cw_utils& other);
-
-        // // movable
-        // cw_utils(cw_utils&& other);
-        // cw_utils& operator=(cw_utils&& other) noexcept;
-
     protected:
         // fields for printing
         string name;
@@ -222,7 +214,6 @@ class progress_bar {
 
 /**
  * @brief helpers to check if struct has 'id' field of a certain type
- * TODO: check that T is copyable
 */
 template <typename T, typename F>
 struct has_id : std::false_type {};
@@ -236,14 +227,13 @@ struct has_id<T, decltype(std::declval<T>().id)>
 */
 template <class T>
 requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
-// requires has_id<T, size_t>::value
 class id_obj_manager {
     public:
         id_obj_manager () = default;
         ~id_obj_manager() = default;
 
         // for id placeholders
-        static constexpr size_t INVALID_ID = UINT_MAX;
+        static constexpr size_t INVALID_ID = ULONG_MAX;
 
         // add element
         void push_back(unique_ptr<T>&& ptr) {
@@ -309,7 +299,7 @@ class id_obj_manager {
                 for(const auto& ptr : vec.value()) {
                     vec_copy.emplace_back(make_unique<T>(*ptr));
                 }
-                
+
                 copy.init(std::move(vec_copy));
             }
             return copy;
@@ -352,7 +342,6 @@ class id_obj_manager {
 
 // define empty_vec
 template <class T>
-// requires has_id<T, size_t>::value
 requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
 vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 

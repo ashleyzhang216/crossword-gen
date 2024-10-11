@@ -259,14 +259,14 @@ void cw_csp::initialize_csp() {
             ) {
                 // add arcs
                 constraints.push_back(make_unique<cw_constraint>(
-                    constraints.size(), 
+                    constraints.size(),
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 ));
                 constraints.push_back(make_unique<cw_constraint>(
-                    constraints.size(), 
+                    constraints.size(),
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs,

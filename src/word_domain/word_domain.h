@@ -90,11 +90,11 @@ namespace word_domain_ns {
             // opt file that this object may have read from
             optional<string> filepath_opt;
 
-            // // trie of all words
-            // shared_ptr<trie_node> trie;
-
-            // all trie nodes, idx 0 is root node
+            // all trie nodes
             id_obj_manager<trie_node> nodes;
+
+            // idx 0 of nodes id_obj_manager defined as root node
+            static constexpr size_t TRIE_ROOT_NODE_IDX = 0ul;
 
             // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
             // contents include all words ever added, even if pruned during an AC-3 call or this domain is assigned a value
