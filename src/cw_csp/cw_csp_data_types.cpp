@@ -39,7 +39,6 @@ bool cw_variable::operator==(const cw_variable& rhs) const {
         && origin_col == rhs.origin_col
         && length == rhs.length  
         && dir == rhs.dir;
-        // TODO: this needs to check domain equality for test drivers
 }
 
 /**

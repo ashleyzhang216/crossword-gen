@@ -41,6 +41,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         filepath_opt(filepath_opt),
         unassigned_domain_size(0),
         assigned(false) {
+        
     // init root node of trie
     nodes.push_back(
         make_unique<trie_node>(TRIE_ROOT_NODE_IDX, false, '_', id_obj_manager<trie_node>::INVALID_ID)
@@ -205,7 +206,7 @@ void word_domain::add_word(word_t w) {
             unassigned_domain_size++;
 
             // update word counts in letters_at_indices
-            for(uint i = 0; i < w.word.size(); i++) {
+            for(uint i = 0; i < w.word.size(); ++i) {
                 assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
                 letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
