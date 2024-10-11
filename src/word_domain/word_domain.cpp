@@ -330,6 +330,68 @@ uint word_domain::num_letters_at_index(uint index, char letter) const {
 }
 
 /**
+ * @brief checks which of the input letters at an input index exist in domain words among those also with a required letter at a required index
+ * @pre index != required_index, equality doesn't make sense for intended use case of simple cycle constraints
+ *
+ * @param index index to search for letters along
+ * @param letters 0-indexed bitset of letters to search for, i.e. index 0 == 'a'
+ * @param required_index index at which required_letter must appear in words included in search
+ * @param required_letter letter words included in search must have at index required_index
+ *
+ * @returns 0-indexed bitset where bit set --> contains 1+ word with that letter at specified index AND required_letter @ index required_index
+ * @note the above arrow is unidirectional, bit not set in input -> bit not set in output
+*/
+std::bitset<NUM_ENGLISH_LETTERS> word_domain::has_letters_at_index_with_letter_assigned(uint index, const std::bitset<NUM_ENGLISH_LETTERS>& letters, uint required_index, char required_letter) const {
+    assert(index != required_index);
+
+    std::bitset<NUM_ENGLISH_LETTERS> res;
+
+    /**
+     * @brief private helper
+     * @pre cur_index > target_index
+     *
+     * @param node_idx node to traverse from
+     * @param cur_index initial index of node_idx
+     * @param target_index index of parent to read letter from
+     * @returns letter of the parent node of node_idx at a index of target_index
+    */
+   auto char_of_parent = [this](size_t node_idx, uint cur_index, const uint target_index) -> char {
+        assert(cur_index > 0 && cur_index < MAX_WORD_LEN);
+        assert(target_index >= 0 && target_index < MAX_WORD_LEN - 1);
+        assert(cur_index > target_index);
+
+        while(cur_index != target_index) {
+            node_idx = nodes[node_idx]->parent;
+            cur_index--;
+        }
+        return nodes[node_idx]->letter;
+   };
+
+    // idea: traverse upwards from whichever is the higher depth to only have one path via parent instead of exponential growth of search paths
+    if(index > required_index) {
+        for(uint j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            if(letters[j]) {
+                for(const size_t node_idx : letters_at_indices[index][j].nodes) {
+                    if(char_of_parent(node_idx, index, required_index) == required_letter) {
+                        res |= 1 << j;
+                        break;
+                    }
+                }
+            }
+        }
+    } else {
+        for(const size_t node_idx : letters_at_indices[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
+            res |= 1 << static_cast<uint>(char_of_parent(node_idx, required_index, index) - 'a');
+
+            // early exit iff all letters found
+            if(res == letters) break;
+        }
+    }
+
+    return res;
+}
+
+/**
  * @brief removes words with a specific letter at a specific index from trie
  * @warning behavior undefined if called in cw_variable initialization
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
