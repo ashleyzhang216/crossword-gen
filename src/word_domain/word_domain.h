@@ -105,6 +105,8 @@ namespace word_domain_ns {
 
             // stores # of words with letters at each index
             // contents undefined if domain assigned
+            // TODO: this is NUM_ENGLISH_LETTERS * MAX_WORD_LEN * sizeof(letters_table_entry) bytes, at least ~2KB
+            //       should this be moved to heap to avoid crashing if too many cw_variable and thus word_domain are initialized?
             array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
 
             // each layer corresponds to one call to AC-3 algorithm, and possibly contains a pruned assigned value 
