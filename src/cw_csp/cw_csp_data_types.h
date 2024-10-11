@@ -60,6 +60,16 @@ namespace cw_csp_data_types_ns {
 
         // operator to print out cw_variable for debug
         friend ostream& operator<<(ostream& os, const cw_variable& var);
+
+        // for copying, must deep copy/clone other domain
+        cw_variable(const cw_variable& other);
+        cw_variable& operator=(const cw_variable& other);
+
+        // moving ok with default since id_obj_manager has move semantics
+        cw_variable(cw_variable&& other) = default;
+        cw_variable& operator=(cw_variable&& other) = default;
+        
+        ~cw_variable() = default;
     };
 
     // equality constraints between 2 letters in 2 cw vars

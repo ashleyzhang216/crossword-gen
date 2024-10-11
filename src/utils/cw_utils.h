@@ -98,10 +98,18 @@ class cw_utils {
             }
         }
 
+        // // copyable
+        // cw_utils(const cw_utils& other);
+        // cw_utils& operator=(const cw_utils& other);
+
+        // // movable
+        // cw_utils(cw_utils&& other);
+        // cw_utils& operator=(cw_utils&& other) noexcept;
+
     protected:
         // fields for printing
-        const string name;
-        const verbosity_t max_verbosity;
+        string name;
+        verbosity_t max_verbosity;
 
         // declaration of global mutex to protect printing
         static mutex print_mx;
@@ -214,6 +222,7 @@ class progress_bar {
 
 /**
  * @brief helpers to check if struct has 'id' field of a certain type
+ * TODO: check that T is copyable
 */
 template <typename T, typename F>
 struct has_id : std::false_type {};
@@ -226,7 +235,8 @@ struct has_id<T, decltype(std::declval<T>().id)>
  * @brief holds fixed size vector of elements containing a unique size_t 'id' field equal to its index
 */
 template <class T>
-requires has_id<T, size_t>::value
+requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
+// requires has_id<T, size_t>::value
 class id_obj_manager {
     public:
         id_obj_manager () = default;
@@ -235,28 +245,29 @@ class id_obj_manager {
         // for id placeholders
         static constexpr size_t INVALID_ID = UINT_MAX;
 
-        // initialize with data
-        inline void init(vector<unique_ptr<T> >&& data) {
-            assert(!vec.has_value());
-            vec = std::move(data);
-            for(size_t i = 0; i < size(); ++i) {
-                assert(vec.value()[i]->id == i);
+        // add element
+        void push_back(unique_ptr<T>&& ptr) {
+            if(!vec.has_value()) {
+                vec = vector<unique_ptr<T> >();
             }
+
+            assert(vec.value().size() == ptr->id);
+            vec.value().push_back(std::move(ptr));
         }
 
         // access size
-        inline size_t size() const {
-            if(!vec.has_value()) return 0;
+        size_t size() const {
+            if(!vec.has_value()) return 0ul;
             return vec.value().size();
         }
 
         // access vector element
-        inline unique_ptr<T>& operator[](size_t n) {
+        unique_ptr<T>& operator[](size_t n) {
             assert(vec.has_value());
             assert(vec.value()[n]->id == n);
             return vec.value()[n];
         }
-        inline const unique_ptr<T>& operator[](size_t n) const {
+        const unique_ptr<T>& operator[](size_t n) const {
             return const_cast<const unique_ptr<T>&>(const_cast<id_obj_manager*>(this)->operator[](n));
         }
         
@@ -287,7 +298,24 @@ class id_obj_manager {
             return vec.has_value() ? vec->end() : empty_vec.end();
         }
 
-        // explicitly not copyable
+        // deep copy
+        id_obj_manager clone() const {
+            id_obj_manager copy;
+
+            if(vec.has_value()) {
+                vector<unique_ptr<T> > vec_copy;
+                vec_copy.reserve(vec->size());
+
+                for(const auto& ptr : vec.value()) {
+                    vec_copy.emplace_back(make_unique<T>(*ptr));
+                }
+                
+                copy.init(std::move(vec_copy));
+            }
+            return copy;
+        }
+
+        // explicitly not ordinarily copyable
         id_obj_manager(const id_obj_manager&) = delete;
         id_obj_manager& operator=(const id_obj_manager&) = delete;
 
@@ -302,6 +330,7 @@ class id_obj_manager {
             if(other.vec.has_value()) {
                 init(std::move(other.vec.value()));
             }
+            return *this;
         }
 
     protected:
@@ -310,11 +339,21 @@ class id_obj_manager {
 
         // fallback for iterators when vec is empty
         static vector<unique_ptr<T> > empty_vec;
+
+        // initialize with data
+        void init(vector<unique_ptr<T> >&& data) {
+            assert(!vec.has_value());
+            vec = std::move(data);
+            for(size_t i = 0; i < size(); ++i) {
+                assert(vec.value()[i]->id == i);
+            }
+        }
 };
 
 // define empty_vec
 template <class T>
-requires has_id<T, size_t>::value
+// requires has_id<T, size_t>::value
+requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
 vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 
 /**

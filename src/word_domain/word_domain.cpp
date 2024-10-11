@@ -24,7 +24,8 @@ word_domain::word_domain(string name) : word_domain(name, std::nullopt) {
  * @param filepath path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-word_domain::word_domain(string name, string filepath, bool print_progress_bar) : word_domain(name, optional<string>(filepath), print_progress_bar) {
+word_domain::word_domain(string name, string filepath, bool print_progress_bar) 
+        : word_domain(name, optional<string>(filepath), print_progress_bar) {
     // do nothing, delegated to constructor does everything needed
 }
 
@@ -35,11 +36,24 @@ word_domain::word_domain(string name, string filepath, bool print_progress_bar) 
  * @param filepath_opt optional, may contain path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar) : common_parent(name, VERBOSITY) {
-    trie = make_shared<trie_node>(false, '_', nullptr);
-    this->filepath_opt = filepath_opt;
-    unassigned_domain_size = 0;
-    assigned = false;
+word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar) 
+        : common_parent(name, VERBOSITY),
+        filepath_opt(filepath_opt),
+        unassigned_domain_size(0),
+        assigned(false) {
+    // trie = make_shared<trie_node>(false, '_', nullptr);
+
+    // temporary storage of trie nodes
+    // vector<unique_ptr<trie_node> > nodes_vec = {
+    //     make_unique<trie_node>(0, false, '_', id_obj_manager<trie_node>::INVALID_ID)
+    // };
+    
+    // vector<unique_ptr<trie_node> > nodes_vec;
+
+    // init root node of trie
+    nodes.push_back(
+        make_unique<trie_node>(0, false, '_', id_obj_manager<trie_node>::INVALID_ID)
+    );
 
     // if filepath was provided
     if(filepath_opt.has_value()) {
@@ -117,7 +131,10 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             utils.log(FATAL, "word_domain got file of invalid type: ", filepath);
             return;
         }
-    } 
+    }
+
+    // initialize node id_obj_manager from temp storage
+    // nodes.init(std::move(nodes_vec));
 }
 
 /**
@@ -127,11 +144,26 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
  * @param name the name of this object
  * @param domain set of words to add to domain, whose words must all be equal length
 */
-word_domain::word_domain(string name, unordered_set<word_t>&& domain) : common_parent(name, VERBOSITY) {
-    trie = make_shared<trie_node>(false, '_', nullptr);
-    filepath_opt = std::nullopt;
-    unassigned_domain_size = 0;
-    assigned = false;
+word_domain::word_domain(string name, unordered_set<word_t>&& domain) 
+        : common_parent(name, VERBOSITY),
+          filepath_opt(std::nullopt),
+          unassigned_domain_size(0),
+          assigned(false) {
+    // trie = make_shared<trie_node>(false, '_', nullptr);
+
+    // temporary storage of trie nodes
+    // vector<unique_ptr<trie_node> > nodes_vec = {
+    //     make_unique<trie_node>(0, false, '_', id_obj_manager<trie_node>::INVALID_ID)
+    // };
+    // vector<unique_ptr<trie_node> > nodes_vec;
+    // nodes_vec.emplace_back(
+    //     make_unique<trie_node>(0, false, '_', id_obj_manager<trie_node>::INVALID_ID)
+    // );
+
+    // init root node of trie
+    nodes.push_back(
+        make_unique<trie_node>(0, false, '_', id_obj_manager<trie_node>::INVALID_ID)
+    );
 
     size_t word_len = 0;
     for(word_t word : domain) {
@@ -139,6 +171,9 @@ word_domain::word_domain(string name, unordered_set<word_t>&& domain) : common_p
         word_len = word.word.size();
         add_word(word);
     }
+    
+    // initialize node id_obj_manager from temp storage
+    // nodes.init(std::move(nodes_vec));
 }
 
 /**
@@ -201,7 +236,7 @@ void word_domain::add_word(word_t w) {
                 letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
 
-            add_word_to_trie(trie, w.word, 0);
+            add_word_to_trie(0, w.word, 0);
         }
     }
 }
@@ -209,29 +244,41 @@ void word_domain::add_word(word_t w) {
 /**
  * @brief private helper for add_word(), adds word to trie
  * 
- * @param node ptr to node to branch off of, if applicable
+ * @param node_idx idx in nodes id_obj_manager of node to branch off of, if applicable
  * @param word the word to add
  * @param pos index of next letter to add to tree
 */
-void word_domain::add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos) {
-    assert(node);
+void word_domain::add_word_to_trie(const size_t node_idx, string& word, uint pos) {
+    assert(node_idx >= 0 && node_idx < nodes.size());
 
     // all letters added to tree
     if(pos >= word.size()) {
-        node->valid = true;
+        // node->valid = true;
+        nodes[node_idx]->valid = true;
         return;
     }
 
     // create child node if it doesn't exist yet
-    if(node->children.find(word.at(pos)) == node->children.end()) {
-        node->children.insert({word.at(pos), make_shared<trie_node>(false, word.at(pos), node)});
+    // if(node->children.find(word.at(pos)) == node->children.end()) {
+    if(!nodes[node_idx]->children.count(word.at(pos))) {
+        // node->children.insert({word.at(pos), make_shared<trie_node>(false, word.at(pos), node)});
+
+        // create and add node to children of current node, entry in letters_at_indices, and nodes
+        nodes[node_idx]->children.insert({word.at(pos), nodes.size()});
+        letters_at_indices[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(nodes.size());
+        nodes.push_back(make_unique<trie_node>(
+            nodes.size(), false, word.at(pos), node_idx
+        ));
 
         // update nodes in letters_at_indices
-        letters_at_indices[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(node->children.at(word.at(pos)));
+        // letters_at_indices[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(node->children.at(word.at(pos)));
+
+        // letters_at_indices[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(nodes_vec[node_idx]->children.at(word.at(pos)));
     } 
 
     // recurse to next letter
-    add_word_to_trie(node->children.at(word.at(pos)), word, pos + 1);
+    // add_word_to_trie(node->children.at(word.at(pos)), word, pos + 1, nodes_vec);
+    add_word_to_trie(nodes[node_idx]->children.at(word.at(pos)), word, pos + 1);
 }
 
 /**
@@ -253,7 +300,7 @@ bool word_domain::is_word(string& word) const {
 */
 unordered_set<word_t> word_domain::find_matches(const string& pattern) const {
     unordered_set<word_t> matches;
-    traverse_to_find_matches(matches, pattern, 0, trie, "");
+    traverse_to_find_matches(matches, pattern, 0, 0, "");
     return matches;
 }
 
@@ -263,18 +310,18 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) const {
  * @param matches ptr to set to add matches to
  * @param pattern the pattern to compare against
  * @param pos index of next char in pattern to check
- * @param node current node traversing in word_tree
+ * @param node_idx idx in id_obj_manager of current node traversing in word_tree
  * @param fragment part of word matched already
 */
-void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) const {
-    utils.log(DEBUG, "entering traverse_to_find_matches() w/ pattern ", pattern, " at pos ", pos, " @ node ", node->letter);
+void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, const size_t node_idx, string fragment) const {
+    utils.log(DEBUG, "entering traverse_to_find_matches() w/ pattern ", pattern, " at pos ", pos, " @ node ", nodes[node_idx]->letter);
 
     // pattern fully matched
     if(pos >= pattern.size()) {
         // AND this is a valid word
-        utils.log(DEBUG, "pattern fully matched, valid check: ", node->valid);
+        utils.log(DEBUG, "pattern fully matched, valid check: ", nodes[node_idx]->valid);
 
-        if(node->valid) { 
+        if(nodes[node_idx]->valid) { 
             matches.insert(word_map.at(fragment));
         }
         return;
@@ -284,14 +331,14 @@ void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const
         // wildcard at this index, add all possible matches
         utils.log(DEBUG, "traversing for wild card");
 
-        for(auto& pair : node->children) {
+        for(auto& pair : nodes[node_idx]->children) {
             traverse_to_find_matches(matches, pattern, pos + 1, pair.second, fragment + pair.first);
         }
 
-    } else if(node->children.count(pattern.at(pos)) > 0) {
+    } else if(nodes[node_idx]->children.count(pattern.at(pos)) > 0) {
         // next letter progresses towards a valid word, continue
         utils.log(DEBUG, "traversing for letter ", pattern.at(pos));
-        traverse_to_find_matches(matches, pattern, pos + 1, node->children[pattern.at(pos)], fragment + pattern.at(pos));
+        traverse_to_find_matches(matches, pattern, pos + 1, nodes[node_idx]->children[pattern.at(pos)], fragment + pattern.at(pos));
 
     } else {
         // this is a dead end, do nothing
@@ -306,9 +353,10 @@ void word_domain::traverse_to_find_matches(unordered_set<word_t>& matches, const
  * @returns letters_at_indices[index][letter].num_words
 */
 uint word_domain::num_letters_at_index(uint index, char letter) const {
+    assert(index < MAX_WORD_LEN);
     assert('a' <= letter && letter <= 'z');
     if(assigned) {
-        return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1l : 0l;
+        return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1u : 0u;
     }
     return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
 }
@@ -350,19 +398,31 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
         size_t total_leafs = 0;
 
         // need to make copy since removing from set being iterated on, should deallocate when out of scope
-        unordered_set<shared_ptr<trie_node> > nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
-        for(shared_ptr<trie_node> node : nodes_copy) {
-            if(shared_ptr<trie_node> parent = node->parent.lock()) {
+        unordered_set<size_t> nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
+        for(size_t node_idx : nodes_copy) {
+            if(nodes[node_idx]->parent != id_obj_manager<trie_node>::INVALID_ID) {
                 // downwards removal in trie
-                num_leafs = remove_children(node, index);
+                num_leafs = remove_children(node_idx, index);
                 assert(num_leafs > 0);
                 total_leafs += num_leafs;
 
                 // upwards removal in trie
-                remove_from_parents(node, num_leafs, static_cast<int>(index), true);
+                remove_from_parents(node_idx, num_leafs, static_cast<int>(index), true);
             } else {
                 utils.log(ERROR, "parent of node index ", index, ", letter ", letter, " deleted early");
             }
+
+            // if(shared_ptr<trie_node> parent = node->parent.lock()) {
+            //     // downwards removal in trie
+            //     num_leafs = remove_children(node, index);
+            //     assert(num_leafs > 0);
+            //     total_leafs += num_leafs;
+
+            //     // upwards removal in trie
+            //     remove_from_parents(node, num_leafs, static_cast<int>(index), true);
+            // } else {
+            //     utils.log(ERROR, "parent of node index ", index, ", letter ", letter, " deleted early");
+            // }
         }
 
         unassigned_domain_size -= total_leafs;
@@ -376,34 +436,35 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
  * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
  * 
- * @param node this node which may be removed from its parent 
+ * @param node_idx idx of this node which may be removed from its parent 
  * @param num_leafs number of valid words/leafs removed from the original call to remove_matching_words()
  * @param index depth of this node in trie or letter index in the word, root trie node defined as index/depth -1
  * @param letters_at_indices_updated true iff node is a node remove_children() was already called on, to avoid double updating
  * @note letters_at_indices_updated should only be true on the first recursive call for each node iterated on in remove_matching_words()
 */
-void word_domain::remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated) {
+void word_domain::remove_from_parents(const size_t node_idx, uint& num_leafs, int index, bool letters_at_indices_updated) {
 
     // check for base case of reached root node of trie
-    if(shared_ptr<trie_node> parent = node->parent.lock()) {
+    const size_t parent = nodes[node_idx]->parent;
+    if(parent != id_obj_manager<trie_node>::INVALID_ID) {
 
         // check if node has no valid leafs of its own and thus should be removed from parent
-        if(node->children.size() == 0) {
+        if(nodes[node_idx]->children.size() == 0) {
             // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
             if(!letters_at_indices_updated) {
-                letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].ac3_pruned_nodes.top().insert(node); // prune, add to ac3 layer
-                letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].nodes.erase(node);
+                letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
+                letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx);
             }
 
             // remove node as child from parent
             // for details on why this link isn't saved, see the proof in word_domain_data_types.h
-            parent->children.erase(node->letter);
+            nodes[parent]->children.erase(nodes[node_idx]->letter);
         }
 
         // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
         if(!letters_at_indices_updated) { 
-            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
-            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
+            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
+            letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
         }
 
         // recurse upwards
@@ -417,37 +478,37 @@ void word_domain::remove_from_parents(shared_ptr<trie_node> node, uint& num_leaf
  * @pre prior to this, start_new_ac3_call() must have been called more times than the # of prior calls to undo_prev_ac3_call()
  * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
  * 
- * @param node current node whose children (not itself) will be removed
+ * @param node_idx idx of current node whose children (not itself) will be removed
  * @param index depth of this parent node in trie or letter index in the word
  * @returns number of words/leaf nodes removed
 */
-uint word_domain::remove_children(shared_ptr<trie_node> node, uint index) {
-    assert(letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.count(node) > 0);
-    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_nodes.top().insert(node); // prune, add to ac3 layer
-    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].nodes.erase(node); 
+uint word_domain::remove_children(const size_t node_idx, uint index) {
+    assert(letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.count(node_idx) > 0);
+    letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
+    letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx); 
 
     // base case for leaf nodes
-    if(node->valid) {
+    if(nodes[node_idx]->valid) {
         // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
-        assert(node->children.size() == 0);
+        assert(nodes[node_idx]->children.size() == 0);
 
-        letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words--;
-        letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
+        letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words--;
+        letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
         return 1;
     }
 
     // recursive calls to children
     uint num_leafs = 0;
-    for(const auto& pair : node->children) {
+    for(const auto& pair : nodes[node_idx]->children) {
         num_leafs += remove_children(pair.second, index + 1);
     }
 
     // update num_words
-    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].num_words -= num_leafs;
-    letters_at_indices[index][static_cast<size_t>(node->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
+    letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
+    letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
 
     // for details on why these links aren't saved, see the proof in word_domain_data_types.h
-    node->children.clear();
+    nodes[node_idx]->children.clear();
 
     return num_leafs;
 }
@@ -470,7 +531,7 @@ void word_domain::start_new_ac3_call() {
     ac3_pruned_assigned_val.push(std::nullopt);
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            letters_at_indices[i][j].ac3_pruned_nodes.push(unordered_set<shared_ptr<trie_node> >());
+            letters_at_indices[i][j].ac3_pruned_nodes.push(unordered_set<size_t>());
             letters_at_indices[i][j].ac3_pruned_words.push(0);
         }
     }
@@ -506,11 +567,12 @@ size_t word_domain::undo_prev_ac3_call() {
             // don't pop ac3_pruned_nodes yet, need it to restore links from parents
 
             // restore edges from parent nodes
-            for(shared_ptr<trie_node> node : letters_at_indices[i][j].ac3_pruned_nodes.top()) {
-                if(shared_ptr<trie_node> parent = node->parent.lock()) {
-                    assert_m(i == 0 || letters_at_indices[i-1][static_cast<size_t>(parent->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
-                    assert_m(parent->children.count(node->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
-                    parent->children.insert({node->letter, node});
+            for(const size_t node_idx : letters_at_indices[i][j].ac3_pruned_nodes.top()) {
+                const size_t parent = nodes[node_idx]->parent;
+                if(parent != id_obj_manager<trie_node>::INVALID_ID) {
+                    assert_m(i == 0 || letters_at_indices[i-1][static_cast<size_t>(nodes[parent]->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
+                    assert_m(nodes[parent]->children.count(nodes[node_idx]->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
+                    nodes[parent]->children.insert({nodes[node_idx]->letter, node_idx});
                 } else {
                     utils.log(ERROR, "parent of node index ", i, ", letter ", j, " deleted early during restoration");
                 }
@@ -564,7 +626,7 @@ unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
         if(assigned_value.has_value()) {
             assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
             
-            result = { assigned_value.value().word.at(index) };
+            return { assigned_value.value().word.at(index) };
         }
     } else {
         for(char letter = 'a'; letter <= 'z'; letter++) {
@@ -587,31 +649,60 @@ vector<word_t> word_domain::get_cur_domain() const {
         return {};
     }
     vector<word_t> acc;
-    collect_cur_domain(trie, "", acc);
+    collect_cur_domain(0, "", acc);
     return acc;
 }
 
 /**
  * @brief helper for get_cur_domain(), traverses trie and adds words to accumulator
  * 
- * @param node current node in the traversal
+ * @param node_idx idx of current node in the traversal
  * @param fragment letters from traversal so far up to and not including the current node
  * @param acc accumulator vector to write back valid words to
 */
-void word_domain::collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) const {
-    string fragment_with_cur_node = (node == trie) ? fragment : fragment + node->letter;
+void word_domain::collect_cur_domain(const size_t node_idx, string fragment, vector<word_t>& acc) const {
+    string fragment_with_cur_node = (node_idx == 0) ? fragment : fragment + nodes[node_idx]->letter;
 
     // base case for leaf nodes
-    if(node->valid) {
+    if(nodes[node_idx]->valid) {
         // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
-        assert(node->children.size() == 0);
+        assert(nodes[node_idx]->children.size() == 0);
 
         acc.push_back(word_map.at(fragment_with_cur_node));
         return;
     }
 
     // recursive calls to children
-    for(const auto& pair : node->children) {
+    for(const auto& pair : nodes[node_idx]->children) {
         collect_cur_domain(pair.second, fragment_with_cur_node, acc);
     }
+}
+
+/**
+ * @brief copy for word_domain
+*/
+word_domain::word_domain(const word_domain& other) 
+    : common_parent(other.name, other.verbosity),
+      filepath_opt(other.filepath_opt),
+      nodes(other.nodes.clone()),
+      word_map(other.word_map),
+      unassigned_domain_size(other.unassigned_domain_size),
+      letters_at_indices(other.letters_at_indices),
+      ac3_pruned_assigned_val(other.ac3_pruned_assigned_val),
+      assigned(other.assigned),
+      assigned_value(other.assigned_value) {
+    // do nothing else
+}
+word_domain& word_domain::operator=(const word_domain& other) {
+    if (this != &other) {
+        filepath_opt = other.filepath_opt;
+        nodes = other.nodes.clone();
+        word_map = other.word_map;
+        unassigned_domain_size = other.unassigned_domain_size;
+        letters_at_indices = other.letters_at_indices;
+        ac3_pruned_assigned_val = other.ac3_pruned_assigned_val;
+        assigned = other.assigned;
+        assigned_value = other.assigned_value;
+    }
+    return *this;
 }

@@ -77,13 +77,24 @@ namespace word_domain_ns {
 
             // expose word_map for testing, undefined if domain assigned
             unordered_map<string, word_t>& get_word_map() { return word_map; }
+
+            // copyable
+            word_domain(const word_domain& other);
+            word_domain& operator=(const word_domain& other);
+
+            // // movable
+            word_domain(word_domain&& other) = default;
+            word_domain& operator=(word_domain&& other) noexcept = default;
         
         private:
             // opt file that this object may have read from
             optional<string> filepath_opt;
 
-            // trie of all words
-            shared_ptr<trie_node> trie;
+            // // trie of all words
+            // shared_ptr<trie_node> trie;
+
+            // all trie nodes, idx 0 is root node
+            id_obj_manager<trie_node> nodes;
 
             // map of all words to word structs (with heuristics) for O(1) validity checking & struct lookup for find_matches()
             // contents include all words ever added, even if pruned during an AC-3 call or this domain is assigned a value
@@ -113,19 +124,24 @@ namespace word_domain_ns {
             optional<string> parse_word(const string& word);
 
             // helper function for add_word()
-            void add_word_to_trie(shared_ptr<trie_node> node, string& word, uint pos);
+            // TODO: make this a lambda function in add_word()
+            void add_word_to_trie(const size_t node_idx, string& word, uint pos);
 
             // helper function for find_matches()
-            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, shared_ptr<trie_node> node, string fragment) const;
+            // TODO: make this a lambda function in find_matches()
+            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, const size_t node_idx, string fragment) const;
 
             // upwards recursive deletion helper func for remove_matching_words()
-            void remove_from_parents(shared_ptr<trie_node> node, uint& num_leafs, int index, bool letters_at_indices_updated);
+            // TODO: make this a lambda function in remove_matching_words()
+            void remove_from_parents(const size_t node_idx, uint& num_leafs, int index, bool letters_at_indices_updated);
 
             // downwards recursive deletion helper func for remove_matching_words()
-            uint remove_children(shared_ptr<trie_node> node, uint index);
+            // TODO: make this a lambda function in remove_matching_words()
+            uint remove_children(const size_t node_idx, uint index);
 
             // helper for get_cur_domain() to traverse trie and collect words
-            void collect_cur_domain(shared_ptr<trie_node> node, string fragment, vector<word_t>& acc) const;
+            // TODO: make this a lambda function in get_cur_domain()
+            void collect_cur_domain(const size_t node_idx, string fragment, vector<word_t>& acc) const;
     }; // word_domain
 }; // word_domain_ns
 

@@ -94,9 +94,6 @@ void cw_csp::initialize_csp() {
 
     utils.log(DEBUG, "cw_csp starting csp initialization");
 
-    // temporary storage of vars
-    vector<unique_ptr<cw_variable> >   variables_vec;
-
     // local vars for finding horizontal & vertical cw_variable
     bool traversing_word; // currently iterating through variable
     stringstream word_pattern; // pattern formed by word so far
@@ -138,8 +135,8 @@ void cw_csp::initialize_csp() {
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
-                        variables_vec.push_back(make_unique<cw_variable>(
-                            variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                        variables.push_back(make_unique<cw_variable>(
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
                     }
 
@@ -157,8 +154,8 @@ void cw_csp::initialize_csp() {
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
-            variables_vec.push_back(make_unique<cw_variable>(
-                variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+            variables.push_back(make_unique<cw_variable>(
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
         }
     }
@@ -198,8 +195,8 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
-                        variables_vec.push_back(make_unique<cw_variable>(
-                            variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                        variables.push_back(make_unique<cw_variable>(
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
                     }
 
@@ -217,14 +214,11 @@ void cw_csp::initialize_csp() {
 
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
-            variables_vec.push_back(make_unique<cw_variable>(
-                variables_vec.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+            variables.push_back(make_unique<cw_variable>(
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
         }
     }
-
-    // initialize vars from temp storage
-    variables.init(std::move(variables_vec));
 
     // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
@@ -255,9 +249,6 @@ void cw_csp::initialize_csp() {
 
     utils.log(DEBUG, "cw_csp populating constraints");
 
-    // temporary storage of constraints
-    vector<unique_ptr<cw_constraint> > constraints_vec;
-
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
         for(uint col = 0; col < cw.cols(); col++) {
@@ -267,15 +258,15 @@ void cw_csp::initialize_csp() {
                 var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID
             ) {
                 // add arcs
-                constraints_vec.push_back(make_unique<cw_constraint>(
-                    constraints_vec.size(), 
+                constraints.push_back(make_unique<cw_constraint>(
+                    constraints.size(), 
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 ));
-                constraints_vec.push_back(make_unique<cw_constraint>(
-                    constraints_vec.size(), 
+                constraints.push_back(make_unique<cw_constraint>(
+                    constraints.size(), 
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs,
@@ -284,9 +275,6 @@ void cw_csp::initialize_csp() {
             }
         }
     }
-
-    // initialize constrs from temp storage
-    constraints.init(std::move(constraints_vec));
 
     utils.log(DEBUG, "cw_csp building arc_dependencies");
 

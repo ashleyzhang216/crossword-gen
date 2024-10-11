@@ -94,6 +94,30 @@ void cw_utils::end_bar() {
     bar_mx.unlock();
 }
 
+// /**
+//  * @brief copy for cw_utils
+// */
+// cw_utils::cw_utils(const cw_utils& other) : cw_utils(other.name, other.max_verbosity) {}
+// cw_utils& cw_utils::operator=(const cw_utils& other) {
+//     if (this != &other) {
+//         name = other.name;
+//         max_verbosity = other.max_verbosity;
+//     }
+//     return *this;
+// }
+
+// /**
+//  * @brief move for cw_utils
+// */
+// cw_utils::cw_utils(cw_utils&& other) : cw_utils(other.name, other.max_verbosity) {}
+// cw_utils& cw_utils::operator=(cw_utils&& other) noexcept {
+//     if (this != &other) {
+//         name = std::move(other.name);
+//         max_verbosity = other.max_verbosity;
+//     }
+//     return *this;
+// }
+
 /**
  * @brief constructor for utils' fixed bar settings
  * @param line_width total char width of fixed bar

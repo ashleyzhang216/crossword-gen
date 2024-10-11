@@ -66,6 +66,36 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
 }
 
 /**
+ * @brief copy constructor for cw_variable
+*/
+cw_variable::cw_variable(const cw_variable& other) 
+    : id(other.id), 
+      origin_row(other.origin_row),
+      origin_col(other.origin_col),
+      length(other.length),
+      dir(other.dir),
+      pattern(other.pattern), 
+      domain(other.domain) {
+    // do nothing else
+}
+
+/**
+ * @brief copy assignment for cw_variable
+*/
+cw_variable& cw_variable::operator=(const cw_variable& other) {
+    if (this != &other) {
+        id = other.id;
+        origin_row = other.origin_row;
+        origin_col = other.origin_col;
+        length = other.length;
+        dir = other.dir;
+        pattern = other.pattern;
+        domain = other.domain;
+    }
+    return *this;
+}
+
+/**
  * @brief constructor for cw_variable to be used by cw_csp
  * 
  * @param id index of this cw_variable in an id_obj_manager

@@ -17,14 +17,15 @@ namespace common_parent_ns {
     class common_parent {
         public:
             // base constructor
-            common_parent(const string_view& name, const verbosity_t& min_verbosity);
+            common_parent(const string_view& name, const verbosity_t& verbosity);
 
             // shorthand for test drivers only to print failed tests
             bool check_condition(const string_view& condition_name, bool condition);
 
         protected:
             cw_utils utils;
-            const string name;
+            string name;
+            verbosity_t verbosity;
     };
 }
 

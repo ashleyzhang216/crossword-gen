@@ -12,11 +12,12 @@ using namespace common_parent_ns;
  * @brief common constructor for all cw objects and test drivers
  * 
  * @param name the name of this object
- * @param min_verbosity the min verbosity for the util object
+ * @param verbosity the min verbosity for the util object
 */
-common_parent::common_parent(const string_view& name, const verbosity_t& min_verbosity) 
-    : utils(name, min_verbosity), 
-      name(name) {
+common_parent::common_parent(const string_view& name, const verbosity_t& verbosity) 
+    : utils(name, verbosity), 
+      name(name),
+      verbosity(verbosity) {
     // do nothing, initializer list is sufficient
 }
 
