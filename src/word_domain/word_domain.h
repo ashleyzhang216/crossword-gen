@@ -61,7 +61,7 @@ namespace word_domain_ns {
             void unassign_domain() { assigned = false; assigned_value.reset(); }
 
             // get assigned status
-            bool is_assigned() { return assigned; }
+            bool is_assigned() const { return assigned; }
 
             // get size of domain remaining, for ac3 validity checking
             size_t size() const;
@@ -82,7 +82,7 @@ namespace word_domain_ns {
             word_domain(const word_domain& other);
             word_domain& operator=(const word_domain& other);
 
-            // // movable
+            // movable
             word_domain(word_domain&& other) = default;
             word_domain& operator=(word_domain&& other) noexcept = default;
         
@@ -122,26 +122,6 @@ namespace word_domain_ns {
 
             // helper for filepath constructor to check if word is legal
             optional<string> parse_word(const string& word);
-
-            // helper function for add_word()
-            // TODO: make this a lambda function in add_word()
-            void add_word_to_trie(const size_t node_idx, string& word, uint pos);
-
-            // helper function for find_matches()
-            // TODO: make this a lambda function in find_matches()
-            void traverse_to_find_matches(unordered_set<word_t>& matches, const string& pattern, uint pos, const size_t node_idx, string fragment) const;
-
-            // upwards recursive deletion helper func for remove_matching_words()
-            // TODO: make this a lambda function in remove_matching_words()
-            void remove_from_parents(const size_t node_idx, uint& num_leafs, int index, bool letters_at_indices_updated);
-
-            // downwards recursive deletion helper func for remove_matching_words()
-            // TODO: make this a lambda function in remove_matching_words()
-            uint remove_children(const size_t node_idx, uint index);
-
-            // helper for get_cur_domain() to traverse trie and collect words
-            // TODO: make this a lambda function in get_cur_domain()
-            void collect_cur_domain(const size_t node_idx, string fragment, vector<word_t>& acc) const;
     }; // word_domain
 }; // word_domain_ns
 
