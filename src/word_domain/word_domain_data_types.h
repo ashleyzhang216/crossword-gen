@@ -42,14 +42,6 @@ namespace word_domain_data_types_ns {
         // idx for all nodes that currently match this specific letter and index
         unordered_set<size_t> nodes;
 
-        // stands for letters_at_indices_subset
-        // MAX_WORD_LEN rows, NUM_ENGLISH_LETTERS cols
-        // number of words with each letter at each index among words with the specific letter at the specific index corresponding to this letters_at_indices entry
-        // notice that the sum of lai_subset for all letters for a single valid word index should sum up to letters_at_indices
-        // also notice that the value @ the specific letter at the specific index corresponding to this letters_at_indices entry should equal num_words
-        // also notice that the sum of any row in lai_subset for a single valid word index should equal num_words
-        vector<vector<uint> > lai_subset;
-
         /**
          * for these two functions below, each layer corresponds to one call to AC-3 algorithm, top layer corresponds to most recent AC-3 call
          * 
@@ -73,11 +65,9 @@ namespace word_domain_data_types_ns {
         stack<unordered_set<size_t> > ac3_pruned_nodes;
         // number of words pruned during an AC-3 call
         stack<size_t> ac3_pruned_words;
-        // number of words with each letter at each index pruned during an AC-3 call
-        stack<vector<vector<uint> > > ac3_pruned_lai_subset;
 
         // base constructor
-        letters_table_entry() : num_words(0u), lai_subset(MAX_WORD_LEN, vector<uint>(NUM_ENGLISH_LETTERS, 0u)) {}
+        letters_table_entry() : num_words(0u) {}
     };
 }; // word_domain_data_types_ns
 

@@ -481,7 +481,7 @@ void word_domain::start_new_ac3_call() {
     size_t stack_depth = ac3_pruned_assigned_val.size();
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
+            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
@@ -507,7 +507,7 @@ size_t word_domain::undo_prev_ac3_call() {
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
+            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
