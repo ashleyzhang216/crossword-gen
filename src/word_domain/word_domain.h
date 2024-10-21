@@ -44,7 +44,7 @@ namespace word_domain_ns {
             uint num_letters_at_index(uint index, char letter) const;
 
             // read function for entries in letters_at_indices given a specific letter at a specific index
-            std::bitset<NUM_ENGLISH_LETTERS> has_letters_at_index_with_letter_assigned(uint index, const std::bitset<NUM_ENGLISH_LETTERS>& letters, uint required_index, char required_letter) const;
+            letter_bitset_t has_letters_at_index_with_letter_assigned(uint index, const letter_bitset_t& letters, uint required_index, char required_letter) const;
 
             // deletion function for words with letters at an index
             size_t remove_matching_words(uint index, char letter);

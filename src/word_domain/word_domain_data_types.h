@@ -14,6 +14,10 @@ using namespace common_data_types_ns;
 using json = nlohmann::json;
 
 namespace word_domain_data_types_ns {
+
+    // 0-indexed bitset of letters, i.e. index 0 == 'a'
+    using letter_bitset_t = std::bitset<NUM_ENGLISH_LETTERS>;
+
     /**
      * @brief node for word_domain
     */
