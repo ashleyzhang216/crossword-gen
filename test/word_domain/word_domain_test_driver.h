@@ -25,7 +25,7 @@ namespace word_domain_test_driver_ns {
             // base constructor
             word_domain_test_driver(string name);
 
-            // constructor with initial contents
+            // constructor with filepath contents
             word_domain_test_driver(string name, string filepath);
 
             // basic directed test for trie & find_matches()
@@ -87,6 +87,7 @@ namespace word_domain_test_driver_ns {
             void assign_domain(word_t word) { dut->assign_domain(word); }
             void unassign_domain() { dut->unassign_domain(); }
             vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
+            unordered_map<string, word_t>& get_word_map() { return dut->get_word_map(); }
 
             // destructor, all objects are raii and should delete automatically
             ~word_domain_test_driver() = default;

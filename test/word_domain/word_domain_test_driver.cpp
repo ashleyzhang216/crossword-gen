@@ -18,7 +18,7 @@ word_domain_test_driver::word_domain_test_driver(string name) : common_parent(na
 }
 
 /**
- * @brief constructor for word_domain test driver with initial contents
+ * @brief constructor for word_domain test driver with initial contents from filepath
  * 
  * @param name name of driver
  * @param filepath path to .txt or .json file containing word data
