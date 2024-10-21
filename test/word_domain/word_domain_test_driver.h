@@ -76,6 +76,9 @@ namespace word_domain_test_driver_ns {
             // basic directed test for num_letters_at_index() after assigning domain
             bool test_num_letters_at_indicies_assign(word_t value);
 
+            // basic directed test for has_letters_at_index_with_letter_assigned()
+            bool test_has_letters_at_index_with_letter_assigned(uint len);
+
             // expose basic functionalities for dut 
             void add_words(vector<word_t> words) { for(word_t w : words) dut->add_word(w); }
             void remove_words(vector<pair<uint, char> > remove_params) { 

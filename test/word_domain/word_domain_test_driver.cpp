@@ -398,6 +398,46 @@ bool word_domain_test_driver::test_num_letters_at_indicies_assign(word_t value) 
 }
 
 /**
+ * @brief checks output from has_letters_at_index_with_letter_assigned()
+ * @param len word length of domain
+ * 
+ * @returns true iff has_letters_at_index_with_letter_assigned() works correctly
+*/
+bool word_domain_test_driver::test_has_letters_at_index_with_letter_assigned(uint len) {
+    bool result = true;
+
+    vector<word_t> domain = dut->get_cur_domain();
+    auto ground_truth = [&domain](uint index, char req_letter, uint req_index) -> letter_bitset_t {
+        letter_bitset_t res;
+
+        for(const word_t& w : domain) {
+            if(w.word.at(req_index) == req_letter) {
+                res |= 1 << static_cast<uint>(w.word.at(index) - 'a');
+            }
+        }
+
+        return res;
+    };
+
+    letter_bitset_t all_bitset;
+    all_bitset.flip();
+
+    for(uint i = 0; i < len; ++i) {
+        unordered_set<char> letters = dut->get_all_letters_at_index(i);
+
+        for(char letter : letters) {
+            for(uint j = 0; j < len; ++j) {
+                if(i != j || dut->is_assigned()) {
+                    result &= dut->has_letters_at_index_with_letter_assigned(j, all_bitset, i, letter) == ground_truth(j, letter, i);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
  * @brief checks if each entry's num_words or children.size() are equal
  * 
  * @param expected expected array

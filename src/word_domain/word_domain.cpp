@@ -350,7 +350,7 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
             assert(index < assigned_value.value().word.size());
 
             if(assigned_value.value().word.at(required_index) == required_letter) {
-                res |= static_cast<uint>(assigned_value.value().word.at(index) - 'a');
+                res |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
             }
         }
     } else {
