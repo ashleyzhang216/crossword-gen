@@ -223,12 +223,19 @@ struct has_id<T, decltype(std::declval<T>().id)>
     : std::true_type {};
 
 /**
- * @brief holds fixed size vector of elements containing a unique size_t 'id' field equal to its index
- * TODO: require that also has clone function
+ * @brief helpers to check if struct has clone() function returning a unique_ptr to itself
+*/
+template <typename T, typename = void>
+struct has_clone : std::false_type {};
+
+template <typename T>
+struct has_clone<T, std::void_t<decltype(std::declval<T>().clone())> > : std::is_same<decltype(std::declval<T>().clone()), std::unique_ptr<T> > {};
+
+/**
+ * @brief holds vector of elements containing a unique size_t 'id' field equal to its index and clone() function
 */
 template <class T>
-// requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
-requires has_id<T, size_t>::value
+requires std::conjunction_v<has_id<T, size_t>, has_clone<T> >
 class id_obj_manager {
     public:
         id_obj_manager () = default;
@@ -299,7 +306,6 @@ class id_obj_manager {
                 vec_copy.reserve(vec->size());
 
                 for(const auto& ptr : vec.value()) {
-                    // vec_copy.emplace_back(make_unique<T>(*ptr));
                     vec_copy.emplace_back(ptr->clone());
                 }
 
@@ -345,8 +351,7 @@ class id_obj_manager {
 
 // define empty_vec
 template <class T>
-// requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
-requires has_id<T, size_t>::value
+requires std::conjunction_v<has_id<T, size_t>, has_clone<T> >
 vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 
 /**
