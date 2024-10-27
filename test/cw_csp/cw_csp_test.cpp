@@ -670,7 +670,6 @@ TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates]
 /**
  * AC-3 test for cw_csp for proper domain pruning
 */
-/*
 TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_pruning");
     const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
@@ -680,21 +679,21 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
     
     // simple valid 2x2 crossword
-    unordered_set<unique_ptr<cw_variable> > vars_2_2 = {
+    unordered_set<unique_ptr<cw_variable> > vars_2_2 = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("at"), word_t("to")}),
-        cw_variable(1l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("to"), word_t("on")}),
-    };
+        cw_variable(1l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("to"), word_t("on")})
+    );
     stringstream contents_2_2;
     contents_2_2 << WCD << BLK 
                  << WCD << WCD;
     REQUIRE(dut->test_ac3(2, 2, contents_2_2.str(), dict_barebones_path, true, vars_2_2));
 
     // simple valid H-shaped 3x3 crossword
-    unordered_set<unique_ptr<cw_variable> > vars_3_3_h = {
+    unordered_set<unique_ptr<cw_variable> > vars_3_3_h = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")}),
         cw_variable(1l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("cat"), word_t("can"), word_t("eta"), word_t("ace"), word_t("are")}),
-        cw_variable(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("eta"), word_t("and"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap"), word_t("bed")}),
-    };
+        cw_variable(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("eta"), word_t("and"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap"), word_t("bed")})
+    );
     stringstream contents_3_3_h;
     contents_3_3_h << WCD << BLK << WCD 
                    << WCD << WCD << WCD 
@@ -702,11 +701,11 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     REQUIRE(dut->test_ac3(3, 3, contents_3_3_h.str(), dict_simple_path, true, vars_3_3_h));
 
     // simple valid H-shaped 4x4 crossword
-    unordered_set<unique_ptr<cw_variable> > vars_4_4_h = {
+    unordered_set<unique_ptr<cw_variable> > vars_4_4_h = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("atol"), word_t("atom"), word_t("caps"), word_t("cars"), word_t("halo"), word_t("knob"), word_t("know"), word_t("pant")}),
         cw_variable(1l, 1, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("tear"), word_t("tore"), word_t("tote"), word_t("trot"), word_t("atol"), word_t("near"), word_t("node")}),
-        cw_variable(2l, 0, 3, 4, VERTICAL,   unordered_set<word_t>{word_t("trot"), word_t("troy"), word_t("been"), word_t("near"), word_t("pear"), word_t("tear"), word_t("atol"), word_t("atom"), word_t("plan")}),
-    };
+        cw_variable(2l, 0, 3, 4, VERTICAL,   unordered_set<word_t>{word_t("trot"), word_t("troy"), word_t("been"), word_t("near"), word_t("pear"), word_t("tear"), word_t("atol"), word_t("atom"), word_t("plan")})
+    );
     stringstream contents_4_4_h;
     contents_4_4_h << WCD << BLK << BLK << WCD 
                    << WCD << WCD << WCD << WCD 
@@ -715,7 +714,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     REQUIRE(dut->test_ac3(4, 4, contents_4_4_h.str(), dict_simple_path, true, vars_4_4_h));
 
     // 5x5 nytimes crossword 8/28/2023
-    unordered_set<unique_ptr<cw_variable> > vars_nytimes_8_28_23 = {
+    unordered_set<unique_ptr<cw_variable> > vars_nytimes_8_28_23 = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("bmx")}),
         cw_variable(1l, 0, 1, 5, VERTICAL,   unordered_set<word_t>{word_t("broom")}),
         cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("leave")}),
@@ -725,8 +724,8 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
         cw_variable(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("read")}),
         cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("boats")}),
         cw_variable(8l, 3, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("move")}),
-        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("xmen")}),
-    };
+        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("xmen")})
+    );
     stringstream contents_nytimes_8_28_23;
     contents_nytimes_8_28_23 << BLK << WCD << WCD << WCD << WCD 
                              << BLK << WCD << WCD << WCD << WCD 
@@ -736,7 +735,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     REQUIRE(dut->test_ac3(5, 5, contents_nytimes_8_28_23.str(), dict_nytimes_8_28_23, true, vars_nytimes_8_28_23));
 
     // 5x5 nytimes crossword 10/17/13
-    unordered_set<unique_ptr<cw_variable> > vars_nytimes_10_17_13 = {
+    unordered_set<unique_ptr<cw_variable> > vars_nytimes_10_17_13 = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("doze")}),
         cw_variable(1l, 2, 1, 3, VERTICAL,   unordered_set<word_t>{word_t("eno")}),
         cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("cyber")}),
@@ -746,8 +745,8 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
         cw_variable(6l, 1, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("yam")}),
         cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("zebra")}),
         cw_variable(8l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ene")}),
-        cw_variable(9l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("oreo")}),
-    };
+        cw_variable(9l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("oreo")})
+    );
     stringstream contents_nytimes_10_17_13;
     contents_nytimes_10_17_13 << WCD << 'i' << WCD << WCD << BLK 
                               << WCD << BLK << WCD << WCD << WCD
@@ -757,7 +756,7 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     REQUIRE(dut->test_ac3(5, 5, contents_nytimes_10_17_13.str(), dict_nytimes_10_17_13, true, vars_nytimes_10_17_13));
 
     // 5x5 nytimes crossword 2/3/17
-    unordered_set<unique_ptr<cw_variable> > vars_nytimes_2_3_17 = {
+    unordered_set<unique_ptr<cw_variable> > vars_nytimes_2_3_17 = make_unordered_set_unique<cw_variable>(
         cw_variable(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("may")}),
         cw_variable(1l, 1, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("sale")}),
         cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("april")}),
@@ -767,8 +766,8 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
         cw_variable(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("spec")}),
         cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("march")}),
         cw_variable(8l, 3, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("alias")}),
-        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("yell")}),
-    };
+        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("yell")})
+    );
     stringstream contents_nytimes_2_3_17;
     contents_nytimes_2_3_17 << BLK << BLK << 'a' << WCD << WCD 
                             << BLK << WCD << WCD << WCD << WCD
@@ -777,7 +776,6 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
                             << WCD << WCD << WCD << WCD << BLK;
     REQUIRE(dut->test_ac3(5, 5, contents_nytimes_2_3_17.str(), dict_nytimes_2_3_17, true, vars_nytimes_2_3_17));
 }
-*/
 
 /**
  * simple backtracking solving test for cw_csp for valid/invalid checking

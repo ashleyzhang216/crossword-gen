@@ -443,5 +443,10 @@ template <class V, class ... Args> auto make_vector_unique(Args ... args) {
     (rv.push_back(move_to_unique(args)), ...);
     return rv;
 }
+template <class V, class ... Args> auto make_unordered_set_unique(Args ... args) {
+    std::unordered_set<std::unique_ptr<V>> rv;
+    (rv.insert(move_to_unique(args)), ...);
+    return rv;
+}
 
 #endif // CW_UTILS_H
