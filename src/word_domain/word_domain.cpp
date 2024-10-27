@@ -647,25 +647,25 @@ size_t word_domain::size() const {
 /**
  * @brief get letters at an index in the current domain, for AC-3 constraint satisfaction checking
  * @param index the index to get letters for
- * @returns set of chars, >= 'a', and <= 'z', which appear at the specific index in the current domain (taking into account assignment) 
+ * @returns bitset where true --> corresponding letter appears  at specified index in current domain (taking into account assignment) 
 */
-unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
+letter_bitset_t word_domain::get_all_letters_at_index(uint index) const {
     assert_m(index < MAX_WORD_LEN, "index out of bounds of max word length");
 
-    unordered_set<char> result;
+    letter_bitset_t result;
     if(assigned) {
         if(assigned_value.has_value()) {
             assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
             
-            return { assigned_value.value().word.at(index) };
+            result |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
         }
     } else {
-        for(char letter = 'a'; letter <= 'z'; letter++) {
-            if(num_letters_at_index(index, letter) > 0) {
-                result.insert(letter);
+        for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
+            if(num_letters_at_index(index, static_cast<char>(i + 'a')) > 0) {
+                result |= 1 << i;
             }
         }
-    } 
+    }
     
     return result;
 }

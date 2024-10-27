@@ -104,7 +104,7 @@ namespace word_domain_test_driver_ns {
             );
 
             // helper function for test_get_all_letters_at_index()
-            unordered_set<char> get_all_letters_at_index(
+            letter_bitset_t get_all_letters_at_index(
                 uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words
             );
     }; // word_domain_test_driver

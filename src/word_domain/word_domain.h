@@ -70,8 +70,7 @@ namespace word_domain_ns {
             size_t size() const;
 
             // get letters at an index, for AC-3 constraint satisfaction checking
-            // TODO: change return value type to letter_bitset_t
-            unordered_set<char> get_all_letters_at_index(uint index) const;
+            letter_bitset_t get_all_letters_at_index(uint index) const;
 
             // get all words in current domain to try to assign for backtracking
             vector<word_t> get_cur_domain() const;

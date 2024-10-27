@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 namespace word_domain_data_types_ns {
 
-    // 0-indexed bitset of letters, i.e. index 0 == 'a'
+    // 0-indexed bitset of letters, i.e. index 0/LSB == 'a'
     using letter_bitset_t = std::bitset<NUM_ENGLISH_LETTERS>;
 
     /**

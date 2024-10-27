@@ -223,10 +223,18 @@ cw_arc::cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs
 bool cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
 
     size_t num_removed = 0;
-    for(char letter : vars[lhs]->domain.get_all_letters_at_index(lhs_index)) {
-        if(vars[rhs]->domain.num_letters_at_index(rhs_index, letter) == 0) {
+    letter_bitset_t lhs_letters = vars[lhs]->domain.get_all_letters_at_index(lhs_index);
+    letter_bitset_t rhs_letters = vars[rhs]->domain.get_all_letters_at_index(rhs_index);
+    for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
+        if(lhs_letters[i] && !rhs_letters[i]) {
             // cannot satisfy constraint for this letter
-            num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, letter);
+            num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
+
+            // // lhs contains this letter
+            // if(vars[rhs]->domain.num_letters_at_index(rhs_index, static_cast<char>(i + 'a')) == 0) {
+            //     // cannot satisfy constraint for this letter
+            //     num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
+            // }
         }
     }
 
