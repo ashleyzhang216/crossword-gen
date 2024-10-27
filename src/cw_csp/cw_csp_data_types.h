@@ -95,8 +95,12 @@ namespace cw_csp_data_types_ns {
             // ids of var which may be modified in prune_domain() which can affect dependent arcs
             virtual size_t dependent() const = 0;
 
+            // for each pair of intersecting variables, their lhs/rhs index values
+            virtual vector<pair<uint, uint> > intersection_indices() const = 0;
+
             // equality operator
             friend bool operator==(const cw_constraint& lhs, const cw_constraint& rhs);
+            friend bool operator==(const unique_ptr<cw_constraint>& lhs, const unique_ptr<cw_constraint>& rhs);
             virtual bool equals(const cw_constraint&) const = 0;
 
             // operator to print out cw_constraint for debug
@@ -140,6 +144,9 @@ namespace cw_csp_data_types_ns {
 
         // only dependent is lhs
         virtual size_t dependent() const override;
+
+        // only pair of intersections is (lhs_index, rhs_index)
+        virtual vector<pair<uint, uint> > intersection_indices() const override;
         
         // equality operator
         virtual bool equals(const cw_constraint& other_constr) const override;

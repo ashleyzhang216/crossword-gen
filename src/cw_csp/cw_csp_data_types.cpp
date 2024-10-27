@@ -149,6 +149,13 @@ bool cw_csp_data_types_ns::operator==(const cw_constraint& lhs, const cw_constra
 }
 
 /**
+ * @brief == operator for ptr to cw_constraint to use for test drivers
+*/
+bool cw_csp_data_types_ns::operator==(const unique_ptr<cw_constraint>& lhs, const unique_ptr<cw_constraint>& rhs) {
+    return *lhs == *rhs;
+}
+
+/**
  * @brief call child implementation of operator<< when printing for debug
 */
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var) {
@@ -160,8 +167,14 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var)
  * @brief hash function for cw_constraint
 */
 size_t std::hash<unique_ptr<cw_constraint> >::operator()(const unique_ptr<cw_constraint>& constr) const {
-    cout << "unique_ptr<cw_constraint> hash" << endl;
-    return hash<size_t>{}(constr->id);
+    auto intersections = constr->intersection_indices();
+    assert(intersections.size() > 0);
+
+    size_t h = 0ul;
+    for(const auto& intersection : intersections) {
+        h ^= hash<size_t>{}(static_cast<size_t>(intersection.first << 16 | intersection.second));
+    }
+    return h;
 }
 
 // ############### cw_arc ###############
@@ -172,10 +185,10 @@ size_t std::hash<unique_ptr<cw_constraint> >::operator()(const unique_ptr<cw_con
 */
 bool cw_arc::equals(const cw_constraint& other_constr) const {
     const cw_arc& other = static_cast<const cw_arc&>(other_constr);
+
+    // cannot compare lhs or rhs since ids can be ordered differently, and we can't check underlying object
     return lhs_index == other.lhs_index
-        && rhs_index == other.rhs_index
-        && lhs == other.lhs
-        && rhs == other.rhs;
+        && rhs_index == other.rhs_index;
 }
 
 /**
@@ -248,6 +261,14 @@ bool cw_arc::invalid(const id_obj_manager<cw_variable>& vars) const {
 }
 
 /**
+ * @brief get ids of variables upon which this constraint is dependent 
+*/
+vector<size_t> cw_arc::dependencies() const {
+    assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
+    return {rhs};
+}
+
+/**
  * @brief get id of variable upon which other constraints may be dependent
 */
 size_t cw_arc::dependent() const {
@@ -256,11 +277,10 @@ size_t cw_arc::dependent() const {
 }
 
 /**
- * @brief get ids of variables upon which this constraint is dependent 
+ * @brief get pairs of indices at which adjacent variables in this constraint intersect
 */
-vector<size_t> cw_arc::dependencies() const {
-    assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
-    return {rhs};
+vector<pair<uint, uint> > cw_arc::intersection_indices() const {
+    return {{lhs_index, rhs_index}};  
 }
 
 // ############### cw_cycle ###############

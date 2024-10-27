@@ -432,4 +432,16 @@ inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >&
     return result;
 }
 
+/**
+ * @cite https://stackoverflow.com/a/73674943
+*/
+template <class T> auto move_to_unique(T&& t) {
+    return std::make_unique<std::remove_reference_t<T>>(std::move(t));
+}
+template <class V, class ... Args> auto make_vector_unique(Args ... args) {
+    std::vector<std::unique_ptr<V>> rv;
+    (rv.push_back(move_to_unique(args)), ...);
+    return rv;
+}
+
 #endif // CW_UTILS_H

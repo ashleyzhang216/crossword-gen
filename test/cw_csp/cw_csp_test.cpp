@@ -19,7 +19,6 @@ TEST_CASE("cw_csp hello_world", "[cw_csp],[hello_world],[quick]") {
 /**
  * constructor test for cw_csp without contents
 */
-/*
 TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp constructor_no_contents");
     const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
@@ -28,138 +27,176 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
     vector<unique_ptr<cw_variable> > vars_1_1 = {}; // no words with len > 1
     vector<unique_ptr<cw_constraint> > contrs_1_1 = {}; // no variables
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_1_1 = {}; // no constraints
-    unordered_set<unique_ptr<cw_variable> >   vars_1_1_set  (vars_1_1.begin(),   vars_1_1.end());
-    unordered_set<unique_ptr<cw_constraint> > contrs_1_1_set(contrs_1_1.begin(), contrs_1_1.end());
+    unordered_set<unique_ptr<cw_variable> >   vars_1_1_set;
+    std::transform(vars_1_1.begin(), vars_1_1.end(), std::inserter(vars_1_1_set, vars_1_1_set.end()),
+        [](const unique_ptr<cw_variable>& elem) {
+            return elem->clone();
+        }
+    );
+    unordered_set<unique_ptr<cw_constraint> > contrs_1_1_set;
+    std::transform(contrs_1_1.begin(), contrs_1_1.end(), std::inserter(contrs_1_1_set, contrs_1_1_set.end()),
+        [](const unique_ptr<cw_constraint>& elem) {
+            return elem->clone();
+        }
+    );
     REQUIRE(dut->test_constructor_empty(1, 1, dict_barebones_path, vars_1_1_set, contrs_1_1_set, arc_dep_1_1));
 
     // 2x2 blank crossword
-    vector<unique_ptr<cw_variable> > vars_2_2 = {
-        make_unique<cw_variable>(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(1l, 0, 1, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(2l, 0, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(3l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-    };
-    vector<unique_ptr<cw_constraint> > contrs_2_2 = {
+    vector<unique_ptr<cw_variable> > vars_2_2 = make_vector_unique<cw_variable>(
+        cw_variable(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(1l, 0, 1, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(2l, 0, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(3l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")})
+    );
+    vector<unique_ptr<cw_constraint> > contrs_2_2 = make_vector_unique<cw_constraint>(
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l, 0, 0, 0, 2), // 0
-        make_unique<cw_arc>(1l, 0, 1, 1, 2), // 1
-        make_unique<cw_arc>(2l, 1, 0, 0, 3), // 2
-        make_unique<cw_arc>(3l, 1, 1, 1, 3), // 3
+        cw_arc(0l, 0, 0, 0, 2), // 0
+        cw_arc(1l, 0, 1, 1, 2), // 1
+        cw_arc(2l, 1, 0, 0, 3), // 2
+        cw_arc(3l, 1, 1, 1, 3), // 3
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(4l, 0, 0, 2, 0), // 4
-        make_unique<cw_arc>(5l, 1, 0, 2, 1), // 5
-        make_unique<cw_arc>(6l, 0, 1, 3, 0), // 6
-        make_unique<cw_arc>(7l, 1, 1, 3, 1), // 7
-    };
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2 = {
-        {vars_2_2[0], {contrs_2_2[4], contrs_2_2[6]}},
-        {vars_2_2[1], {contrs_2_2[5], contrs_2_2[7]}},
-        {vars_2_2[2], {contrs_2_2[0], contrs_2_2[1]}},
-        {vars_2_2[3], {contrs_2_2[2], contrs_2_2[3]}},
-    };
-    unordered_set<unique_ptr<cw_variable> >   vars_2_2_set  (vars_2_2.begin(),   vars_2_2.end());
-    unordered_set<unique_ptr<cw_constraint> > contrs_2_2_set(contrs_2_2.begin(), contrs_2_2.end());
+        cw_arc(4l, 0, 0, 2, 0), // 4
+        cw_arc(5l, 1, 0, 2, 1), // 5
+        cw_arc(6l, 0, 1, 3, 0), // 6
+        cw_arc(7l, 1, 1, 3, 1)  // 7
+    );
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2;
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3);
+
+    unordered_set<unique_ptr<cw_variable> > vars_2_2_set;
+    std::transform(vars_2_2.begin(), vars_2_2.end(), std::inserter(vars_2_2_set, vars_2_2_set.end()),
+        [](const unique_ptr<cw_variable>& elem) {
+            return elem->clone();
+        }
+    );
+    unordered_set<unique_ptr<cw_constraint> > contrs_2_2_set;
+    std::transform(contrs_2_2.begin(), contrs_2_2.end(), std::inserter(contrs_2_2_set, contrs_2_2_set.end()),
+        [](const unique_ptr<cw_constraint>& elem) {
+            return elem->clone();
+        }
+    );
     REQUIRE(dut->test_constructor_empty(2, 2, dict_barebones_path, vars_2_2_set, contrs_2_2_set, arc_dep_2_2));
-
+    
     // 3x3 blank crossword
-    vector<unique_ptr<cw_variable> > vars_3_3 = {
-        make_unique<cw_variable>(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(1l, 0, 1, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-    };
-    vector<unique_ptr<cw_constraint> > contrs_3_3 = {
+    vector<unique_ptr<cw_variable> > vars_3_3 = make_vector_unique<cw_variable>(
+        cw_variable(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(1l, 0, 1, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")})
+    );
+    vector<unique_ptr<cw_constraint> > contrs_3_3 = make_vector_unique<cw_constraint>(
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l,  0, 0, 0, 3), // 0
-        make_unique<cw_arc>(1l,  0, 1, 1, 3), // 1
-        make_unique<cw_arc>(2l,  0, 2, 2, 3), // 2
-        make_unique<cw_arc>(3l,  1, 0, 0, 4), // 3
-        make_unique<cw_arc>(4l,  1, 1, 1, 4), // 4
-        make_unique<cw_arc>(5l,  1, 2, 2, 4), // 5
-        make_unique<cw_arc>(6l,  2, 0, 0, 5), // 6
-        make_unique<cw_arc>(7l,  2, 1, 1, 5), // 7
-        make_unique<cw_arc>(8l,  2, 2, 2, 5), // 8
+        cw_arc(0l,  0, 0, 0, 3), // 0
+        cw_arc(1l,  0, 1, 1, 3), // 1
+        cw_arc(2l,  0, 2, 2, 3), // 2
+        cw_arc(3l,  1, 0, 0, 4), // 3
+        cw_arc(4l,  1, 1, 1, 4), // 4
+        cw_arc(5l,  1, 2, 2, 4), // 5
+        cw_arc(6l,  2, 0, 0, 5), // 6
+        cw_arc(7l,  2, 1, 1, 5), // 7
+        cw_arc(8l,  2, 2, 2, 5), // 8
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(9l,  0, 0, 3, 0), // 9
-        make_unique<cw_arc>(10l, 1, 0, 3, 1), // 10
-        make_unique<cw_arc>(11l, 2, 0, 3, 2), // 11
-        make_unique<cw_arc>(12l, 0, 1, 4, 0), // 12
-        make_unique<cw_arc>(13l, 1, 1, 4, 1), // 13
-        make_unique<cw_arc>(14l, 2, 1, 4, 2), // 14
-        make_unique<cw_arc>(15l, 0, 2, 5, 0), // 15
-        make_unique<cw_arc>(16l, 1, 2, 5, 1), // 16
-        make_unique<cw_arc>(17l, 2, 2, 5, 2), // 17
-        
-    };
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3 = {
-        {vars_3_3[0], {contrs_3_3[9], contrs_3_3[12], contrs_3_3[15]}},
-        {vars_3_3[1], {contrs_3_3[10], contrs_3_3[13], contrs_3_3[16]}},
-        {vars_3_3[2], {contrs_3_3[11], contrs_3_3[14], contrs_3_3[17]}},
-        {vars_3_3[3], {contrs_3_3[0], contrs_3_3[1], contrs_3_3[2]}},
-        {vars_3_3[4], {contrs_3_3[3], contrs_3_3[4], contrs_3_3[5]}},
-        {vars_3_3[5], {contrs_3_3[6], contrs_3_3[7], contrs_3_3[8]}},
-    };
-    unordered_set<unique_ptr<cw_variable> >   vars_3_3_set  (vars_3_3.begin(),   vars_3_3.end());
-    unordered_set<unique_ptr<cw_constraint> > contrs_3_3_set(contrs_3_3.begin(), contrs_3_3.end());
+        cw_arc(9l,  0, 0, 3, 0), // 9
+        cw_arc(10l, 1, 0, 3, 1), // 10
+        cw_arc(11l, 2, 0, 3, 2), // 11
+        cw_arc(12l, 0, 1, 4, 0), // 12
+        cw_arc(13l, 1, 1, 4, 1), // 13
+        cw_arc(14l, 2, 1, 4, 2), // 14
+        cw_arc(15l, 0, 2, 5, 0), // 15
+        cw_arc(16l, 1, 2, 5, 1), // 16
+        cw_arc(17l, 2, 2, 5, 2)  // 17
+    );
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3;
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15);
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16);
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 2, contrs_3_3, 11, 14, 17);
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 3, contrs_3_3, 0, 1, 2);
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 4, contrs_3_3, 3, 4, 5);
+    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 5, contrs_3_3, 6, 7, 8);
+
+    unordered_set<unique_ptr<cw_variable> > vars_3_3_set;
+    std::transform(vars_3_3.begin(), vars_3_3.end(), std::inserter(vars_3_3_set, vars_3_3_set.end()),
+        [](const unique_ptr<cw_variable>& elem) {
+            return elem->clone();
+        }
+    );
+    unordered_set<unique_ptr<cw_constraint> > contrs_3_3_set;
+    std::transform(contrs_3_3.begin(), contrs_3_3.end(), std::inserter(contrs_3_3_set, contrs_3_3_set.end()),
+        [](const unique_ptr<cw_constraint>& elem) {
+            return elem->clone();
+        }
+    );
     REQUIRE(dut->test_constructor_empty(3, 3, dict_barebones_path, vars_3_3_set, contrs_3_3_set, arc_dep_3_3));
 
     // 3x4 blank crossword
-    vector<unique_ptr<cw_variable> > vars_3_4 = {
-        make_unique<cw_variable>(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(1l, 0, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(2l, 0, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(6l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-    };
-    vector<unique_ptr<cw_constraint> > contrs_3_4 = {
+    vector<unique_ptr<cw_variable> > vars_3_4 = make_vector_unique<cw_variable>(
+        cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(1l, 0, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(2l, 0, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(6l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")})
+    );
+    vector<unique_ptr<cw_constraint> > contrs_3_4 = make_vector_unique<cw_constraint>(
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l,  0, 0, 0, 3), // 0
-        make_unique<cw_arc>(1l,  0, 1, 1, 3), // 1
-        make_unique<cw_arc>(2l,  0, 2, 2, 3), // 2
-        make_unique<cw_arc>(3l,  1, 0, 0, 4), // 3
-        make_unique<cw_arc>(4l,  1, 1, 1, 4), // 4
-        make_unique<cw_arc>(5l,  1, 2, 2, 4), // 5
-        make_unique<cw_arc>(6l,  2, 0, 0, 5), // 6
-        make_unique<cw_arc>(7l,  2, 1, 1, 5), // 7
-        make_unique<cw_arc>(8l,  2, 2, 2, 5), // 8
-        make_unique<cw_arc>(9l,  3, 0, 0, 6), // 9
-        make_unique<cw_arc>(10l, 3, 1, 1, 6), // 10
-        make_unique<cw_arc>(11l, 3, 2, 2, 6), // 11
+        cw_arc(0l,  0, 0, 0, 3), // 0
+        cw_arc(1l,  0, 1, 1, 3), // 1
+        cw_arc(2l,  0, 2, 2, 3), // 2
+        cw_arc(3l,  1, 0, 0, 4), // 3
+        cw_arc(4l,  1, 1, 1, 4), // 4
+        cw_arc(5l,  1, 2, 2, 4), // 5
+        cw_arc(6l,  2, 0, 0, 5), // 6
+        cw_arc(7l,  2, 1, 1, 5), // 7
+        cw_arc(8l,  2, 2, 2, 5), // 8
+        cw_arc(9l,  3, 0, 0, 6), // 9
+        cw_arc(10l, 3, 1, 1, 6), // 10
+        cw_arc(11l, 3, 2, 2, 6), // 11
         
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(12l, 0, 0, 3, 0), // 12
-        make_unique<cw_arc>(13l, 1, 0, 3, 1), // 13
-        make_unique<cw_arc>(14l, 2, 0, 3, 2), // 14
-        make_unique<cw_arc>(15l, 0, 1, 4, 0), // 15
-        make_unique<cw_arc>(16l, 1, 1, 4, 1), // 16
-        make_unique<cw_arc>(17l, 2, 1, 4, 2), // 17
-        make_unique<cw_arc>(18l, 0, 2, 5, 0), // 18
-        make_unique<cw_arc>(19l, 1, 2, 5, 1), // 19
-        make_unique<cw_arc>(20l, 2, 2, 5, 2), // 20
-        make_unique<cw_arc>(21l, 0, 3, 6, 0), // 21
-        make_unique<cw_arc>(22l, 1, 3, 6, 1), // 22
-        make_unique<cw_arc>(23l, 2, 3, 6, 2), // 23
-    };
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4 = {
-        {vars_3_4[0], {contrs_3_4[12], contrs_3_4[15], contrs_3_4[18], contrs_3_4[21]}},
-        {vars_3_4[1], {contrs_3_4[13], contrs_3_4[16], contrs_3_4[19], contrs_3_4[22]}},
-        {vars_3_4[2], {contrs_3_4[14], contrs_3_4[17], contrs_3_4[20], contrs_3_4[23]}},
-        {vars_3_4[3], {contrs_3_4[0], contrs_3_4[1], contrs_3_4[2]}},
-        {vars_3_4[4], {contrs_3_4[3], contrs_3_4[4], contrs_3_4[5]}},
-        {vars_3_4[5], {contrs_3_4[6], contrs_3_4[7], contrs_3_4[8]}},
-        {vars_3_4[6], {contrs_3_4[9], contrs_3_4[10], contrs_3_4[11]}},
-    };
-    unordered_set<unique_ptr<cw_variable> >   vars_3_4_set  (vars_3_4.begin(),   vars_3_4.end());
-    unordered_set<unique_ptr<cw_constraint> > contrs_3_4_set(contrs_3_4.begin(), contrs_3_4.end());
+        cw_arc(12l, 0, 0, 3, 0), // 12
+        cw_arc(13l, 1, 0, 3, 1), // 13
+        cw_arc(14l, 2, 0, 3, 2), // 14
+        cw_arc(15l, 0, 1, 4, 0), // 15
+        cw_arc(16l, 1, 1, 4, 1), // 16
+        cw_arc(17l, 2, 1, 4, 2), // 17
+        cw_arc(18l, 0, 2, 5, 0), // 18
+        cw_arc(19l, 1, 2, 5, 1), // 19
+        cw_arc(20l, 2, 2, 5, 2), // 20
+        cw_arc(21l, 0, 3, 6, 0), // 21
+        cw_arc(22l, 1, 3, 6, 1), // 22
+        cw_arc(23l, 2, 3, 6, 2) // 23
+    );
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4;
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11);
+
+    unordered_set<unique_ptr<cw_variable> > vars_3_4_set;
+    std::transform(vars_3_4.begin(), vars_3_4.end(), std::inserter(vars_3_4_set, vars_3_4_set.end()),
+        [](const unique_ptr<cw_variable>& elem) {
+            return elem->clone();
+        }
+    );
+    unordered_set<unique_ptr<cw_constraint> > contrs_3_4_set;
+    std::transform(contrs_3_4.begin(), contrs_3_4.end(), std::inserter(contrs_3_4_set, contrs_3_4_set.end()),
+        [](const unique_ptr<cw_constraint>& elem) {
+            return elem->clone();
+        }
+    );
     REQUIRE(dut->test_constructor_empty(3, 4, dict_barebones_path, vars_3_4_set, contrs_3_4_set, arc_dep_3_4));
 }
-*/
 
 /**
  * constructor test for cw_csp with contents
@@ -172,23 +209,23 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // baseline 2x2 blank crossword
     vector<unique_ptr<cw_variable> > vars_2_2 = {
-        make_unique<cw_variable>(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(1l, 0, 1, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(2l, 0, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
-        make_unique<cw_variable>(3l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(1l, 0, 1, 2, VERTICAL,   unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(2l, 0, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
+        cw_variable(3l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("an"), word_t("at"), word_t("on"), word_t("to")}),
     };
     vector<unique_ptr<cw_constraint> > contrs_2_2 = {
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l, 0, 0, 0, 2), // 0
-        make_unique<cw_arc>(1l, 0, 1, 1, 2), // 1
-        make_unique<cw_arc>(2l, 1, 0, 0, 3), // 2
-        make_unique<cw_arc>(3l, 1, 1, 1, 3), // 3
+        cw_arc(0l, 0, 0, 0, 2), // 0
+        cw_arc(1l, 0, 1, 1, 2), // 1
+        cw_arc(2l, 1, 0, 0, 3), // 2
+        cw_arc(3l, 1, 1, 1, 3), // 3
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(4l, 0, 0, 2, 0), // 4
-        make_unique<cw_arc>(5l, 1, 0, 2, 1), // 5
-        make_unique<cw_arc>(6l, 0, 1, 3, 0), // 6
-        make_unique<cw_arc>(7l, 1, 1, 3, 1), // 7
+        cw_arc(4l, 0, 0, 2, 0), // 4
+        cw_arc(5l, 1, 0, 2, 1), // 5
+        cw_arc(6l, 0, 1, 3, 0), // 6
+        cw_arc(7l, 1, 1, 3, 1), // 7
     };
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2 = {
         {vars_2_2[0], {contrs_2_2[4], contrs_2_2[6]}},
@@ -204,42 +241,42 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // baseline 3x4 blank crossword
     vector<unique_ptr<cw_variable> > vars_3_4 = {
-        make_unique<cw_variable>(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(1l, 0, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(2l, 0, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
-        make_unique<cw_variable>(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(6l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(1l, 0, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(2l, 0, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("cars"), word_t("caps"), word_t("core"), word_t("door"), word_t("boob"), word_t("been"), word_t("node")}),
+        cw_variable(3l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(4l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(5l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(6l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
     };
     vector<unique_ptr<cw_constraint> > contrs_3_4 = {
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l,  0, 0, 0, 3), // 0
-        make_unique<cw_arc>(1l,  0, 1, 1, 3), // 1
-        make_unique<cw_arc>(2l,  0, 2, 2, 3), // 2
-        make_unique<cw_arc>(3l,  1, 0, 0, 4), // 3
-        make_unique<cw_arc>(4l,  1, 1, 1, 4), // 4
-        make_unique<cw_arc>(5l,  1, 2, 2, 4), // 5
-        make_unique<cw_arc>(6l,  2, 0, 0, 5), // 6
-        make_unique<cw_arc>(7l,  2, 1, 1, 5), // 7
-        make_unique<cw_arc>(8l,  2, 2, 2, 5), // 8
-        make_unique<cw_arc>(9l,  3, 0, 0, 6), // 9
-        make_unique<cw_arc>(10l, 3, 1, 1, 6), // 10
-        make_unique<cw_arc>(11l, 3, 2, 2, 6), // 11
+        cw_arc(0l,  0, 0, 0, 3), // 0
+        cw_arc(1l,  0, 1, 1, 3), // 1
+        cw_arc(2l,  0, 2, 2, 3), // 2
+        cw_arc(3l,  1, 0, 0, 4), // 3
+        cw_arc(4l,  1, 1, 1, 4), // 4
+        cw_arc(5l,  1, 2, 2, 4), // 5
+        cw_arc(6l,  2, 0, 0, 5), // 6
+        cw_arc(7l,  2, 1, 1, 5), // 7
+        cw_arc(8l,  2, 2, 2, 5), // 8
+        cw_arc(9l,  3, 0, 0, 6), // 9
+        cw_arc(10l, 3, 1, 1, 6), // 10
+        cw_arc(11l, 3, 2, 2, 6), // 11
         
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(12l, 0, 0, 3, 0), // 12
-        make_unique<cw_arc>(13l, 1, 0, 3, 1), // 13
-        make_unique<cw_arc>(14l, 2, 0, 3, 2), // 14
-        make_unique<cw_arc>(15l, 0, 1, 4, 0), // 15
-        make_unique<cw_arc>(16l, 1, 1, 4, 1), // 16
-        make_unique<cw_arc>(17l, 2, 1, 4, 2), // 17
-        make_unique<cw_arc>(18l, 0, 2, 5, 0), // 18
-        make_unique<cw_arc>(19l, 1, 2, 5, 1), // 19
-        make_unique<cw_arc>(20l, 2, 2, 5, 2), // 20
-        make_unique<cw_arc>(21l, 0, 3, 6, 0), // 21
-        make_unique<cw_arc>(22l, 1, 3, 6, 1), // 22
-        make_unique<cw_arc>(23l, 2, 3, 6, 2), // 23
+        cw_arc(12l, 0, 0, 3, 0), // 12
+        cw_arc(13l, 1, 0, 3, 1), // 13
+        cw_arc(14l, 2, 0, 3, 2), // 14
+        cw_arc(15l, 0, 1, 4, 0), // 15
+        cw_arc(16l, 1, 1, 4, 1), // 16
+        cw_arc(17l, 2, 1, 4, 2), // 17
+        cw_arc(18l, 0, 2, 5, 0), // 18
+        cw_arc(19l, 1, 2, 5, 1), // 19
+        cw_arc(20l, 2, 2, 5, 2), // 20
+        cw_arc(21l, 0, 3, 6, 0), // 21
+        cw_arc(22l, 1, 3, 6, 1), // 22
+        cw_arc(23l, 2, 3, 6, 2), // 23
     };
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4 = {
         {vars_3_4[0], {contrs_3_4[12], contrs_3_4[15], contrs_3_4[18], contrs_3_4[21]}},
@@ -281,23 +318,23 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // 3x3 donut crossword
     vector<unique_ptr<cw_variable> > vars_3_3_donut = {
-        make_unique<cw_variable>(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(1l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(2l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
-        make_unique<cw_variable>(3l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(1l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(2l, 0, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(3l, 2, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
     };
     vector<unique_ptr<cw_constraint> > contrs_3_3_donut = {
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l, 0, 0, 0, 2), // 0
-        make_unique<cw_arc>(1l, 2, 0, 0, 3), // 1
-        make_unique<cw_arc>(2l, 0, 2, 1, 2), // 2
-        make_unique<cw_arc>(3l, 2, 2, 1, 3), // 3
+        cw_arc(0l, 0, 0, 0, 2), // 0
+        cw_arc(1l, 2, 0, 0, 3), // 1
+        cw_arc(2l, 0, 2, 1, 2), // 2
+        cw_arc(3l, 2, 2, 1, 3), // 3
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(4l, 0, 0, 2, 0), // 4
-        make_unique<cw_arc>(5l, 0, 2, 3, 0), // 5
-        make_unique<cw_arc>(6l, 2, 0, 2, 1), // 6
-        make_unique<cw_arc>(7l, 2, 2, 3, 1), // 7
+        cw_arc(4l, 0, 0, 2, 0), // 4
+        cw_arc(5l, 0, 2, 3, 0), // 5
+        cw_arc(6l, 2, 0, 2, 1), // 6
+        cw_arc(7l, 2, 2, 3, 1), // 7
     };
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3_donut = {
         {vars_3_3_donut[0], {contrs_3_3_donut[4], contrs_3_3_donut[5]}},
@@ -315,15 +352,15 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // single cross crossword with a single letter filled in
     vector<unique_ptr<cw_variable> > vars_5_6_cross = {
-        make_unique<cw_variable>(0l, 1, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("boob"), word_t("been")}),
-        make_unique<cw_variable>(1l, 2, 1, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
+        cw_variable(0l, 1, 2, 4, VERTICAL,   unordered_set<word_t>{word_t("boob"), word_t("been")}),
+        cw_variable(1l, 2, 1, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("cat"), word_t("cab"), word_t("can"), word_t("cup"), word_t("cub"), word_t("dan"), word_t("dab")}),
     };
     vector<unique_ptr<cw_constraint> > contrs_5_6_cross = {
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l, 1, 1, 0, 1),
+        cw_arc(0l, 1, 1, 0, 1),
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(1l, 1, 1, 1, 0),
+        cw_arc(1l, 1, 1, 1, 0),
     };
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_5_6_cross = {
         {vars_5_6_cross[0], {contrs_5_6_cross[1]}},
@@ -342,9 +379,9 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // simple crossword with single variables & no constraints
     vector<unique_ptr<cw_variable> > vars_5_3_no_constraints = {
-        make_unique<cw_variable>(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("eta")}), // 0
-        make_unique<cw_variable>(1l, 0, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("are"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("cub"), word_t("cup"), word_t("dab"), word_t("dan"), word_t("eta"), word_t("gap"), word_t("pot")}), // 14
-        make_unique<cw_variable>(2l, 2, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")}), // 14
+        cw_variable(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("eta")}), // 0
+        cw_variable(1l, 0, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("are"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("cub"), word_t("cup"), word_t("dab"), word_t("dan"), word_t("eta"), word_t("gap"), word_t("pot")}), // 14
+        cw_variable(2l, 2, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")}), // 14
     };
     vector<unique_ptr<cw_constraint> > contrs_5_3_no_constraints = {}; // no intersections between words
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_5_3_no_constraints = {}; // no constraints
@@ -358,72 +395,72 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 
     // 6x7 crossword with complex intersections & mix of wildcards and letters
     vector<unique_ptr<cw_variable> > vars_6_7_complex = {
-        make_unique<cw_variable>(0l,  0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("atol"), word_t("atom")}), // 0
-        make_unique<cw_variable>(1l,  5, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("ad"), word_t("an"), word_t("at"), word_t("be"), word_t("on"), word_t("to")}), // 1
-        make_unique<cw_variable>(2l,  3, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("plan")}), // 2
-        make_unique<cw_variable>(3l,  4, 2, 3, VERTICAL,   unordered_set<word_t>{}), // 3
-        make_unique<cw_variable>(4l,  0, 3, 3, VERTICAL,   unordered_set<word_t>{word_t("bed")}), // 4
-        make_unique<cw_variable>(5l,  2, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("boob"), word_t("knob")}), // 5
-        make_unique<cw_variable>(6l,  0, 5, 4, VERTICAL,   unordered_set<word_t>{word_t("pole"), word_t("pore")}), // 6
-        make_unique<cw_variable>(7l,  5, 5, 2, VERTICAL,   unordered_set<word_t>{word_t("an")}), // 7
-        make_unique<cw_variable>(8l,  0, 3, 3, HORIZONTAL, unordered_set<word_t>{word_t("gap"), word_t("cup")}), // 8
-        make_unique<cw_variable>(9l,  1, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("tore"), word_t("tote")}), // 9
-        make_unique<cw_variable>(10l, 2, 3, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("are"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("cub"), word_t("cup"), word_t("dab"), word_t("dan"), word_t("eta"), word_t("gap"), word_t("pot")}), // 10
-        make_unique<cw_variable>(11l, 3, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("ad"), word_t("an"), word_t("at"), word_t("be"), word_t("on"), word_t("to")}), // 11
-        make_unique<cw_variable>(12l, 3, 4, 2, HORIZONTAL, unordered_set<word_t>{word_t("be")}), // 12
-        make_unique<cw_variable>(13l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("halo")}), // 13
-        make_unique<cw_variable>(14l, 5, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("cat")}), // 14
-        make_unique<cw_variable>(15l, 5, 4, 2, HORIZONTAL, unordered_set<word_t>{}), // 15
-        make_unique<cw_variable>(16l, 6, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("knob"), word_t("know")}), // 16
+        cw_variable(0l,  0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("atol"), word_t("atom")}), // 0
+        cw_variable(1l,  5, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("ad"), word_t("an"), word_t("at"), word_t("be"), word_t("on"), word_t("to")}), // 1
+        cw_variable(2l,  3, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("plan")}), // 2
+        cw_variable(3l,  4, 2, 3, VERTICAL,   unordered_set<word_t>{}), // 3
+        cw_variable(4l,  0, 3, 3, VERTICAL,   unordered_set<word_t>{word_t("bed")}), // 4
+        cw_variable(5l,  2, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("boob"), word_t("knob")}), // 5
+        cw_variable(6l,  0, 5, 4, VERTICAL,   unordered_set<word_t>{word_t("pole"), word_t("pore")}), // 6
+        cw_variable(7l,  5, 5, 2, VERTICAL,   unordered_set<word_t>{word_t("an")}), // 7
+        cw_variable(8l,  0, 3, 3, HORIZONTAL, unordered_set<word_t>{word_t("gap"), word_t("cup")}), // 8
+        cw_variable(9l,  1, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("tore"), word_t("tote")}), // 9
+        cw_variable(10l, 2, 3, 3, HORIZONTAL, unordered_set<word_t>{word_t("ace"), word_t("and"), word_t("are"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("cub"), word_t("cup"), word_t("dab"), word_t("dan"), word_t("eta"), word_t("gap"), word_t("pot")}), // 10
+        cw_variable(11l, 3, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("ad"), word_t("an"), word_t("at"), word_t("be"), word_t("on"), word_t("to")}), // 11
+        cw_variable(12l, 3, 4, 2, HORIZONTAL, unordered_set<word_t>{word_t("be")}), // 12
+        cw_variable(13l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("halo")}), // 13
+        cw_variable(14l, 5, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("cat")}), // 14
+        cw_variable(15l, 5, 4, 2, HORIZONTAL, unordered_set<word_t>{}), // 15
+        cw_variable(16l, 6, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("knob"), word_t("know")}), // 16
     };
     vector<unique_ptr<cw_constraint> > contrs_6_7_complex = {
         // forward (vertical --> horizontal)
-        make_unique<cw_arc>(0l,  0, 0, 4, 8), // 0
-        make_unique<cw_arc>(1l,  0, 2, 6, 8), // 1
-        make_unique<cw_arc>(2l,  1, 0, 0, 9), // 2
-        make_unique<cw_arc>(3l,  1, 3, 4, 9), // 3
-        make_unique<cw_arc>(4l,  2, 0, 4, 10), // 4
-        make_unique<cw_arc>(5l,  0, 1, 5, 10), // 5
-        make_unique<cw_arc>(6l,  2, 2, 6, 10), // 6
-        make_unique<cw_arc>(7l,  3, 0, 0, 11), // 7
-        make_unique<cw_arc>(8l,  0, 1, 2, 11), // 8
-        make_unique<cw_arc>(9l,  1, 0, 5, 12), // 9
-        make_unique<cw_arc>(10l, 3, 1, 6, 12), // 10
-        make_unique<cw_arc>(11l, 1, 0, 2, 13), // 11
-        make_unique<cw_arc>(12l, 0, 1, 3, 13), // 12
-        make_unique<cw_arc>(13l, 2, 3, 5, 13), // 13
-        make_unique<cw_arc>(14l, 0, 0, 1, 14), // 14
-        make_unique<cw_arc>(15l, 2, 1, 2, 14), // 15
-        make_unique<cw_arc>(16l, 1, 2, 3, 14), // 16
-        make_unique<cw_arc>(17l, 3, 0, 5, 15), // 17
-        make_unique<cw_arc>(18l, 0, 1, 7, 15), // 18
-        make_unique<cw_arc>(19l, 1, 0, 1, 16), // 19
-        make_unique<cw_arc>(20l, 3, 1, 2, 16), // 20
-        make_unique<cw_arc>(21l, 2, 2, 3, 16), // 21
+        cw_arc(0l,  0, 0, 4, 8), // 0
+        cw_arc(1l,  0, 2, 6, 8), // 1
+        cw_arc(2l,  1, 0, 0, 9), // 2
+        cw_arc(3l,  1, 3, 4, 9), // 3
+        cw_arc(4l,  2, 0, 4, 10), // 4
+        cw_arc(5l,  0, 1, 5, 10), // 5
+        cw_arc(6l,  2, 2, 6, 10), // 6
+        cw_arc(7l,  3, 0, 0, 11), // 7
+        cw_arc(8l,  0, 1, 2, 11), // 8
+        cw_arc(9l,  1, 0, 5, 12), // 9
+        cw_arc(10l, 3, 1, 6, 12), // 10
+        cw_arc(11l, 1, 0, 2, 13), // 11
+        cw_arc(12l, 0, 1, 3, 13), // 12
+        cw_arc(13l, 2, 3, 5, 13), // 13
+        cw_arc(14l, 0, 0, 1, 14), // 14
+        cw_arc(15l, 2, 1, 2, 14), // 15
+        cw_arc(16l, 1, 2, 3, 14), // 16
+        cw_arc(17l, 3, 0, 5, 15), // 17
+        cw_arc(18l, 0, 1, 7, 15), // 18
+        cw_arc(19l, 1, 0, 1, 16), // 19
+        cw_arc(20l, 3, 1, 2, 16), // 20
+        cw_arc(21l, 2, 2, 3, 16), // 21
 
         // backward (horizontal --> vertical)
-        make_unique<cw_arc>(22l, 0, 0, 8, 4), // 22
-        make_unique<cw_arc>(23l, 2, 0, 8, 6), // 23
-        make_unique<cw_arc>(24l, 0, 1, 9, 0), // 24
-        make_unique<cw_arc>(25l, 3, 1, 9, 4), // 25
-        make_unique<cw_arc>(26l, 0, 2, 10, 4), // 26
-        make_unique<cw_arc>(27l, 1, 0, 10, 5), // 27
-        make_unique<cw_arc>(28l, 2, 2, 10, 6), // 28
-        make_unique<cw_arc>(29l, 0, 3, 11, 0), // 29
-        make_unique<cw_arc>(30l, 1, 0, 11, 2), // 30
-        make_unique<cw_arc>(31l, 0, 1, 12, 5), // 31
-        make_unique<cw_arc>(32l, 1, 3, 12, 6), // 32
-        make_unique<cw_arc>(33l, 0, 1, 13, 2), // 33
-        make_unique<cw_arc>(34l, 1, 0, 13, 3), // 34
-        make_unique<cw_arc>(35l, 3, 2, 13, 5), // 35
-        make_unique<cw_arc>(36l, 0, 0, 14, 1), // 36
-        make_unique<cw_arc>(37l, 1, 2, 14, 2), // 37
-        make_unique<cw_arc>(38l, 2, 1, 14, 3), // 38
-        make_unique<cw_arc>(39l, 0, 3, 15, 5), // 39
-        make_unique<cw_arc>(40l, 1, 0, 15, 7), // 40
-        make_unique<cw_arc>(41l, 0, 1, 16, 1), // 41
-        make_unique<cw_arc>(42l, 1, 3, 16, 2), // 42
-        make_unique<cw_arc>(43l, 2, 2, 16, 3), // 43
+        cw_arc(22l, 0, 0, 8, 4), // 22
+        cw_arc(23l, 2, 0, 8, 6), // 23
+        cw_arc(24l, 0, 1, 9, 0), // 24
+        cw_arc(25l, 3, 1, 9, 4), // 25
+        cw_arc(26l, 0, 2, 10, 4), // 26
+        cw_arc(27l, 1, 0, 10, 5), // 27
+        cw_arc(28l, 2, 2, 10, 6), // 28
+        cw_arc(29l, 0, 3, 11, 0), // 29
+        cw_arc(30l, 1, 0, 11, 2), // 30
+        cw_arc(31l, 0, 1, 12, 5), // 31
+        cw_arc(32l, 1, 3, 12, 6), // 32
+        cw_arc(33l, 0, 1, 13, 2), // 33
+        cw_arc(34l, 1, 0, 13, 3), // 34
+        cw_arc(35l, 3, 2, 13, 5), // 35
+        cw_arc(36l, 0, 0, 14, 1), // 36
+        cw_arc(37l, 1, 2, 14, 2), // 37
+        cw_arc(38l, 2, 1, 14, 3), // 38
+        cw_arc(39l, 0, 3, 15, 5), // 39
+        cw_arc(40l, 1, 0, 15, 7), // 40
+        cw_arc(41l, 0, 1, 16, 1), // 41
+        cw_arc(42l, 1, 3, 16, 2), // 42
+        cw_arc(43l, 2, 2, 16, 3), // 43
     };
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_6_7_complex = {
         {vars_6_7_complex[0], {contrs_6_7_complex[24], contrs_6_7_complex[29]}},
@@ -585,8 +622,8 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     
     // simple valid 2x2 crossword
     unordered_set<unique_ptr<cw_variable> > vars_2_2 = {
-        make_unique<cw_variable>(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("at"), word_t("to")}),
-        make_unique<cw_variable>(1l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("to"), word_t("on")}),
+        cw_variable(0l, 0, 0, 2, VERTICAL,   unordered_set<word_t>{word_t("at"), word_t("to")}),
+        cw_variable(1l, 1, 0, 2, HORIZONTAL, unordered_set<word_t>{word_t("to"), word_t("on")}),
     };
     stringstream contents_2_2;
     contents_2_2 << WCD << BLK 
@@ -595,9 +632,9 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 
     // simple valid H-shaped 3x3 crossword
     unordered_set<unique_ptr<cw_variable> > vars_3_3_h = {
-        make_unique<cw_variable>(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")}),
-        make_unique<cw_variable>(1l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("cat"), word_t("can"), word_t("eta"), word_t("ace"), word_t("are")}),
-        make_unique<cw_variable>(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("eta"), word_t("and"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap"), word_t("bed")}),
+        cw_variable(0l, 0, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("ace"), word_t("bed"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")}),
+        cw_variable(1l, 1, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("cat"), word_t("can"), word_t("eta"), word_t("ace"), word_t("are")}),
+        cw_variable(2l, 0, 2, 3, VERTICAL,   unordered_set<word_t>{word_t("eta"), word_t("and"), word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap"), word_t("bed")}),
     };
     stringstream contents_3_3_h;
     contents_3_3_h << WCD << BLK << WCD 
@@ -607,9 +644,9 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 
     // simple valid H-shaped 4x4 crossword
     unordered_set<unique_ptr<cw_variable> > vars_4_4_h = {
-        make_unique<cw_variable>(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("atol"), word_t("atom"), word_t("caps"), word_t("cars"), word_t("halo"), word_t("knob"), word_t("know"), word_t("pant")}),
-        make_unique<cw_variable>(1l, 1, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("tear"), word_t("tore"), word_t("tote"), word_t("trot"), word_t("atol"), word_t("near"), word_t("node")}),
-        make_unique<cw_variable>(2l, 0, 3, 4, VERTICAL,   unordered_set<word_t>{word_t("trot"), word_t("troy"), word_t("been"), word_t("near"), word_t("pear"), word_t("tear"), word_t("atol"), word_t("atom"), word_t("plan")}),
+        cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("atol"), word_t("atom"), word_t("caps"), word_t("cars"), word_t("halo"), word_t("knob"), word_t("know"), word_t("pant")}),
+        cw_variable(1l, 1, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("tear"), word_t("tore"), word_t("tote"), word_t("trot"), word_t("atol"), word_t("near"), word_t("node")}),
+        cw_variable(2l, 0, 3, 4, VERTICAL,   unordered_set<word_t>{word_t("trot"), word_t("troy"), word_t("been"), word_t("near"), word_t("pear"), word_t("tear"), word_t("atol"), word_t("atom"), word_t("plan")}),
     };
     stringstream contents_4_4_h;
     contents_4_4_h << WCD << BLK << BLK << WCD 
@@ -620,16 +657,16 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 
     // 5x5 nytimes crossword 8/28/2023
     unordered_set<unique_ptr<cw_variable> > vars_nytimes_8_28_23 = {
-        make_unique<cw_variable>(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("bmx")}),
-        make_unique<cw_variable>(1l, 0, 1, 5, VERTICAL,   unordered_set<word_t>{word_t("broom")}),
-        make_unique<cw_variable>(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("leave")}),
-        make_unique<cw_variable>(3l, 0, 3, 5, VERTICAL,   unordered_set<word_t>{word_t("eaten")}),
-        make_unique<cw_variable>(4l, 0, 4, 3, VERTICAL,   unordered_set<word_t>{word_t("wds")}),
-        make_unique<cw_variable>(5l, 0, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("blew")}),
-        make_unique<cw_variable>(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("read")}),
-        make_unique<cw_variable>(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("boats")}),
-        make_unique<cw_variable>(8l, 3, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("move")}),
-        make_unique<cw_variable>(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("xmen")}),
+        cw_variable(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("bmx")}),
+        cw_variable(1l, 0, 1, 5, VERTICAL,   unordered_set<word_t>{word_t("broom")}),
+        cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("leave")}),
+        cw_variable(3l, 0, 3, 5, VERTICAL,   unordered_set<word_t>{word_t("eaten")}),
+        cw_variable(4l, 0, 4, 3, VERTICAL,   unordered_set<word_t>{word_t("wds")}),
+        cw_variable(5l, 0, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("blew")}),
+        cw_variable(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("read")}),
+        cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("boats")}),
+        cw_variable(8l, 3, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("move")}),
+        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("xmen")}),
     };
     stringstream contents_nytimes_8_28_23;
     contents_nytimes_8_28_23 << BLK << WCD << WCD << WCD << WCD 
@@ -641,16 +678,16 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 
     // 5x5 nytimes crossword 10/17/13
     unordered_set<unique_ptr<cw_variable> > vars_nytimes_10_17_13 = {
-        make_unique<cw_variable>(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("doze")}),
-        make_unique<cw_variable>(1l, 2, 1, 3, VERTICAL,   unordered_set<word_t>{word_t("eno")}),
-        make_unique<cw_variable>(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("cyber")}),
-        make_unique<cw_variable>(3l, 0, 3, 3, VERTICAL,   unordered_set<word_t>{word_t("ear")}),
-        make_unique<cw_variable>(4l, 1, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("mayo")}),
-        make_unique<cw_variable>(5l, 0, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("dice")}),
-        make_unique<cw_variable>(6l, 1, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("yam")}),
-        make_unique<cw_variable>(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("zebra")}),
-        make_unique<cw_variable>(8l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ene")}),
-        make_unique<cw_variable>(9l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("oreo")}),
+        cw_variable(0l, 0, 0, 4, VERTICAL,   unordered_set<word_t>{word_t("doze")}),
+        cw_variable(1l, 2, 1, 3, VERTICAL,   unordered_set<word_t>{word_t("eno")}),
+        cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("cyber")}),
+        cw_variable(3l, 0, 3, 3, VERTICAL,   unordered_set<word_t>{word_t("ear")}),
+        cw_variable(4l, 1, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("mayo")}),
+        cw_variable(5l, 0, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("dice")}),
+        cw_variable(6l, 1, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("yam")}),
+        cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("zebra")}),
+        cw_variable(8l, 3, 0, 3, HORIZONTAL, unordered_set<word_t>{word_t("ene")}),
+        cw_variable(9l, 4, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("oreo")}),
     };
     stringstream contents_nytimes_10_17_13;
     contents_nytimes_10_17_13 << WCD << 'i' << WCD << WCD << BLK 
@@ -662,16 +699,16 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 
     // 5x5 nytimes crossword 2/3/17
     unordered_set<unique_ptr<cw_variable> > vars_nytimes_2_3_17 = {
-        make_unique<cw_variable>(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("may")}),
-        make_unique<cw_variable>(1l, 1, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("sale")}),
-        make_unique<cw_variable>(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("april")}),
-        make_unique<cw_variable>(3l, 0, 3, 5, VERTICAL,   unordered_set<word_t>{word_t("decal")}),
-        make_unique<cw_variable>(4l, 0, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("ochs")}),
-        make_unique<cw_variable>(5l, 0, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("ado")}),
-        make_unique<cw_variable>(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("spec")}),
-        make_unique<cw_variable>(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("march")}),
-        make_unique<cw_variable>(8l, 3, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("alias")}),
-        make_unique<cw_variable>(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("yell")}),
+        cw_variable(0l, 2, 0, 3, VERTICAL,   unordered_set<word_t>{word_t("may")}),
+        cw_variable(1l, 1, 1, 4, VERTICAL,   unordered_set<word_t>{word_t("sale")}),
+        cw_variable(2l, 0, 2, 5, VERTICAL,   unordered_set<word_t>{word_t("april")}),
+        cw_variable(3l, 0, 3, 5, VERTICAL,   unordered_set<word_t>{word_t("decal")}),
+        cw_variable(4l, 0, 4, 4, VERTICAL,   unordered_set<word_t>{word_t("ochs")}),
+        cw_variable(5l, 0, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("ado")}),
+        cw_variable(6l, 1, 1, 4, HORIZONTAL, unordered_set<word_t>{word_t("spec")}),
+        cw_variable(7l, 2, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("march")}),
+        cw_variable(8l, 3, 0, 5, HORIZONTAL, unordered_set<word_t>{word_t("alias")}),
+        cw_variable(9l, 4, 0, 4, HORIZONTAL, unordered_set<word_t>{word_t("yell")}),
     };
     stringstream contents_nytimes_2_3_17;
     contents_nytimes_2_3_17 << BLK << BLK << 'a' << WCD << WCD 
