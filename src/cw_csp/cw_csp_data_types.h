@@ -165,12 +165,13 @@ namespace cw_csp_data_types_ns {
     // cycle constraint 
     // the last arc rhs variable is the lhs variable in the first arc
     // adjacent lhs and rhs variables in different adjacent arcs are the same
+    // TODO: store data about previous calls to word_domain.has_letters_at_index_with_letter_assigned() to avoid recomputation
     struct cw_cycle : public cw_constraint {
-        vector<size_t>            vars;          // first and last elements must be the same
+        vector<size_t>            var_cycle;     // first and last elements must be the same
         vector<pair<uint, uint> > intersections; // must have same len of vars, minus 1
 
         // construct using existing arcs 
-        cw_cycle(const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs);
+        cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs);
 
         // AC-N step; remove all words in first var's domain that don't have a path to the last var
         virtual bool prune_domain(id_obj_manager<cw_variable>& vars) override;

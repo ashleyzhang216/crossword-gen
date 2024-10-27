@@ -200,7 +200,7 @@ void cw_arc::serialize(ostream& os) const {
 }
 
 /**
- * @brief testing-only constructor for cw_arc to be used by test driver
+ * @brief value constructor for cw_arc
  * 
  * @param id index of this cw_arc in an id_obj_manager
  * @param lhs_index value of lhs_index to populate
@@ -246,8 +246,10 @@ bool cw_arc::satisfied(const id_obj_manager<cw_variable>& vars) const {
     if(vars[rhs]->domain.size() != 1) return false;
 
     // since ac3() undoes invalid assignments, this should always be true
-    assert_m(vars[lhs]->domain.get_cur_domain().at(0) != vars[rhs]->domain.get_cur_domain().at(0), "word equality between constrainted vars");
-    assert_m(vars[lhs]->domain.get_cur_domain().at(0).word.at(lhs_index) == vars[rhs]->domain.get_cur_domain().at(0).word.at(rhs_index), "letter inequality at constraint");
+    const string lhs_word = vars[lhs]->domain.get_cur_domain().at(0).word;
+    const string rhs_word = vars[rhs]->domain.get_cur_domain().at(0).word;
+    assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
+    assert_m(lhs_word.at(lhs_index) == rhs_word.at(rhs_index), "letter inequality at constraint");
 
     return true;
 }
@@ -287,4 +289,132 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 
 // ############### cw_cycle ###############
 
-// TODO: implement
+/**
+ * @brief helper for == operator for cw_arc to use in hashset
+ * @pre rhs is instance of the same derived class
+*/
+bool cw_cycle::equals(const cw_constraint& other_constr) const {
+    const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
+
+    if(var_cycle.size() != other.var_cycle.size() || intersections.size() != other.intersections.size()) {
+        return false;
+    }
+
+    for(size_t i = 0; i < var_cycle.size(); ++i) {
+        if(var_cycle[i] != other.var_cycle[i]) return false;
+    }
+
+    for(size_t i = 0; i < intersections.size(); ++i) {
+        if(intersections[i] != other.intersections[i]) return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief operator to print out cw_cycle for debug
+*/
+void cw_cycle::serialize(ostream& os) const {
+    for(size_t i = 0; i < intersections.size(); ++i) {
+        os << '(' << var_cycle[i] << " @ " << intersections[i].first << " == " << var_cycle[i+1] << " @ " << intersections[i].second << ", ";
+    }
+}
+
+/**
+ * @brief constructor for cw_cycle, constructs using existing arc constraints
+ * @pre all constraints arcs indexes to in constrs are of derived class cw_arc
+ * @pre arcs contains at least 4 arcs to complete a cycle
+ * @note dynamic_cast is used here, but for good reason- but we are guaranteed that all cw_constraint we index to are of type cw_arc
+ * 
+ * @param id index of this cw_cycle in constrs once constructed
+ * @param constrs ref to id_obj_manager holding cw_arc to construct this cw_cycle from
+ * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from 
+*/
+cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
+    assert(arcs.size() >= 4);
+
+    for(size_t i = 0; i < arcs.size(); ++i) {
+        // only can construct cw_cycle from cw_arc
+        assert(arcs[i] != id_obj_manager<cw_constraint>::INVALID_ID);
+        assert(typeid(constrs[arcs[i]]) == typeid(unique_ptr<cw_arc>));
+
+        // arcs overlap
+        const cw_constraint * const curr_constr = constrs[arcs[i]].get();
+        const cw_constraint * const next_constr = constrs[arcs[(i + 1) % arcs.size()]].get();
+        const cw_arc * const curr_arc = dynamic_cast<const cw_arc* const>(curr_constr);
+        const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
+        assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
+
+        var_cycle.push_back(curr_arc->lhs);
+        if(i == arcs.size() - 1) {
+            // complete cycle on last arc
+            assert(curr_arc->rhs == var_cycle[0]);
+            var_cycle.push_back(curr_arc->rhs);
+        }
+        intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
+    }
+}
+
+/**
+ * @brief AC-N step to prune words in first var domain without cyclical path back to first var
+ * 
+ * @param  vars ref to id_obj_manager to index into to get vars from
+ * @return true iff 1 or more words pruned, i.e. domain changed
+*/
+bool cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
+    // TODO: implement
+    (void)vars;
+    return false;
+}
+
+/**
+ * @brief checks that constraint is satisfied, used by solved() in cw_csp
+ * 
+ * @param  vars ref to id_obj_manager to index into to get vars 
+ * @return true iff constraint is satisfied
+*/
+bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
+    for(size_t i = 0; i < var_cycle.size() - 1; ++i) {
+        if(vars[var_cycle[i]]->domain.size() != 1) return false;
+        if(vars[var_cycle[i+1]]->domain.size() != 1) return false;
+
+        // invalid assignments are undone, so this should always be true
+        const string lhs_word = vars[var_cycle[i]]->domain.get_cur_domain().at(0).word;
+        const string rhs_word = vars[var_cycle[i+1]]->domain.get_cur_domain().at(0).word;
+        assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
+        assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
+    }
+
+    return true;
+}
+
+/**
+ * @brief checks if this constraint is now invalid as a result of an AC-N step, i.e. first var domain empty
+ * 
+ * @param  vars ref to id_obj_manager to index into to get var
+ * @return true iff lhs domain empty
+*/
+bool cw_cycle::invalid(const id_obj_manager<cw_variable>& vars) const {
+    return vars[var_cycle[0]]->domain.size() == 0;
+}
+
+/**
+ * @brief get ids of variables upon which this constraint is dependent 
+*/
+vector<size_t> cw_cycle::dependencies() const {
+    return var_cycle;
+}
+
+/**
+ * @brief get id of variable upon which other constraints may be dependent
+*/
+size_t cw_cycle::dependent() const {
+    return var_cycle[0];
+}
+
+/**
+ * @brief get pairs of indices at which adjacent variables in this constraint intersect
+*/
+vector<pair<uint, uint> > cw_cycle::intersection_indices() const {
+    return intersections;
+}
