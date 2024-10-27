@@ -229,12 +229,6 @@ bool cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
         if(lhs_letters[i] && !rhs_letters[i]) {
             // cannot satisfy constraint for this letter
             num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
-
-            // // lhs contains this letter
-            // if(vars[rhs]->domain.num_letters_at_index(rhs_index, static_cast<char>(i + 'a')) == 0) {
-            //     // cannot satisfy constraint for this letter
-            //     num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
-            // }
         }
     }
 
