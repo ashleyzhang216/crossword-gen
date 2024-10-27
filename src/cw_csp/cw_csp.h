@@ -38,9 +38,9 @@ namespace cw_csp_ns {
             cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
-            unordered_set<cw_variable>                                get_variables()        const;
-            unordered_set<cw_constraint>                              get_constraints()      const;
-            unordered_map<cw_variable, unordered_set<cw_constraint> > get_arc_dependencies() const;
+            unordered_set<unique_ptr<cw_variable > >                                           get_variables()        const;
+            unordered_set<unique_ptr<cw_constraint> >                                          get_constraints()      const;
+            unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_arc_dependencies() const;
 
             // solve CSP
             bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);

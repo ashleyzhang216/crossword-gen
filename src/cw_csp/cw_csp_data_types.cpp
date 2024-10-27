@@ -10,22 +10,22 @@ using namespace cw_csp_data_types_ns;
 
 // ############### set_contents_equal() ###############
 
-template bool set_contents_equal<cw_variable>(
-    const unordered_set<cw_variable>& lhs, 
-    const unordered_set<cw_variable>& rhs, 
+template bool set_contents_equal<unique_ptr<cw_variable> >(
+    const unordered_set<unique_ptr<cw_variable> >& lhs, 
+    const unordered_set<unique_ptr<cw_variable> >& rhs, 
     bool debug_prints
 );
-template bool set_contents_equal<cw_constraint>(
-    const unordered_set<cw_constraint>& lhs, 
-    const unordered_set<cw_constraint>& rhs, 
+template bool set_contents_equal<unique_ptr<cw_constraint> >(
+    const unordered_set<unique_ptr<cw_constraint> >& lhs, 
+    const unordered_set<unique_ptr<cw_constraint> >& rhs, 
     bool debug_prints
 );
 
 // ############### map_to_set_contents_equal() ###############
 
 template bool map_to_set_contents_equal(
-    const unordered_map<cw_variable, unordered_set<cw_constraint> >& lhs, 
-    const unordered_map<cw_variable, unordered_set<cw_constraint> >& rhs, 
+    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& lhs, 
+    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& rhs, 
     bool debug_prints
 );
 
@@ -42,11 +42,18 @@ bool cw_variable::operator==(const cw_variable& rhs) const {
 }
 
 /**
+ * @brief == operator for ptr to cw_variable to use for test drivers
+*/
+bool cw_csp_data_types_ns::operator==(const unique_ptr<cw_variable>& lhs, const unique_ptr<cw_variable>& rhs) {
+    return *lhs == *rhs;
+}
+
+/**
  * @brief hash function for cw_variable
 */
-size_t std::hash<cw_variable>::operator()(const cw_variable& var) const {
-    size_t hash_row = hash<uint>{}(var.origin_row);
-    size_t hash_col = hash<uint>{}(var.origin_col);
+size_t std::hash<unique_ptr<cw_variable> >::operator()(const unique_ptr<cw_variable>& var) const {
+    size_t hash_row = hash<uint>{}(var->origin_row);
+    size_t hash_col = hash<uint>{}(var->origin_col);
     return hash_row ^ hash_col; 
 }
 
@@ -136,7 +143,35 @@ cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint lengt
 /**
  * @brief == operator for cw_constraint to use in hashset
 */
-bool cw_constraint::operator==(const cw_constraint& other) const {
+bool cw_csp_data_types_ns::operator==(const cw_constraint& lhs, const cw_constraint& rhs) {
+    if(typeid(lhs) != typeid(rhs)) return false;
+    return lhs.equals(rhs);
+}
+
+/**
+ * @brief call child implementation of operator<< when printing for debug
+*/
+ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var) {
+    var.serialize(os);
+    return os;
+}
+
+/**
+ * @brief hash function for cw_constraint
+*/
+size_t std::hash<unique_ptr<cw_constraint> >::operator()(const unique_ptr<cw_constraint>& constr) const {
+    cout << "unique_ptr<cw_constraint> hash" << endl;
+    return hash<size_t>{}(constr->id);
+}
+
+// ############### cw_arc ###############
+
+/**
+ * @brief helper for == operator for cw_arc to use in hashset
+ * @pre rhs is instance of the same derived class
+*/
+bool cw_arc::equals(const cw_constraint& other_constr) const {
+    const cw_arc& other = static_cast<const cw_arc&>(other_constr);
     return lhs_index == other.lhs_index
         && rhs_index == other.rhs_index
         && lhs == other.lhs
@@ -144,32 +179,24 @@ bool cw_constraint::operator==(const cw_constraint& other) const {
 }
 
 /**
- * @brief hash function for cw_constraint
+ * @brief operator to print out cw_arc for debug
 */
-size_t std::hash<cw_constraint>::operator()(const cw_constraint& var) const {
-    return hash<uint>{}(var.lhs_index) ^ hash<uint>{}(var.rhs_index) ^ hash<size_t>{}(var.lhs) ^ hash<size_t>{}(var.rhs);
+void cw_arc::serialize(ostream& os) const {
+    os << "cw_arc(id: " << id << ", lhs: " << lhs << " @ index " << lhs_index
+       << ", rhs: " << rhs << " @ index " << rhs_index << ")";
 }
 
 /**
- * @brief operator to print out cw_constraint for debug
-*/
-ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var) {
-    os << "cw_constraint(id: " << var.id << ", lhs: " << var.lhs << " @ index " << var.lhs_index
-       << ", rhs: " << var.rhs << " @ index " << var.rhs_index << ")";
-    return os;
-}
-
-/**
- * @brief testing-only constructor for cw_constraint to be used by test driver
+ * @brief testing-only constructor for cw_arc to be used by test driver
  * 
- * @param id index of this cw_constraint in an id_obj_manager
+ * @param id index of this cw_arc in an id_obj_manager
  * @param lhs_index value of lhs_index to populate
  * @param rhs_index value of rhs_index to populate
  * @param lhs value of lhs index in an id_obj_manager to populate
  * @param rhs value of rhs index in an id_obj_manager to populate
 */
-cw_constraint::cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs) 
-    : id(id), lhs_index(lhs_index), rhs_index(rhs_index), lhs(lhs), rhs(rhs)
+cw_arc::cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs) 
+    : cw_constraint(id), lhs_index(lhs_index), rhs_index(rhs_index), lhs(lhs), rhs(rhs)
 {
     // do nothing, initialization is sufficient
 }
@@ -180,7 +207,7 @@ cw_constraint::cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t l
  * @param  vars ref to id_obj_manager to index into to get lhs/rhs vars
  * @return true iff 1 or more words pruned, i.e. domain changed
 */
-bool cw_constraint::prune_domain(id_obj_manager<cw_variable>& vars) {
+bool cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
 
     size_t num_removed = 0;
     for(char letter : vars[lhs]->domain.get_all_letters_at_index(lhs_index)) {
@@ -199,7 +226,7 @@ bool cw_constraint::prune_domain(id_obj_manager<cw_variable>& vars) {
  * @param  vars ref to id_obj_manager to index into to get lhs/rhs vars 
  * @return true iff constraint is satisfied
 */
-bool cw_constraint::satisfied(const id_obj_manager<cw_variable>& vars) const {
+bool cw_arc::satisfied(const id_obj_manager<cw_variable>& vars) const {
     if(vars[lhs]->domain.size() != 1) return false;
     if(vars[rhs]->domain.size() != 1) return false;
 
@@ -209,3 +236,33 @@ bool cw_constraint::satisfied(const id_obj_manager<cw_variable>& vars) const {
 
     return true;
 }
+
+/**
+ * @brief checks if this constraint is now invalid as a result of an ac3 step, i.e. lhs domain empty
+ * 
+ * @param  vars ref to id_obj_manager to index into to get lhs var
+ * @return true iff lhs domain empty
+*/
+bool cw_arc::invalid(const id_obj_manager<cw_variable>& vars) const {
+    return vars[lhs]->domain.size() == 0;
+}
+
+/**
+ * @brief get id of variable upon which other constraints may be dependent
+*/
+size_t cw_arc::dependent() const {
+    assert(lhs != id_obj_manager<cw_variable>::INVALID_ID);
+    return lhs;
+}
+
+/**
+ * @brief get ids of variables upon which this constraint is dependent 
+*/
+vector<size_t> cw_arc::dependencies() const {
+    assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
+    return {rhs};
+}
+
+// ############### cw_cycle ###############
+
+// TODO: implement

@@ -25,19 +25,19 @@ namespace cw_csp_test_driver_ns {
 
             // csp initialization tests
             bool test_constructor_empty(uint length, uint height, string filepath, 
-                const unordered_set<cw_variable>& expected_variables,
-                const unordered_set<cw_constraint>& expected_constraints,
-                const unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
+                const unordered_set<unique_ptr<cw_variable> >& expected_variables,
+                const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
+                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_arc_dependencies
             );
             bool test_constructor_contents(uint length, uint height, string contents, string filepath,
-                const unordered_set<cw_variable>& expected_variables,
-                const unordered_set<cw_constraint>& expected_constraints,
-                const unordered_map<cw_variable, unordered_set<cw_constraint> >& expected_arc_dependencies
+                const unordered_set<unique_ptr<cw_variable> >& expected_variables,
+                const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
+                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_arc_dependencies
             );
 
             // csp ac3 tests
             bool test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result);
-            bool test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, const unordered_set<cw_variable>& expected_variables);
+            bool test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, const unordered_set<unique_ptr<cw_variable> >& expected_variables);
 
             // csp solving w/ backtracking test
             bool test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print);

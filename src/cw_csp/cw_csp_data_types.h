@@ -55,8 +55,9 @@ namespace cw_csp_data_types_ns {
         // testing-only constructor
         cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t>&& domain);
 
-        // equality operator, TODO: is this needed?
+        // equality operators
         bool operator==(const cw_variable& rhs) const;
+        friend bool operator==(const unique_ptr<cw_variable>& lhs, const unique_ptr<cw_variable>& rhs);
 
         // operator to print out cw_variable for debug
         friend ostream& operator<<(ostream& os, const cw_variable& var);
@@ -70,35 +71,96 @@ namespace cw_csp_data_types_ns {
         cw_variable& operator=(cw_variable&& other) = default;
         
         ~cw_variable() = default;
+
+        unique_ptr<cw_variable> clone() const { 
+            return make_unique<cw_variable>(*this);
+        }
+    };
+
+    // base struct to represent a constraint
+    struct cw_constraint {
+        public:
+            // for indexing in id_obj_manager
+            size_t id;
+
+            // constraint operations
+            virtual bool prune_domain(id_obj_manager<cw_variable>& vars) = 0;
+            virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const = 0;
+            virtual bool invalid(const id_obj_manager<cw_variable>& vars) const = 0;
+
+            // ids of vars whose domain modification need re-evaluation of this constraint
+            // used to build arc dependencies table in cw_csp
+            virtual vector<size_t> dependencies() const = 0;
+
+            // ids of var which may be modified in prune_domain() which can affect dependent arcs
+            virtual size_t dependent() const = 0;
+
+            // equality operator
+            friend bool operator==(const cw_constraint& lhs, const cw_constraint& rhs);
+            virtual bool equals(const cw_constraint&) const = 0;
+
+            // operator to print out cw_constraint for debug
+            friend ostream& operator<<(ostream& os, const cw_constraint& var);
+            virtual void serialize(ostream& os) const = 0;
+            
+            // prototype pattern for copying in id_obj_manager
+            virtual unique_ptr<cw_constraint> clone() const = 0;
+
+            virtual ~cw_constraint() = default;
+
+        protected:
+            cw_constraint(size_t id) : id(id) {}
     };
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
-    struct cw_constraint {
-        size_t id;                                           // for indexing in id_obj_manager
+    struct cw_arc : public cw_constraint {
         uint lhs_index;                                      // index of shared letter in lhs
         uint rhs_index;                                      // index of shared letter in rhs
         size_t lhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of lhs var in an id_obj_manager
         size_t rhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of rhs var in an id_obj_manager
 
         // default constructor for initialization in var_intersect_table
-        cw_constraint() = default;
+        cw_arc() : cw_constraint(id_obj_manager<cw_constraint>::INVALID_ID) {}
         
         // value constructor
-        cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
+        cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        bool prune_domain(id_obj_manager<cw_variable>& vars); 
+        virtual bool prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
-        bool satisfied(const id_obj_manager<cw_variable>& vars) const;
-        
-        // equality operator, TODO: is this needed?
-        bool operator==(const cw_constraint& rhs) const;
+        virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
 
-        // operator to print out cw_constraint for debug
-        friend ostream& operator<<(ostream& os, const cw_constraint& var);
+        // returns true iff lhs domain is now empty
+        virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
+
+        // only dependency is rhs
+        virtual vector<size_t> dependencies() const override;
+
+        // only dependent is lhs
+        virtual size_t dependent() const override;
+        
+        // equality operator
+        virtual bool equals(const cw_constraint& other_constr) const override;
+
+        // helper for operator to print out cw_constraint for debug
+        virtual void serialize(ostream& os) const override;
+        
+        // copy
+        virtual unique_ptr<cw_constraint> clone() const override { 
+            return make_unique<cw_arc>(*this);
+        }
+
+        virtual ~cw_arc() override = default;
     };
+
+    // cycle constraint 
+    // the last arc rhs variable is the lhs variable in the first arc
+    // adjacent lhs and rhs variables in different adjacent arcs are the same
+    // struct cw_cycle {
+
+    // };
 
 } // cw_csp_data_types_ns
 
@@ -107,13 +169,13 @@ namespace cw_csp_data_types_ns {
 */
 namespace std {
     template <>
-    struct hash<cw_csp_data_types_ns::cw_variable> {
-        size_t operator()(const cw_csp_data_types_ns::cw_variable& var) const;
+    struct hash<unique_ptr<cw_csp_data_types_ns::cw_variable> > {
+        size_t operator()(const unique_ptr<cw_csp_data_types_ns::cw_variable>& var) const;
     };
 
     template <>
-    struct hash<cw_csp_data_types_ns::cw_constraint> {
-        size_t operator()(const cw_csp_data_types_ns::cw_constraint& var) const;
+    struct hash<unique_ptr<cw_csp_data_types_ns::cw_constraint> > {
+        size_t operator()(const unique_ptr<cw_csp_data_types_ns::cw_constraint>& var) const;
     };
 } // std
 

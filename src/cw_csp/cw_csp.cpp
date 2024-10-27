@@ -48,12 +48,12 @@ cw_csp::cw_csp(string name, uint length, uint height, string contents, string fi
 /**
  * @brief getter function for variables by value
  * 
- * @return copy of variables with all pointers dereferenced
+ * @return copy of variables
 */
-unordered_set<cw_variable> cw_csp::get_variables() const {
-    unordered_set<cw_variable> result;
+unordered_set<unique_ptr<cw_variable> > cw_csp::get_variables() const {
+    unordered_set<unique_ptr<cw_variable> > result;
     for(const unique_ptr<cw_variable>& var : variables) {
-        result.insert(*var);
+        result.insert(var->clone());
     }
     return result;
 }
@@ -61,12 +61,12 @@ unordered_set<cw_variable> cw_csp::get_variables() const {
 /**
  * @brief getter function for constraints by value
  * 
- * @return copy of constraints with all pointers dereferenced
+ * @return copy of constraints
 */
-unordered_set<cw_constraint> cw_csp::get_constraints() const {
-    unordered_set<cw_constraint> result;
+unordered_set<unique_ptr<cw_constraint> > cw_csp::get_constraints() const {
+    unordered_set<unique_ptr<cw_constraint> > result;
     for(const unique_ptr<cw_constraint>& constr : constraints) {
-        result.insert(*constr);
+        result.insert(constr->clone());
     }
     return result;
 }
@@ -76,11 +76,11 @@ unordered_set<cw_constraint> cw_csp::get_constraints() const {
  * 
  * @return copy of all objects that arc_depenencies items index to
 */
-unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_dependencies() const {
-    unordered_map<cw_variable, unordered_set<cw_constraint> > result;
+unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint>> > cw_csp::get_arc_dependencies() const {
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > result;
     for(const auto& pair : arc_dependencies) {
         for(const size_t constr : pair.second) {
-            result[*variables[pair.first]].insert(*constraints[constr]);
+            result[variables[pair.first]->clone()].insert(constraints[constr]->clone());
         }
     }
     return result;
@@ -222,7 +222,7 @@ void cw_csp::initialize_csp() {
 
     // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
-    vector<vector<cw_constraint> > var_intersect_table(cw.rows(), vector<cw_constraint>(cw.cols()));
+    vector<vector<cw_arc> > var_intersect_table(cw.rows(), vector<cw_arc>(cw.cols()));
 
     utils.log(DEBUG, "cw_csp building var_intersect_table");
 
@@ -258,14 +258,14 @@ void cw_csp::initialize_csp() {
                 var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID
             ) {
                 // add arcs
-                constraints.push_back(make_unique<cw_constraint>(
+                constraints.push_back(make_unique<cw_arc>(
                     constraints.size(),
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 ));
-                constraints.push_back(make_unique<cw_constraint>(
+                constraints.push_back(make_unique<cw_arc>(
                     constraints.size(),
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs_index,
@@ -280,7 +280,9 @@ void cw_csp::initialize_csp() {
 
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     for(size_t i = 0; i < constraints.size(); ++i) {
-        arc_dependencies[constraints[i]->rhs].insert(i);
+        for(size_t var : constraints[i]->dependencies()) {
+            arc_dependencies[var].insert(i);
+        }
     }
 }
 
@@ -323,7 +325,7 @@ bool cw_csp::ac3() {
 
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
         if(constraints[constr_id]->prune_domain(variables)) {
-            if(variables[constraints[constr_id]->lhs]->domain.size() == 0) {
+            if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
 
@@ -334,7 +336,7 @@ bool cw_csp::ac3() {
             }
 
             // add dependent arcs to queue
-            for(size_t dep_arc : arc_dependencies.at(constraints[constr_id]->lhs)) {
+            for(size_t dep_arc : arc_dependencies.at(constraints[constr_id]->dependent())) {
                 if(constraints_in_queue.count(dep_arc) == 0) {
                     constraint_queue.push(dep_arc);
                     constraints_in_queue.insert(dep_arc);

@@ -31,6 +31,9 @@ namespace word_domain_data_types_ns {
 
         // maps next letters -> idx of child trie node in id_obj_manager
         unordered_map<char, size_t> children;
+        
+        // for explicitly copying unique_ptr to a node by copying underlying object
+        unique_ptr<trie_node> clone() const;
 
         // constructor to initialize new words/head
         trie_node(size_t id, bool v, char l, size_t p) : id(id), valid(v), letter(l), parent(p) {}

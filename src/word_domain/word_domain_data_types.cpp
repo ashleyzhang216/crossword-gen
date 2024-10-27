@@ -8,4 +8,11 @@
 
 using namespace word_domain_data_types_ns;
 
-// TODO: implement
+/**
+ * @brief explicitly copy underlying node object
+ * 
+ * @return ptr to deep copy of node
+*/
+unique_ptr<trie_node> trie_node::clone() const { 
+    return make_unique<trie_node>(*this);
+}
