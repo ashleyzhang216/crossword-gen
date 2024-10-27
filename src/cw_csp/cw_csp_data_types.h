@@ -165,10 +165,44 @@ namespace cw_csp_data_types_ns {
     // cycle constraint 
     // the last arc rhs variable is the lhs variable in the first arc
     // adjacent lhs and rhs variables in different adjacent arcs are the same
-    // struct cw_cycle {
+    struct cw_cycle : public cw_constraint {
+        vector<size_t>            vars;          // first and last elements must be the same
+        vector<pair<uint, uint> > intersections; // must have same len of vars, minus 1
 
-    // };
+        // construct using existing arcs 
+        cw_cycle(const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs);
 
+        // AC-N step; remove all words in first var's domain that don't have a path to the last var
+        virtual bool prune_domain(id_obj_manager<cw_variable>& vars) override;
+
+        // used by solved() in cw_csp to check that this constraint is satisfied
+        virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
+
+        // returns true iff lhs domain is now empty
+        virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
+
+        // all elements in vars are dependencies
+        virtual vector<size_t> dependencies() const override;
+
+        // only dependent is first element in vars
+        virtual size_t dependent() const override;
+
+        // equivalent to getter for intersections
+        virtual vector<pair<uint, uint> > intersection_indices() const override;
+
+        // equality operator
+        virtual bool equals(const cw_constraint& other_constr) const override;
+
+        // helper for operator to print out cw_constraint for debug
+        virtual void serialize(ostream& os) const override;
+
+        // copy
+        virtual unique_ptr<cw_constraint> clone() const override { 
+            return make_unique<cw_cycle>(*this);
+        }
+
+        virtual ~cw_cycle() override = default;
+    };
 } // cw_csp_data_types_ns
 
 /**
