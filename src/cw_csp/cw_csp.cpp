@@ -276,7 +276,7 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building arc_dependencies");
+    utils.log(DEBUG, "cw_csp building length 2 arc_dependencies");
 
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     for(size_t i = 0; i < constraints.size(); ++i) {
@@ -284,6 +284,53 @@ void cw_csp::initialize_csp() {
             arc_dependencies[var].insert(i);
         }
     }
+
+    utils.log(DEBUG, "cw_csp building cycle arc_dependencies");
+
+    // TODO: make a recursive lambda function for this
+    // start with a variable, then progressively keep looking it up in arc_dependencies (avoiding repeats) until no further progress or reach original variable
+    // add these to cycle_dependencies. after done with all vars, add contents of cycle_dependencies to arc_dependencies
+    // this way, arc_dependencies is guaranteed to only contain cw_arc
+
+    /**
+     * TODO: perhaps we OR all the letters of first var together. 
+     * imagine edges between var nodes being annotated with letters
+     * it seems like maybe, every node must have a path to the end otherwise, it can be pruned
+     * 
+     * wait, no- wouldn't this just reduce to an arc between the two vars? 
+    */
+
+    /**
+     * def find_cycle( prev: queue of prev arcs, visited: set of visited vars ):
+     *      first = rhs of last arc in prev
+     *      cur = lhs of first arc of prev
+     *      
+     *      for all a in arc_dependencies[cur]:
+     *          next = lhs of a
+     *          
+     *          if next not in visited:
+     *              add a to front of prev
+     *              add next to visited
+     * 
+     *              if next == first:
+     *                  if visited does not match that of any cycle already made:
+     *                      construct new cycle with prev, add to constraints
+     *              else:
+     *                  find_cycle( prev, visited )
+     *              
+     *              remove a from front of prev
+     *              remove next from visited
+     * 
+     * for all v in variables:
+     *      for all a in arc_dependencies[v]:
+     *           find_cycle( {a}, {lhs of a} )
+     * 
+     * for all newly added c in constraints:
+     *      for all dependencies d of c:
+     *          add d to arc_dependencies[dependent of c]
+    */
+
+
 }
 
 /**
@@ -324,7 +371,8 @@ bool cw_csp::ac3() {
         constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
-        if(constraints[constr_id]->prune_domain(variables)) {
+        unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
+        if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
@@ -336,10 +384,12 @@ bool cw_csp::ac3() {
             }
 
             // add dependent arcs to queue
-            for(size_t dep_arc : arc_dependencies.at(constraints[constr_id]->dependent())) {
-                if(constraints_in_queue.count(dep_arc) == 0) {
-                    constraint_queue.push(dep_arc);
-                    constraints_in_queue.insert(dep_arc);
+            for(size_t dep : modified) {
+                for(size_t dep_arc : arc_dependencies.at(dep)) {
+                    if(constraints_in_queue.count(dep_arc) == 0) {
+                        constraint_queue.push(dep_arc);
+                        constraints_in_queue.insert(dep_arc);
+                    }
                 }
             }
         }

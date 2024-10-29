@@ -84,16 +84,16 @@ namespace cw_csp_data_types_ns {
             size_t id;
 
             // constraint operations
-            virtual bool prune_domain(id_obj_manager<cw_variable>& vars) = 0;
+            virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) = 0;
             virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const = 0;
             virtual bool invalid(const id_obj_manager<cw_variable>& vars) const = 0;
 
             // ids of vars whose domain modification need re-evaluation of this constraint
             // used to build arc dependencies table in cw_csp
-            virtual vector<size_t> dependencies() const = 0;
+            virtual unordered_set<size_t> dependencies() const = 0;
 
             // ids of var which may be modified in prune_domain() which can affect dependent arcs
-            virtual size_t dependent() const = 0;
+            virtual unordered_set<size_t> dependents() const = 0;
 
             // for each pair of intersecting variables, their lhs/rhs index values
             virtual vector<pair<uint, uint> > intersection_indices() const = 0;
@@ -131,7 +131,7 @@ namespace cw_csp_data_types_ns {
         cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        virtual bool prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
@@ -140,10 +140,10 @@ namespace cw_csp_data_types_ns {
         virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
 
         // only dependency is rhs
-        virtual vector<size_t> dependencies() const override;
+        virtual unordered_set<size_t> dependencies() const override;
 
         // only dependent is lhs
-        virtual size_t dependent() const override;
+        virtual unordered_set<size_t> dependents() const override;
 
         // only pair of intersections is (lhs_index, rhs_index)
         virtual vector<pair<uint, uint> > intersection_indices() const override;
@@ -173,8 +173,11 @@ namespace cw_csp_data_types_ns {
         // construct using existing arcs 
         cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs);
 
+        // testing-only constructor
+        cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair<uint, uint> >& intersections);
+
         // AC-N step; remove all words in first var's domain that don't have a path to the last var
-        virtual bool prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
@@ -183,10 +186,10 @@ namespace cw_csp_data_types_ns {
         virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
 
         // all elements in vars are dependencies
-        virtual vector<size_t> dependencies() const override;
+        virtual unordered_set<size_t> dependencies() const override;
 
-        // only dependent is first element in vars
-        virtual size_t dependent() const override;
+        // all elements in vars are dependents
+        virtual unordered_set<size_t> dependents() const override;
 
         // equivalent to getter for intersections
         virtual vector<pair<uint, uint> > intersection_indices() const override;

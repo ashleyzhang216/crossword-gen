@@ -218,21 +218,22 @@ cw_arc::cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs
  * @brief AC-3 step to prune words in lhs domain without valid rhs words
  * 
  * @param  vars ref to id_obj_manager to index into to get lhs/rhs vars
- * @return true iff 1 or more words pruned, i.e. domain changed
+ * @return set of vars whose domains changed
 */
-bool cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
+unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
+    unordered_set<size_t> result;
 
-    size_t num_removed = 0;
     letter_bitset_t lhs_letters = vars[lhs]->domain.get_all_letters_at_index(lhs_index);
     letter_bitset_t rhs_letters = vars[rhs]->domain.get_all_letters_at_index(rhs_index);
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
         if(lhs_letters[i] && !rhs_letters[i]) {
             // cannot satisfy constraint for this letter
-            num_removed += vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
+            assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
+            result.insert(lhs);
         }
     }
 
-    return num_removed > 0;
+    return result;
 }
 
 /**
@@ -267,7 +268,7 @@ bool cw_arc::invalid(const id_obj_manager<cw_variable>& vars) const {
 /**
  * @brief get ids of variables upon which this constraint is dependent 
 */
-vector<size_t> cw_arc::dependencies() const {
+unordered_set<size_t> cw_arc::dependencies() const {
     assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
     return {rhs};
 }
@@ -275,9 +276,9 @@ vector<size_t> cw_arc::dependencies() const {
 /**
  * @brief get id of variable upon which other constraints may be dependent
 */
-size_t cw_arc::dependent() const {
+unordered_set<size_t> cw_arc::dependents() const {
     assert(lhs != id_obj_manager<cw_variable>::INVALID_ID);
-    return lhs;
+    return {lhs};
 }
 
 /**
@@ -356,15 +357,42 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
 }
 
 /**
+ * @brief testing-only constructor for cw_cycle, directly initialize all fields
+ * @pre var_cycle completes a full cycle
+ * @pre intersections has one valid intersection per step between vars
+ *
+ * @param id index of this cw_cycle in constrs once constructed
+ * @param var_cycle value to initialize var_cycle to
+ * @param intersections value to initialize intersections to
+*/
+cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair<uint, uint> >& intersections)
+    : cw_constraint(id),
+      var_cycle(var_cycle),
+      intersections(intersections) {
+    assert(var_cycle.size() > 4); // complete cycle (since first var is repeated)
+    assert(var_cycle.size() - 1 == intersections.size()); // one intersection per step between vars
+    assert(var_cycle[0] == var_cycle[var_cycle.size() - 1]); // first and last vars must be the same
+}
+
+/**
  * @brief AC-N step to prune words in first var domain without cyclical path back to first var
  * 
  * @param  vars ref to id_obj_manager to index into to get vars from
- * @return true iff 1 or more words pruned, i.e. domain changed
+ * @return set of vars whose domains changed
 */
-bool cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
+unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
     // TODO: implement
     (void)vars;
-    return false;
+
+    /**
+     * idea: track the letters that can be placed for each step between vars, each is a node
+     * an edge from one node to another node in layer below it if has_letters_at_index_with_letter_assigned() finds it
+     * node can only stay if it has a path back to itself
+     *
+     * see notebook where i drew a diagram example
+    */
+
+    return {};
 }
 
 /**
@@ -401,15 +429,15 @@ bool cw_cycle::invalid(const id_obj_manager<cw_variable>& vars) const {
 /**
  * @brief get ids of variables upon which this constraint is dependent 
 */
-vector<size_t> cw_cycle::dependencies() const {
-    return var_cycle;
+unordered_set<size_t> cw_cycle::dependencies() const {
+    return {var_cycle.begin(), var_cycle.end()};
 }
 
 /**
  * @brief get id of variable upon which other constraints may be dependent
 */
-size_t cw_cycle::dependent() const {
-    return var_cycle[0];
+unordered_set<size_t> cw_cycle::dependents() const {
+    return {var_cycle.begin(), var_cycle.end()};
 }
 
 /**
