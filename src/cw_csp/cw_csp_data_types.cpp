@@ -317,14 +317,14 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
 */
 void cw_cycle::serialize(ostream& os) const {
     for(size_t i = 0; i < intersections.size(); ++i) {
-        os << '(' << var_cycle[i] << " @ " << intersections[i].first << " == " << var_cycle[i+1] << " @ " << intersections[i].second << ", ";
+        os << '(' << var_cycle[i] << " @ " << intersections[i].first << " == " << var_cycle[(i+1) % var_cycle.size()] << " @ " << intersections[i].second << ", ";
     }
 }
 
 /**
  * @brief constructor for cw_cycle, constructs using existing arc constraints
  * @pre all constraints arcs indexes to in constrs are of derived class cw_arc
- * @pre arcs contains at least 4 arcs to complete a cycle
+ * @pre length of arcs is at least 4 arcs and is even to complete a cycle
  * @note dynamic_cast is used here, but for good reason- but we are guaranteed that all cw_constraint we index to are of type cw_arc
  * 
  * @param id index of this cw_cycle in constrs once constructed
@@ -333,6 +333,7 @@ void cw_cycle::serialize(ostream& os) const {
 */
 cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
     assert(arcs.size() >= 4);
+    assert(arcs.size() % 2 == 0);
 
     for(size_t i = 0; i < arcs.size(); ++i) {
         // only can construct cw_cycle from cw_arc
@@ -347,11 +348,6 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
 
         var_cycle.push_back(curr_arc->lhs);
-        if(i == arcs.size() - 1) {
-            // complete cycle on last arc
-            assert(curr_arc->rhs == var_cycle[0]);
-            var_cycle.push_back(curr_arc->rhs);
-        }
         intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
     }
 }
@@ -369,9 +365,9 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
     : cw_constraint(id),
       var_cycle(var_cycle),
       intersections(intersections) {
-    assert(var_cycle.size() > 4); // complete cycle (since first var is repeated)
-    assert(var_cycle.size() - 1 == intersections.size()); // one intersection per step between vars
-    assert(var_cycle[0] == var_cycle[var_cycle.size() - 1]); // first and last vars must be the same
+    assert(var_cycle.size() >= 4); // complete cycle
+    assert(var_cycle.size() % 2 == 0);
+    assert(var_cycle.size() == intersections.size()); // one intersection per step between vars
 }
 
 /**
@@ -402,13 +398,13 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
  * @return true iff constraint is satisfied
 */
 bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
-    for(size_t i = 0; i < var_cycle.size() - 1; ++i) {
-        if(vars[var_cycle[i]]->domain.size() != 1) return false;
-        if(vars[var_cycle[i+1]]->domain.size() != 1) return false;
+    for(size_t i = 0; i < var_cycle.size(); ++i) {
+        if(vars[var_cycle[i]                         ]->domain.size() != 1) return false;
+        if(vars[var_cycle[(i + 1) % var_cycle.size()]]->domain.size() != 1) return false;
 
         // invalid assignments are undone, so this should always be true
-        const string lhs_word = vars[var_cycle[i]]->domain.get_cur_domain().at(0).word;
-        const string rhs_word = vars[var_cycle[i+1]]->domain.get_cur_domain().at(0).word;
+        const string lhs_word = vars[var_cycle[i]                         ]->domain.get_cur_domain().at(0).word;
+        const string rhs_word = vars[var_cycle[(i + 1) % var_cycle.size()]]->domain.get_cur_domain().at(0).word;
         assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
         assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
     }
@@ -423,7 +419,12 @@ bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
  * @return true iff lhs domain empty
 */
 bool cw_cycle::invalid(const id_obj_manager<cw_variable>& vars) const {
-    return vars[var_cycle[0]]->domain.size() == 0;
+    for(size_t d : dependents()) {
+        if(vars[d]->domain.size() == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
