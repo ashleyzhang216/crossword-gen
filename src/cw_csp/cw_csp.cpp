@@ -293,14 +293,6 @@ void cw_csp::initialize_csp() {
     // this way, arc_dependencies is guaranteed to only contain cw_arc
 
     /**
-     * TODO: perhaps we OR all the letters of first var together. 
-     * imagine edges between var nodes being annotated with letters
-     * it seems like maybe, every node must have a path to the end otherwise, it can be pruned
-     * 
-     * wait, no- wouldn't this just reduce to an arc between the two vars? 
-    */
-
-    /**
      * def find_cycle( prev: queue of prev arcs, visited: set of visited vars ):
      *      first = rhs of last arc in prev
      *      cur = lhs of first arc of prev

@@ -181,7 +181,7 @@ size_t std::hash<unique_ptr<cw_constraint> >::operator()(const unique_ptr<cw_con
 
 /**
  * @brief helper for == operator for cw_arc to use in hashset
- * @pre rhs is instance of the same derived class
+ * @pre other_constr is instance of the same derived class
 */
 bool cw_arc::equals(const cw_constraint& other_constr) const {
     const cw_arc& other = static_cast<const cw_arc&>(other_constr);
@@ -292,7 +292,7 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 
 /**
  * @brief helper for == operator for cw_arc to use in hashset
- * @pre rhs is instance of the same derived class
+ * @pre other_constr is instance of the same derived class
 */
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
@@ -335,6 +335,7 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
     assert(arcs.size() >= 4);
     assert(arcs.size() % 2 == 0);
 
+    unordered_set<size_t> visited;
     for(size_t i = 0; i < arcs.size(); ++i) {
         // only can construct cw_cycle from cw_arc
         assert(arcs[i] != id_obj_manager<cw_constraint>::INVALID_ID);
@@ -347,6 +348,11 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
         assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
 
+        // enforce no double-visiting
+        assert(visited.count(curr_arc->lhs) == 0);
+        visited.insert(curr_arc->lhs);
+
+        // add to cycle path
         var_cycle.push_back(curr_arc->lhs);
         intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
     }
@@ -368,6 +374,7 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
     assert(var_cycle.size() >= 4); // complete cycle
     assert(var_cycle.size() % 2 == 0);
     assert(var_cycle.size() == intersections.size()); // one intersection per step between vars
+    assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }
 
 /**
