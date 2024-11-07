@@ -285,15 +285,10 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building cycle arc_dependencies");
-
-    // TODO: make a recursive lambda function for this
-    // start with a variable, then progressively keep looking it up in arc_dependencies (avoiding repeats) until no further progress or reach original variable
-    // add these to cycle_dependencies. after done with all vars, add contents of cycle_dependencies to arc_dependencies
-    // this way, arc_dependencies is guaranteed to only contain cw_arc
+    utils.log(DEBUG, "cw_csp searching for cycle constraints");
 
     /**
-     * def find_cycle( prev: queue of prev arcs, visited: set of visited vars ):
+     * def find_cycle( prev: vector of prev arcs, visited: set of visited vars ):
      *      first = rhs of last arc in prev
      *      cur = lhs of first arc of prev
      *      
@@ -301,7 +296,7 @@ void cw_csp::initialize_csp() {
      *          next = lhs of a
      *          
      *          if next not in visited:
-     *              add a to front of prev
+     *              add a to back of prev
      *              add next to visited
      * 
      *              if next == first:
@@ -310,19 +305,100 @@ void cw_csp::initialize_csp() {
      *              else:
      *                  find_cycle( prev, visited )
      *              
-     *              remove a from front of prev
+     *              remove a from back of prev
      *              remove next from visited
      * 
      * for all v in variables:
      *      for all a in arc_dependencies[v]:
      *           find_cycle( {a}, {lhs of a} )
      * 
-     * for all newly added c in constraints:
-     *      for all dependencies d of c:
-     *          add d to arc_dependencies[dependent of c]
+     * add new constraint dependencies somehow
     */
 
+    /**
+     * @brief find cycle constraints
+     * @pre prev is nonempty
+     * @pre visited is nonempty
+     * 
+     * @param prev vector of previous arcs in current cycle prototype
+     * @param visited set of previously visited vars in current cycle prototype
+    */
+    set<set<size_t>> unique_cycles;
+    std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
+    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
+        assert(prev.size());
+        assert(visited.size());
+        assert(visited.size() <= 4);
 
+        const cw_constraint * const first_constr = constraints[prev[0              ]].get();
+        const cw_constraint * const cur_constr   = constraints[prev[prev.size() - 1]].get();
+        const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
+        const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
+        assert(first_arc && cur_arc);
+
+        const size_t first_var = first_arc->rhs;
+        const size_t cur_var   = cur_arc->lhs;
+        
+        for(const size_t dep : arc_dependencies.at(cur_var)) {
+            const cw_constraint * const next_constr = constraints[dep].get();
+            const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
+            assert(next_arc);
+
+            const size_t next_var = next_arc->lhs;
+
+            if(!visited.count(next_var)) {
+                prev.push_back(dep);
+                visited.insert(next_var);
+
+                if(visited.size() == 4) {
+                    if(next_var == first_var) {
+                        // rotated/symmetrical cycles considered the same
+                        if(!unique_cycles.count(visited)) {
+                            unique_cycles.insert(visited);
+                            constraints.push_back(make_unique<cw_cycle>(
+                                constraints.size(), constraints, prev
+                            ));
+                        }
+                    }
+                } else {
+                    find_cycles(prev, visited);
+                }
+
+                assert(prev.back() == dep);
+                assert(visited.count(next_var));
+                prev.pop_back();
+                visited.erase(next_var);
+            }
+        }
+    };
+
+    // to avoid double-adding dependencies of arcs
+    size_t num_arcs = constraints.size();
+
+    // add cycles starting with each variable
+    for(const size_t id : variables.ids()) {
+        // filter out edge case for variables that don't intersect with any others
+        if(arc_dependencies.count(id)) {
+            for(const size_t dep : arc_dependencies.at(id)) {
+                const cw_constraint * const constr = constraints[dep].get();
+                const cw_arc * const arc = dynamic_cast<const cw_arc* const>(constr);
+                assert(arc);
+
+                vector<size_t> prev = {dep};
+                set<size_t> visited = {arc->lhs};
+                find_cycles(prev, visited);
+            }
+        }
+    }
+
+    utils.log(DEBUG, "cw_csp building cycle arc_dependencies");
+
+    // add dependencies of newly created arc constraints
+    for(size_t i = num_arcs; i < constraints.size(); ++i) {
+        for(size_t var : constraints[i]->dependencies()) {
+            arc_dependencies[var].insert(i);
+        }
+    }
 }
 
 /**

@@ -113,7 +113,7 @@ cw_variable& cw_variable::operator=(const cw_variable& other) {
  * @param domain contents of domain of this var
 */
 cw_variable::cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t>&& domain) 
-    : id(id), 
+    : id(id),
       origin_row(origin_row),
       origin_col(origin_col),
       length(length),
@@ -324,26 +324,29 @@ void cw_cycle::serialize(ostream& os) const {
 /**
  * @brief constructor for cw_cycle, constructs using existing arc constraints
  * @pre all constraints arcs indexes to in constrs are of derived class cw_arc
- * @pre length of arcs is at least 4 arcs and is even to complete a cycle
+ * @pre length of arcs is exactly 4 arcs and to complete a cycle
  * @note dynamic_cast is used here, but for good reason- but we are guaranteed that all cw_constraint we index to are of type cw_arc
  * 
  * @param id index of this cw_cycle in constrs once constructed
  * @param constrs ref to id_obj_manager holding cw_arc to construct this cw_cycle from
- * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from 
+ * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from, in reverse order
 */
 cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
-    assert(arcs.size() >= 4);
-    assert(arcs.size() % 2 == 0);
+    assert(arcs.size() == 4);
 
+    // for checking invariant
     unordered_set<size_t> visited;
-    for(size_t i = 0; i < arcs.size(); ++i) {
-        // only can construct cw_cycle from cw_arc
-        assert(arcs[i] != id_obj_manager<cw_constraint>::INVALID_ID);
-        assert(typeid(constrs[arcs[i]]) == typeid(unique_ptr<cw_arc>));
 
-        // arcs overlap
-        const cw_constraint * const curr_constr = constrs[arcs[i]].get();
-        const cw_constraint * const next_constr = constrs[arcs[(i + 1) % arcs.size()]].get();
+    // iterate in reverse order, matching order of arcs
+    for(int i = static_cast<int>(arcs.size() - 1); i >= 0; --i) {
+        // overlapping arcs
+        const size_t curr_idx = static_cast<size_t>(i);
+        const size_t next_idx = (i == 0) ? (arcs.size() - 1) : static_cast<size_t>(i - 1);
+
+        // enforce arcs overlap adjacent vars
+        // arcs is assumed to be ordered so L/R adjacent arcs share their lhs/rhs vars respectively
+        const cw_constraint * const curr_constr = constrs[arcs[curr_idx]].get();
+        const cw_constraint * const next_constr = constrs[arcs[next_idx]].get();
         const cw_arc * const curr_arc = dynamic_cast<const cw_arc* const>(curr_constr);
         const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
         assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
@@ -371,8 +374,7 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
     : cw_constraint(id),
       var_cycle(var_cycle),
       intersections(intersections) {
-    assert(var_cycle.size() >= 4); // complete cycle
-    assert(var_cycle.size() % 2 == 0);
+    assert(var_cycle.size() == 4); // complete cycle
     assert(var_cycle.size() == intersections.size()); // one intersection per step between vars
     assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }

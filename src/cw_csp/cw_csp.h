@@ -90,7 +90,9 @@ namespace cw_csp_ns {
             id_obj_manager<cw_variable>   variables;
             id_obj_manager<cw_constraint> constraints;
 
-            // arc_dependencies[id of var_i] contains all ids of arcs of the form (var_k, var_i) and all cycles containing var_i
+            // arc_dependencies[id of var_i] contains all ids of constraints with var_i as a dependency
+            // i.e. arcs of the form (var_k, var_i) and all cycles containing var_i
+            // when a constraint is updated, arc_dependencies of all its dependents must be reevaluated
             // TODO: rename this to constr_dependencies since it's not just for cw_arc now
             unordered_map<size_t, unordered_set<size_t> > arc_dependencies;
 
