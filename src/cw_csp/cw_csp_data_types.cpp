@@ -297,19 +297,30 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
+    // size check
     if(var_cycle.size() != other.var_cycle.size() || intersections.size() != other.intersections.size()) {
         return false;
     }
 
+    // all elements line up
+    auto exact_match = [this, &other](size_t shift) -> bool {
+        for(size_t i = 0; i < var_cycle.size(); ++i) {
+            if(var_cycle[i] != other.var_cycle[(i + shift) % other.var_cycle.size()]) return false;
+        }
+
+        for(size_t i = 0; i < intersections.size(); ++i) {
+            if(intersections[i] != other.intersections[(i + shift) % other.intersections.size()]) return false;
+        }
+
+        return true;
+    };
+
+    // return true if one cycle can be rotated so all elements match up
     for(size_t i = 0; i < var_cycle.size(); ++i) {
-        if(var_cycle[i] != other.var_cycle[i]) return false;
+        if(exact_match(i)) return true;
     }
 
-    for(size_t i = 0; i < intersections.size(); ++i) {
-        if(intersections[i] != other.intersections[i]) return false;
-    }
-
-    return true;
+    return false;
 }
 
 /**
