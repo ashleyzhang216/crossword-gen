@@ -167,11 +167,14 @@ namespace cw_csp_data_types_ns {
     // adjacent lhs and rhs variables in different adjacent arcs are the same
     // TODO: store data about previous calls to word_domain.has_letters_at_index_with_letter_assigned() to avoid recomputation
     struct cw_cycle : public cw_constraint {
-        // first element is implied to be repeated to complete a cycle
-        // must have exact length of 4
-        vector<size_t>            var_cycle;
+        // for performance reasons, cycle length is restricted
+        static constexpr size_t CYCLE_LEN = 4;
 
-        // must have same len of vars, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
+        // first element is implied to be repeated to complete a cycle
+        // must have exact length of CYCLE_LEN=4
+        vector<size_t> var_cycle;
+
+        // must have same len of vars, i.e. CYCLE_LEN=4, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
         vector<pair<uint, uint> > intersections;
 
         // construct using existing arcs 

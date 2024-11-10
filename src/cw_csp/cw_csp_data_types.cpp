@@ -297,16 +297,16 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
-    // size check
-    if(var_cycle.size() != other.var_cycle.size() || intersections.size() != other.intersections.size()) {
-        return false;
-    }
+    assert(var_cycle.size() == CYCLE_LEN);
+    assert(other.var_cycle.size() == CYCLE_LEN);
+    assert(intersections.size() == CYCLE_LEN);
+    assert(other.intersections.size() == CYCLE_LEN);
 
     // all elements line up
     auto exact_match = [this, &other](size_t shift, bool reverse_dir) -> bool {
-        for(size_t i = 0; i < intersections.size(); ++i) {
+        for(size_t i = 0; i < CYCLE_LEN; ++i) {
             const size_t i0 = i;
-            const size_t i1 = reverse_dir ? (-i + shift + other.intersections.size()) % other.intersections.size() : (i + shift) % other.intersections.size();
+            const size_t i1 = reverse_dir ? (CYCLE_LEN - i + shift) % CYCLE_LEN : (i + shift) % CYCLE_LEN;
 
             if(intersections[i0] != other.intersections[i1]) return false;
         }
@@ -315,7 +315,7 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
     };
 
     // return true if one cycle can be rotated so all elements match up
-    for(size_t i = 0; i < var_cycle.size(); ++i) {
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
         if(exact_match(i, false) || exact_match(i, true)) return true;
     }
 
@@ -327,13 +327,13 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
 */
 void cw_cycle::serialize(ostream& os) const {
     os << "vars{";
-    for(size_t i = 0; i < var_cycle.size(); ++i) {
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
         os << var_cycle[i] << ",";
     }
     os << "}, ";
 
     os << "intersections{";
-    for(size_t i = 0; i < intersections.size(); ++i) {
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
         os << '(' << intersections[i].first << ", " << intersections[i].second << "),";
     }
     os << '}';
@@ -350,7 +350,7 @@ void cw_cycle::serialize(ostream& os) const {
  * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from, in reverse order
 */
 cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
-    assert(arcs.size() == 4);
+    assert(arcs.size() == CYCLE_LEN);
 
     // for checking invariant
     unordered_set<size_t> visited;
@@ -377,6 +377,9 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         var_cycle.push_back(curr_arc->lhs);
         intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
     }
+
+    assert(var_cycle.size() == CYCLE_LEN);
+    assert(intersections.size() == CYCLE_LEN);
 }
 
 /**
@@ -392,8 +395,8 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
     : cw_constraint(id),
       var_cycle(var_cycle),
       intersections(intersections) {
-    assert(var_cycle.size() == 4); // complete cycle
-    assert(var_cycle.size() == intersections.size()); // one intersection per step between vars
+    assert(var_cycle.size() == CYCLE_LEN); // complete cycle
+    assert(intersections.size() == CYCLE_LEN); // one intersection per step between vars
     assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }
 
@@ -404,18 +407,163 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
  * @return set of vars whose domains changed
 */
 unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
-    // TODO: implement
-    (void)vars;
+    // imagine a graph with N=4 layers, with each layer having up to 26 nodes
+    // each layer is placed in between two variables that intersect
+    // a node exists if the corresponding letter can be placed in the intersection 
+    // an edge exists from a node to another node in the next layer iff allowed by has_letters_at_index_with_letter_assigned()
+
+    // letter_nodes[i] represents nodes between var_cycle[i] and var_cycle[(i+1) % N]
+    // letter_nodes[i][j] set ==> letter j can be placed between variables var_cycle[i] and var_cycle[(i+1) % N]
+    array<letter_bitset_t, CYCLE_LEN> letter_nodes;
+
+    // letter_edges[i] represents edges between nodes in letter_nodes[i] and letter_nodes[(i+1) % N]
+    // letter_edges[i][j][k] set ==> edges exists from letter j node in var_cycle[i], and letter k node in var_cycle[(i+1) % N]
+    array<array<letter_bitset_t, NUM_ENGLISH_LETTERS>, CYCLE_LEN> letter_edges;
+
+    // letter_in_cycle[i] represents letters placed between variables var_cycle[i] and var_cycle[(i+1) % N] that are part of a cycle
+    // letter_in_cycle[i][j] set && letter_nodes[i][j] set ==> letter j between variables var_cycle[i] and var_cycle[(i+1) % N] is part of a cycle
+    array<letter_bitset_t, CYCLE_LEN> letter_in_cycle;
+
+    // populate letter_nodes
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        const size_t curr_idx = i;
+        const size_t next_idx = (i + 1) % CYCLE_LEN;
+
+        const letter_bitset_t curr_letters = vars[var_cycle[curr_idx]]->domain.get_all_letters_at_index(intersections[i].first);
+        const letter_bitset_t next_letters = vars[var_cycle[next_idx]]->domain.get_all_letters_at_index(intersections[i].second);
+
+        // if these don't equal, then the arc between these two vars will prune a domain later
+        letter_nodes[i] = curr_letters & next_letters;
+    }
+    
+    // populate letter_edges
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        const size_t curr_idx = i;
+        const size_t next_idx = (i + 1) % CYCLE_LEN;
+
+        // for all nodes in curr_idx layer
+        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            // if node exists
+            if(letter_nodes[curr_idx][j]) {
+                // draw edges to nodes in next_idx layer
+                letter_edges[curr_idx][j] = vars[var_cycle[next_idx]]->domain.has_letters_at_index_with_letter_assigned(
+                    intersections[next_idx].first,
+                    letter_nodes[next_idx],
+                    intersections[curr_idx].second,
+                    static_cast<char>(j + 'a')
+                );
+            }
+        }
+    }
 
     /**
-     * idea: track the letters that can be placed for each step between vars, each is a node
-     * an edge from one node to another node in layer below it if has_letters_at_index_with_letter_assigned() finds it
-     * node can only stay if it has a path back to itself
-     *
-     * see notebook where i drew a diagram example
+     * @brief finds all nodes reachable using forward edges from this node in [1, CYCLE_LEN] steps
     */
+    auto traverse_forward = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+        array<letter_bitset_t, CYCLE_LEN> reachable;
+        letter_bitset_t curr = letter_bitset_t(1 << letter);
 
-    return {};
+        for(size_t step = 0; step < CYCLE_LEN; ++step) {
+            const size_t curr_idx = (idx + step) % CYCLE_LEN;
+            const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
+
+            letter_bitset_t next_layer;
+            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                if(curr[j]) {
+                    // OR to add to nodes we can reach in next layer from our current nodes in current layer
+                    next_layer |= letter_edges[curr_idx][j];
+                }
+            }
+
+            // only if nodes in next layer exist
+            next_layer &= letter_nodes[next_idx];
+
+            // store result, then recurse
+            reachable[next_idx] = next_layer;
+            curr = next_layer;
+        }
+
+        return reachable;
+    };
+
+    /**
+     * @brief finds all nodes reachable using reverse edges from this node in [1, CYCLE_LEN] steps
+    */
+    auto traverse_reverse = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+        array<letter_bitset_t, CYCLE_LEN> reachable;
+        letter_bitset_t curr = letter_bitset_t(1 << letter);
+
+        for(size_t step = 0; step < CYCLE_LEN; ++step) {
+            const size_t next_idx = (CYCLE_LEN + idx - step - 1) % CYCLE_LEN;
+            assert((CYCLE_LEN + idx - step - 1) >= 0);
+            assert((CYCLE_LEN + idx - step - 1) < 2 * CYCLE_LEN);
+
+            letter_bitset_t next_layer;
+            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                // set true iff next node has edge to a reachable node in current layer
+                next_layer[j] = (letter_edges[next_idx][j] & curr).any();
+            }
+
+            // only if nodes in next layer exist
+            next_layer &= letter_nodes[next_idx];
+
+            // store result, then recurse
+            reachable[next_idx] = next_layer;
+            curr = next_layer;
+        }
+
+        return reachable;
+    };
+
+    /**
+     * @brief update nodes known to be in a cycle
+     * @pre nodes are in a new cycle iff reachable in reachable_forward AND reachable_reverse
+    */
+    auto update_cycle_nodes = [&letter_in_cycle](array<letter_bitset_t, CYCLE_LEN>& reachable_forward, array<letter_bitset_t, CYCLE_LEN>& reachable_reverse) -> void {
+        for(size_t i = 0; i < CYCLE_LEN; ++i) {
+            letter_in_cycle[i] |= (reachable_forward[i] & reachable_reverse[i]);
+        }
+    };
+
+    // populate letter_in_cycle
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            // explore only if node exists and not already part of cycle
+            if(letter_nodes[i][j] && !letter_in_cycle[i][j]) {
+                // search the graph to find all nodes reachable from this node in [1, CYCLE_LEN] steps
+                // also do the same for traversing the graph in reverse order
+                // the AND of these yields nodes in any cycle, which does not necessarily include this node
+                // if a cycle containing this node exists, every layer will have at least one bit set
+                // if no cycle exist containing this node exists, that might not be true. it could be all zero, 
+                // or have some bits set corresponding to other cycles in any number of layers
+                array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(i, j);
+                array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(i, j);
+
+                // OR cycle results together with nodes already in a cycle
+                update_cycle_nodes(reachable_forward, reachable_reverse);
+            }
+        }
+    }
+
+    // remove letters from domains if node not part of a cycle
+    unordered_set<size_t> modified;
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            // remove if node exists AND not part of a cycle
+            if(letter_nodes[i][j] && !letter_in_cycle[i][j]) {
+                const size_t lhs_idx = i;
+                const size_t rhs_idx = (i + 1) % CYCLE_LEN;
+
+                vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
+                vars[var_cycle[rhs_idx]]->domain.remove_matching_words(intersections[i].second, static_cast<char>(j + 'a'));
+
+                modified.insert(var_cycle[lhs_idx]);
+                modified.insert(var_cycle[rhs_idx]);
+            }
+        }
+    }
+
+    return modified;
 }
 
 /**
@@ -425,13 +573,13 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
  * @return true iff constraint is satisfied
 */
 bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
-    for(size_t i = 0; i < var_cycle.size(); ++i) {
-        if(vars[var_cycle[i]                         ]->domain.size() != 1) return false;
-        if(vars[var_cycle[(i + 1) % var_cycle.size()]]->domain.size() != 1) return false;
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        if(vars[var_cycle[i]                  ]->domain.size() != 1) return false;
+        if(vars[var_cycle[(i + 1) % CYCLE_LEN]]->domain.size() != 1) return false;
 
         // invalid assignments are undone, so this should always be true
-        const string lhs_word = vars[var_cycle[i]                         ]->domain.get_cur_domain().at(0).word;
-        const string rhs_word = vars[var_cycle[(i + 1) % var_cycle.size()]]->domain.get_cur_domain().at(0).word;
+        const string lhs_word = vars[var_cycle[i]                  ]->domain.get_cur_domain().at(0).word;
+        const string rhs_word = vars[var_cycle[(i + 1) % CYCLE_LEN]]->domain.get_cur_domain().at(0).word;
         assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
         assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
     }
