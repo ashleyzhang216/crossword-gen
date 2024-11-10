@@ -261,13 +261,16 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(4l, 0, 0, 2, 0), // 4
         cw_arc(5l, 1, 0, 2, 1), // 5
         cw_arc(6l, 0, 1, 3, 0), // 6
-        cw_arc(7l, 1, 1, 3, 1)  // 7
+        cw_arc(7l, 1, 1, 3, 1), // 7
+
+        // cycles
+        cw_cycle(8l, {2, 1, 3, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}) // 8
     );
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2;
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6, 8);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7, 8);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1, 8);
+    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3, 8);
 
     unordered_set<unique_ptr<cw_variable> > vars_2_2_set;
     std::transform(vars_2_2.begin(), vars_2_2.end(), std::inserter(vars_2_2_set, vars_2_2_set.end()),
@@ -322,16 +325,39 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(20l, 2, 2, 5, 2), // 20
         cw_arc(21l, 0, 3, 6, 0), // 21
         cw_arc(22l, 1, 3, 6, 1), // 22
-        cw_arc(23l, 2, 3, 6, 2)  // 23
+        cw_arc(23l, 2, 3, 6, 2), // 23
+
+        // cycles
+        cw_cycle(24, {3, 1, 4, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}), // 24
+        cw_cycle(25, {3, 1, 5, 0}, {{1, 0}, {2, 1}, {0, 2}, {0, 0}}), // 25
+        cw_cycle(26, {3, 1, 6, 0}, {{1, 0}, {3, 1}, {0, 3}, {0, 0}}), // 26
+
+        cw_cycle(27, {3, 2, 4, 0}, {{2, 0}, {1, 2}, {0, 1}, {0, 0}}), // 27
+        cw_cycle(28, {3, 2, 4, 1}, {{2, 0}, {1, 2}, {1, 1}, {0, 1}}), // 28
+        cw_cycle(29, {3, 2, 5, 0}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}}), // 29
+        cw_cycle(30, {3, 2, 5, 1}, {{2, 0}, {2, 2}, {1, 2}, {0, 1}}), // 30
+        cw_cycle(31, {3, 2, 6, 0}, {{2, 0}, {3, 2}, {0, 3}, {0, 0}}), // 31
+        cw_cycle(32, {3, 2, 6, 1}, {{2, 0}, {3, 2}, {1, 3}, {0, 1}}), // 32
+
+        cw_cycle(33, {4, 1, 5, 0}, {{1, 1}, {2, 1}, {0, 2}, {1, 0}}), // 33
+        cw_cycle(34, {4, 1, 6, 0}, {{1, 1}, {3, 1}, {0, 3}, {1, 0}}), // 34
+        cw_cycle(35, {4, 2, 5, 0}, {{2, 1}, {2, 2}, {0, 2}, {1, 0}}), // 35
+        cw_cycle(36, {4, 2, 5, 1}, {{2, 1}, {2, 2}, {1, 2}, {1, 1}}), // 36
+        cw_cycle(37, {4, 2, 6, 0}, {{2, 1}, {3, 2}, {0, 3}, {1, 0}}), // 37
+        cw_cycle(38, {4, 2, 6, 1}, {{2, 1}, {3, 2}, {1, 3}, {1, 1}}), // 38
+
+        cw_cycle(39, {5, 1, 6, 0}, {{1, 2}, {3, 1}, {0, 3}, {2, 0}}), // 39
+        cw_cycle(40, {5, 2, 6, 0}, {{2, 2}, {3, 2}, {0, 3}, {2, 0}}), // 40
+        cw_cycle(41, {5, 2, 6, 1}, {{2, 2}, {3, 2}, {1, 3}, {2, 1}})  // 41
     );
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4;
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 40, 41);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5, 24, 27, 28, 33, 34, 35, 36, 37, 38);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8, 25, 29, 30, 33, 35, 36, 39, 40, 41);
+    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11, 26, 31, 32, 34, 37, 38, 39, 40, 41);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_4_set;
     std::transform(vars_3_4.begin(), vars_3_4.end(), std::inserter(vars_3_4_set, vars_3_4_set.end()),
@@ -390,13 +416,16 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(4l, 0, 0, 2, 0), // 4
         cw_arc(5l, 0, 2, 3, 0), // 5
         cw_arc(6l, 2, 0, 2, 1), // 6
-        cw_arc(7l, 2, 2, 3, 1)  // 7
+        cw_arc(7l, 2, 2, 3, 1), // 7
+
+        // cycles
+        cw_cycle(8l, {3, 1, 4, 0}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}})  // 8
     );
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3_donut;
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 0, contrs_3_3_donut, 4, 5);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 1, contrs_3_3_donut, 6, 7);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 2, contrs_3_3_donut, 0, 2);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 3, contrs_3_3_donut, 1, 3);
+    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 0, contrs_3_3_donut, 4, 5, 8);
+    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 1, contrs_3_3_donut, 6, 7, 8);
+    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 2, contrs_3_3_donut, 0, 2, 8);
+    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 3, contrs_3_3_donut, 1, 3, 8);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_3_donut_set;
     std::transform(vars_3_3_donut.begin(), vars_3_3_donut.end(), std::inserter(vars_3_3_donut_set, vars_3_3_donut_set.end()),
@@ -547,26 +576,35 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(40l, 1, 0, 15, 7), // 40
         cw_arc(41l, 0, 1, 16, 1), // 41
         cw_arc(42l, 1, 3, 16, 2), // 42
-        cw_arc(43l, 2, 2, 16, 3)  // 43
+        cw_arc(43l, 2, 2, 16, 3), // 43
+
+        // cycles
+        cw_cycle(44, { 8,  6, 10,  4}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}}), // 44
+        cw_cycle(45, {10,  6, 12,  5}, {{2, 2}, {3, 1}, {0, 1}, {0, 1}}), // 45
+        cw_cycle(46, {14,  2, 16,  1}, {{1, 2}, {3, 1}, {0, 1}, {0, 0}}), // 46
+        cw_cycle(47, {14,  3, 16,  1}, {{2, 1}, {2, 2}, {0, 1}, {0, 0}}), // 47
+        cw_cycle(48, {14,  3, 16,  2}, {{2, 1}, {2, 2}, {1, 3}, {2, 1}}), // 48
+        cw_cycle(49, {13,  3, 16,  2}, {{1, 0}, {2, 2}, {1, 3}, {1, 0}}), // 49
+        cw_cycle(50, {13,  3, 14,  2}, {{1, 0}, {1, 2}, {1, 2}, {1, 0}})  // 50
     );
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_6_7_complex;
     insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 0,  contrs_6_7_complex, 24, 29);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 1,  contrs_6_7_complex, 36, 41);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 2,  contrs_6_7_complex, 30, 33, 37, 42);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 3,  contrs_6_7_complex, 34, 38, 43);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 4,  contrs_6_7_complex, 22, 25, 26);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 5,  contrs_6_7_complex, 27, 31, 35, 39);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 6,  contrs_6_7_complex, 23, 28, 32);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 1,  contrs_6_7_complex, 36, 41, 46, 47);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 2,  contrs_6_7_complex, 30, 33, 37, 42, 46, 48, 49, 50);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 3,  contrs_6_7_complex, 34, 38, 43, 47, 48, 49, 50);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 4,  contrs_6_7_complex, 22, 25, 26, 44);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 5,  contrs_6_7_complex, 27, 31, 35, 39, 45);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 6,  contrs_6_7_complex, 23, 28, 32, 44, 45);
     insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 7,  contrs_6_7_complex, 40);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 8,  contrs_6_7_complex, 0, 1);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 8,  contrs_6_7_complex, 0, 1, 44);
     insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 9,  contrs_6_7_complex, 2, 3);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 10, contrs_6_7_complex, 4, 5, 6);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 10, contrs_6_7_complex, 4, 5, 6, 44, 45);
     insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 11, contrs_6_7_complex, 7, 8);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 12, contrs_6_7_complex, 9, 10);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 13, contrs_6_7_complex, 11, 12, 13);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 14, contrs_6_7_complex, 14, 15, 16);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 12, contrs_6_7_complex, 9, 10, 45);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 13, contrs_6_7_complex, 11, 12, 13, 49, 50);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 14, contrs_6_7_complex, 14, 15, 16, 46, 47, 48, 50);
     insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 15, contrs_6_7_complex, 17, 18);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 16, contrs_6_7_complex, 19, 20, 21);
+    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 16, contrs_6_7_complex, 19, 20, 21, 46, 47, 48, 49);
 
     unordered_set<unique_ptr<cw_variable> > vars_6_7_complex_set;
     std::transform(vars_6_7_complex.begin(), vars_6_7_complex.end(), std::inserter(vars_6_7_complex_set, vars_6_7_complex_set.end()),
