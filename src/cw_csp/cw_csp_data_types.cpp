@@ -297,6 +297,11 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
+    // cout << "checking cw_cycle equality" << endl;
+
+    // cout << *this << endl;
+    // cout << other << endl;
+
     // size check
     if(var_cycle.size() != other.var_cycle.size() || intersections.size() != other.intersections.size()) {
         return false;
@@ -326,9 +331,17 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
  * @brief operator to print out cw_cycle for debug
 */
 void cw_cycle::serialize(ostream& os) const {
-    for(size_t i = 0; i < intersections.size(); ++i) {
-        os << '(' << var_cycle[i] << " @ " << intersections[i].first << " == " << var_cycle[(i+1) % var_cycle.size()] << " @ " << intersections[i].second << ", ";
+    os << "vars{";
+    for(size_t i = 0; i < var_cycle.size(); ++i) {
+        os << var_cycle[i] << ",";
     }
+    os << "}, ";
+
+    os << "intersections{";
+    for(size_t i = 0; i < intersections.size(); ++i) {
+        os << '(' << intersections[i].first << ", " << intersections[i].second << "),";
+    }
+    os << '}';
 }
 
 /**
