@@ -297,11 +297,6 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
-    // cout << "checking cw_cycle equality" << endl;
-
-    // cout << *this << endl;
-    // cout << other << endl;
-
     // size check
     if(var_cycle.size() != other.var_cycle.size() || intersections.size() != other.intersections.size()) {
         return false;

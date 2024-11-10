@@ -288,34 +288,6 @@ void cw_csp::initialize_csp() {
     utils.log(DEBUG, "cw_csp searching for cycle constraints");
 
     /**
-     * def find_cycle( prev: vector of prev arcs, visited: set of visited vars ):
-     *      first = rhs of last arc in prev
-     *      cur = lhs of first arc of prev
-     *      
-     *      for all a in arc_dependencies[cur]:
-     *          next = lhs of a
-     *          
-     *          if next not in visited:
-     *              add a to back of prev
-     *              add next to visited
-     * 
-     *              if next == first:
-     *                  if visited does not match that of any cycle already made:
-     *                      construct new cycle with prev, add to constraints
-     *              else:
-     *                  find_cycle( prev, visited )
-     *              
-     *              remove a from back of prev
-     *              remove next from visited
-     * 
-     * for all v in variables:
-     *      for all a in arc_dependencies[v]:
-     *           find_cycle( {a}, {lhs of a} )
-     * 
-     * add new constraint dependencies somehow
-    */
-
-    /**
      * @brief find cycle constraints
      * @pre prev is nonempty
      * @pre visited is nonempty
