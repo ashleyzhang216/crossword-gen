@@ -303,13 +303,12 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
     }
 
     // all elements line up
-    auto exact_match = [this, &other](size_t shift) -> bool {
-        for(size_t i = 0; i < var_cycle.size(); ++i) {
-            if(var_cycle[i] != other.var_cycle[(i + shift) % other.var_cycle.size()]) return false;
-        }
-
+    auto exact_match = [this, &other](size_t shift, bool reverse_dir) -> bool {
         for(size_t i = 0; i < intersections.size(); ++i) {
-            if(intersections[i] != other.intersections[(i + shift) % other.intersections.size()]) return false;
+            const size_t i0 = i;
+            const size_t i1 = reverse_dir ? (-i + shift + other.intersections.size()) % other.intersections.size() : (i + shift) % other.intersections.size();
+
+            if(intersections[i0] != other.intersections[i1]) return false;
         }
 
         return true;
@@ -317,7 +316,7 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
 
     // return true if one cycle can be rotated so all elements match up
     for(size_t i = 0; i < var_cycle.size(); ++i) {
-        if(exact_match(i)) return true;
+        if(exact_match(i, false) || exact_match(i, true)) return true;
     }
 
     return false;
