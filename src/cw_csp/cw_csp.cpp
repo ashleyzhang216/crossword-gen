@@ -401,14 +401,35 @@ bool cw_csp::ac3() {
         constraints_in_queue.insert(constr_id);
     }
 
+    // first, run AC-3 algo while ignoring cycle constraints. if this is successful, re-run with cycle constraints
+    bool using_cycles = false;
+
     // run AC-3 algo
     size_t constr_id;
-    while(!constraint_queue.empty()) {
+    while(!constraint_queue.empty() || !using_cycles) {
+        // satisfied all arc constraints, now allowed to use cycle constraints too
+        if(constraint_queue.empty()) {
+            assert(!using_cycles);
+            using_cycles = true;
+            stamper.add_result("using cycle constraints: ");
+
+            // initialize constraint_queue again
+            for(size_t constr_id : constraints.ids()) {
+                constraint_queue.push(constr_id);
+                constraints_in_queue.insert(constr_id);
+            }
+        }
+
         // pop top constraint
         constr_id = constraint_queue.front();
         constraint_queue.pop();
         assert(constraints_in_queue.count(constr_id) > 0);
         constraints_in_queue.erase(constr_id);
+
+        // skip cycle constraints if not considering them yet
+        if(!using_cycles && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
+            continue;
+        }
 
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
         unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);

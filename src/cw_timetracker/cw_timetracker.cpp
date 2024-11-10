@@ -33,15 +33,15 @@ cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_tim
  * @brief resolves this timestep
  * 
  * @param id the expected id of this timestep
- * @param result optional message for why/how this timestep ended
+ * @param r optional message for why/how this timestep ended
  * @throws assertion_failure_exception iff id does not match
 */
-void cw_timestep::resolve(uint id, string result) {
-    assert(this->id == id);
+void cw_timestep::resolve(uint expected_id, string r) {
+    assert(id == expected_id);
     assert(!resolved());
     assert(children.empty() || children.back()->resolved());
 
-    if(result != "") this->result = result;
+    if(r != "") result = r;
     end = high_resolution_clock::now();
 }
 
@@ -141,6 +141,18 @@ cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string n
     // do nothing, other initializations are enough
 }
 
+/**
+ * @brief add result label to this stamp, appending if a label already exists
+ *
+ * @param r result to add
+*/
+void cw_timestamper::add_result(string r) {
+    if(result.has_value()) {
+        result = result.value() + r;
+    } else {
+        result = r;
+    }
+}
 
 /**
  * @brief destructor for cw_timestamper, executes end_timestep() call for its timestep
