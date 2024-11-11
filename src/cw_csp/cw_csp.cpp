@@ -48,12 +48,12 @@ cw_csp::cw_csp(string name, uint length, uint height, string contents, string fi
 /**
  * @brief getter function for variables by value
  * 
- * @return copy of variables with all pointers dereferenced
+ * @return copy of variables
 */
-unordered_set<cw_variable> cw_csp::get_variables() const {
-    unordered_set<cw_variable> result;
+unordered_set<unique_ptr<cw_variable> > cw_csp::get_variables() const {
+    unordered_set<unique_ptr<cw_variable> > result;
     for(const unique_ptr<cw_variable>& var : variables) {
-        result.insert(*var);
+        result.insert(var->clone());
     }
     return result;
 }
@@ -61,12 +61,12 @@ unordered_set<cw_variable> cw_csp::get_variables() const {
 /**
  * @brief getter function for constraints by value
  * 
- * @return copy of constraints with all pointers dereferenced
+ * @return copy of constraints
 */
-unordered_set<cw_constraint> cw_csp::get_constraints() const {
-    unordered_set<cw_constraint> result;
+unordered_set<unique_ptr<cw_constraint> > cw_csp::get_constraints() const {
+    unordered_set<unique_ptr<cw_constraint> > result;
     for(const unique_ptr<cw_constraint>& constr : constraints) {
-        result.insert(*constr);
+        result.insert(constr->clone());
     }
     return result;
 }
@@ -76,11 +76,11 @@ unordered_set<cw_constraint> cw_csp::get_constraints() const {
  * 
  * @return copy of all objects that arc_depenencies items index to
 */
-unordered_map<cw_variable, unordered_set<cw_constraint> > cw_csp::get_arc_dependencies() const {
-    unordered_map<cw_variable, unordered_set<cw_constraint> > result;
+unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint>> > cw_csp::get_arc_dependencies() const {
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > result;
     for(const auto& pair : arc_dependencies) {
         for(const size_t constr : pair.second) {
-            result[*variables[pair.first]].insert(*constraints[constr]);
+            result[variables[pair.first]->clone()].insert(constraints[constr]->clone());
         }
     }
     return result;
@@ -222,7 +222,7 @@ void cw_csp::initialize_csp() {
 
     // helper table to build valid constraints
     // var_intersect_table[i][j] corresponds to cw[i][j] 
-    vector<vector<cw_constraint> > var_intersect_table(cw.rows(), vector<cw_constraint>(cw.cols()));
+    vector<vector<cw_arc> > var_intersect_table(cw.rows(), vector<cw_arc>(cw.cols()));
 
     utils.log(DEBUG, "cw_csp building var_intersect_table");
 
@@ -258,14 +258,14 @@ void cw_csp::initialize_csp() {
                 var_intersect_table[row][col].rhs != id_obj_manager<cw_variable>::INVALID_ID
             ) {
                 // add arcs
-                constraints.push_back(make_unique<cw_constraint>(
+                constraints.push_back(make_unique<cw_arc>(
                     constraints.size(),
                     var_intersect_table[row][col].lhs_index,
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs,
                     var_intersect_table[row][col].rhs
                 ));
-                constraints.push_back(make_unique<cw_constraint>(
+                constraints.push_back(make_unique<cw_arc>(
                     constraints.size(),
                     var_intersect_table[row][col].rhs_index,
                     var_intersect_table[row][col].lhs_index,
@@ -276,20 +276,110 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building arc_dependencies");
+    utils.log(DEBUG, "cw_csp building length 2 arc_dependencies");
 
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     for(size_t i = 0; i < constraints.size(); ++i) {
-        arc_dependencies[constraints[i]->rhs].insert(i);
+        for(size_t var : constraints[i]->dependencies()) {
+            arc_dependencies[var].insert(i);
+        }
+    }
+
+    utils.log(DEBUG, "cw_csp searching for cycle constraints");
+
+    /**
+     * @brief find cycle constraints
+     * @pre prev is nonempty
+     * @pre visited is nonempty
+     * 
+     * @param prev vector of previous arcs in current cycle prototype
+     * @param visited set of previously visited vars in current cycle prototype
+    */
+    set<set<size_t>> unique_cycles;
+    std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
+    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
+        assert(prev.size());
+        assert(visited.size());
+        assert(visited.size() <= 4);
+
+        const cw_constraint * const first_constr = constraints[prev[0              ]].get();
+        const cw_constraint * const cur_constr   = constraints[prev[prev.size() - 1]].get();
+        const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
+        const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
+        assert(first_arc && cur_arc);
+
+        const size_t first_var = first_arc->rhs;
+        const size_t cur_var   = cur_arc->lhs;
+        
+        for(const size_t dep : arc_dependencies.at(cur_var)) {
+            const cw_constraint * const next_constr = constraints[dep].get();
+            const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
+            assert(next_arc);
+
+            const size_t next_var = next_arc->lhs;
+
+            if(!visited.count(next_var)) {
+                prev.push_back(dep);
+                visited.insert(next_var);
+
+                if(visited.size() == 4) {
+                    if(next_var == first_var) {
+                        // rotated/symmetrical cycles considered the same
+                        if(!unique_cycles.count(visited)) {
+                            unique_cycles.insert(visited);
+                            constraints.push_back(make_unique<cw_cycle>(
+                                constraints.size(), constraints, prev
+                            ));
+                        }
+                    }
+                } else {
+                    find_cycles(prev, visited);
+                }
+
+                assert(prev.back() == dep);
+                assert(visited.count(next_var));
+                prev.pop_back();
+                visited.erase(next_var);
+            }
+        }
+    };
+
+    // to avoid double-adding dependencies of arcs
+    size_t num_arcs = constraints.size();
+
+    // add cycles starting with each variable
+    for(const size_t id : variables.ids()) {
+        // filter out edge case for variables that don't intersect with any others
+        if(arc_dependencies.count(id)) {
+            for(const size_t dep : arc_dependencies.at(id)) {
+                const cw_constraint * const constr = constraints[dep].get();
+                const cw_arc * const arc = dynamic_cast<const cw_arc* const>(constr);
+                assert(arc);
+
+                vector<size_t> prev = {dep};
+                set<size_t> visited = {arc->lhs};
+                find_cycles(prev, visited);
+            }
+        }
+    }
+
+    utils.log(DEBUG, "cw_csp building cycle arc_dependencies");
+
+    // add dependencies of newly created arc constraints
+    for(size_t i = num_arcs; i < constraints.size(); ++i) {
+        for(size_t var : constraints[i]->dependencies()) {
+            arc_dependencies[var].insert(i);
+        }
     }
 }
 
 /**
  * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
+ * @param only_arcs only use arc constraints and ignore cycles, default = true
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
-bool cw_csp::ac3() {
+bool cw_csp::ac3(bool only_arcs) {
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -321,9 +411,15 @@ bool cw_csp::ac3() {
         assert(constraints_in_queue.count(constr_id) > 0);
         constraints_in_queue.erase(constr_id);
 
+        // skip cycle constraints if not considering them yet
+        if(only_arcs && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
+            continue;
+        }
+
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
-        if(constraints[constr_id]->prune_domain(variables)) {
-            if(variables[constraints[constr_id]->lhs]->domain.size() == 0) {
+        unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
+        if(modified.size() > 0) {
+            if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
 
@@ -334,10 +430,12 @@ bool cw_csp::ac3() {
             }
 
             // add dependent arcs to queue
-            for(size_t dep_arc : arc_dependencies.at(constraints[constr_id]->lhs)) {
-                if(constraints_in_queue.count(dep_arc) == 0) {
-                    constraint_queue.push(dep_arc);
-                    constraints_in_queue.insert(dep_arc);
+            for(size_t dep : modified) {
+                for(size_t dep_arc : arc_dependencies.at(dep)) {
+                    if(constraints_in_queue.count(dep_arc) == 0) {
+                        constraint_queue.push(dep_arc);
+                        constraints_in_queue.insert(dep_arc);
+                    }
                 }
             }
         }
@@ -515,7 +613,10 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
-    if(!ac3()) { stamper.add_result("fail initial ac3"); return false; }
+    if(!ac3(false)) {
+        stamper.add_result("fail initial ac3");
+        return false;
+    }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
@@ -559,13 +660,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     size_t next_var = select_unassigned_var(var_strategy);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
-
-    // TODO: remove this
-    // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
-    if(!variables[next_var]->domain.is_assigned() && (variables[next_var]->domain.size() == 1 && assigned_words.count(variables[next_var]->domain.get_cur_domain().at(0)) > 0)) {
-        stamper.add_result("invalid base case");
-        return false;
-    }
     
     // get domain of next variable as list of candidates to try to assign
     vector<word_t> domain_copy;

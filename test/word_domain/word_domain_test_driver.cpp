@@ -18,7 +18,7 @@ word_domain_test_driver::word_domain_test_driver(string name) : common_parent(na
 }
 
 /**
- * @brief constructor for word_domain test driver with initial contents
+ * @brief constructor for word_domain test driver with initial contents from filepath
  * 
  * @param name name of driver
  * @param filepath path to .txt or .json file containing word data
@@ -276,7 +276,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
 
     array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = initial_num_words;
     array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices = dut->get_letters_at_indices();
-    unordered_set<char> expected, actual;
+    letter_bitset_t expected, actual;
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
 
@@ -284,7 +284,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         expected = get_all_letters_at_index(i, num_words);
         actual = dut->get_all_letters_at_index(i);
-        result &= set_contents_equal(expected, actual, false);
+        result &= expected == actual;
     }
 
     // add words
@@ -302,7 +302,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint i = 0; i < MAX_WORD_LEN; i++) {
             expected = get_all_letters_at_index(i, num_words);
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(expected, actual, false);
+            result &= expected == actual;
         }
     }
 
@@ -316,9 +316,10 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         
         // check return result
         for(uint i = 0; i < candidate.word.size(); i++) {
-            expected = { candidate.word.at(i) };
+            expected = letter_bitset_t();
+            expected |= 1 << static_cast<uint>(candidate.word.at(i) - 'a');
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(expected, actual, false);
+            result &= expected == actual;
         }
 
         dut->remove_matching_words(0, candidate.word.at(0));
@@ -353,7 +354,7 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         for(uint j = 0; j < MAX_WORD_LEN; j++) {
             expected = get_all_letters_at_index(j, num_words);
             actual = dut->get_all_letters_at_index(j);
-            result &= set_contents_equal(expected, actual, false);
+            result &= expected == actual;
         }
     }
 
@@ -365,9 +366,10 @@ bool word_domain_test_driver::test_get_all_letters_at_index(
         
         // check return result
         for(uint i = 0; i < candidate.word.size(); i++) {
-            expected = { candidate.word.at(i) };
+            expected = letter_bitset_t();
+            expected |= 1 << static_cast<uint>(candidate.word.at(i) - 'a');
             actual = dut->get_all_letters_at_index(i);
-            result &= set_contents_equal(expected, actual, false);
+            result &= expected == actual;
         }
 
         dut->remove_matching_words(0, candidate.word.at(0));
@@ -391,6 +393,49 @@ bool word_domain_test_driver::test_num_letters_at_indicies_assign(word_t value) 
         for(char c = 'a'; c <= 'z'; c++) {
             expected_val = (i < value.word.size() && value.word.at(i) == c) ? 1l : 0l; 
             result &= dut->num_letters_at_index(i, c) == expected_val;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief checks output from has_letters_at_index_with_letter_assigned()
+ * @param len word length of domain
+ * 
+ * @returns true iff has_letters_at_index_with_letter_assigned() works correctly
+*/
+bool word_domain_test_driver::test_has_letters_at_index_with_letter_assigned(uint len) {
+    bool result = true;
+
+    vector<word_t> domain = dut->get_cur_domain();
+
+    auto ground_truth = [&domain](uint index, char req_letter, uint req_index) -> letter_bitset_t {
+        letter_bitset_t res;
+
+        for(const word_t& w : domain) {
+            if(w.word.at(req_index) == req_letter) {
+                res |= 1 << static_cast<uint>(w.word.at(index) - 'a');
+            }
+        }
+
+        return res;
+    };
+
+    letter_bitset_t all_bitset;
+    all_bitset.flip();
+
+    for(uint i = 0; i < len; ++i) {
+        letter_bitset_t letters = dut->get_all_letters_at_index(i);
+
+        for(uint l = 0; l < NUM_ENGLISH_LETTERS; ++l) {
+            if(letters[l]) {
+                for(uint j = 0; j < len; ++j) {
+                    if(i != j || dut->is_assigned()) {
+                        result &= dut->has_letters_at_index_with_letter_assigned(j, all_bitset, i, static_cast<char>(l + 'a')) == ground_truth(j, static_cast<char>(l + 'a'), i);
+                    }
+                }
+            }
         }
     }
 
@@ -433,16 +478,16 @@ bool word_domain_test_driver::letters_at_indicies_entries_equal(
  * 
  * @param index the index of the table to consider
  * @param num_words ref to num word table to generate result from
- * @returns set of all letters with at least 1 appearance at specified index
+ * @returns bitset with all letters with at least 1 appearance at specified index set true
  * 
 */
-unordered_set<char> word_domain_test_driver::get_all_letters_at_index(uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words) {
+letter_bitset_t word_domain_test_driver::get_all_letters_at_index(uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words) {
     assert_m(index < MAX_WORD_LEN, "index exceeds table dimension");
 
-    unordered_set<char> expected;
+    letter_bitset_t expected;
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; i++) {
         if(num_words[index][i] > 0) {
-            expected.insert(static_cast<char>('a' + i));
+            expected |= 1 << i;
         }
     }
     return expected;

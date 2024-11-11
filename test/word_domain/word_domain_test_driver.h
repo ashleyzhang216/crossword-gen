@@ -25,7 +25,7 @@ namespace word_domain_test_driver_ns {
             // base constructor
             word_domain_test_driver(string name);
 
-            // constructor with initial contents
+            // constructor with filepath contents
             word_domain_test_driver(string name, string filepath);
 
             // basic directed test for trie & find_matches()
@@ -76,6 +76,9 @@ namespace word_domain_test_driver_ns {
             // basic directed test for num_letters_at_index() after assigning domain
             bool test_num_letters_at_indicies_assign(word_t value);
 
+            // basic directed test for has_letters_at_index_with_letter_assigned()
+            bool test_has_letters_at_index_with_letter_assigned(uint len);
+
             // expose basic functionalities for dut 
             void add_words(vector<word_t> words) { for(word_t w : words) dut->add_word(w); }
             void remove_words(vector<pair<uint, char> > remove_params) { 
@@ -84,6 +87,7 @@ namespace word_domain_test_driver_ns {
             void assign_domain(word_t word) { dut->assign_domain(word); }
             void unassign_domain() { dut->unassign_domain(); }
             vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
+            unordered_map<string, word_t>& get_word_map() { return dut->get_word_map(); }
 
             // destructor, all objects are raii and should delete automatically
             ~word_domain_test_driver() = default;
@@ -100,7 +104,7 @@ namespace word_domain_test_driver_ns {
             );
 
             // helper function for test_get_all_letters_at_index()
-            unordered_set<char> get_all_letters_at_index(
+            letter_bitset_t get_all_letters_at_index(
                 uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words
             );
     }; // word_domain_test_driver

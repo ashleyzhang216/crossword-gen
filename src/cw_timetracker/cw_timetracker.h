@@ -24,7 +24,7 @@ namespace cw_timetracker_ns {
         cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
 
         // ends timestep measurement
-        void resolve(uint id, string result = "");
+        void resolve(uint expected_id, string r = "");
 
         // returns true iff timestep has been resolved
         bool resolved() { return end.has_value(); }
@@ -98,7 +98,7 @@ namespace cw_timetracker_ns {
             cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name);
 
             // add result string to attach to timestep upon completion
-            void add_result(string result) { this->result = result; }
+            void add_result(string r);
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();

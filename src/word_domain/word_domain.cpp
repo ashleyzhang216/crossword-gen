@@ -41,6 +41,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         filepath_opt(filepath_opt),
         unassigned_domain_size(0),
         assigned(false) {
+        
     // init root node of trie
     nodes.push_back(
         make_unique<trie_node>(TRIE_ROOT_NODE_IDX, false, '_', id_obj_manager<trie_node>::INVALID_ID)
@@ -205,7 +206,7 @@ void word_domain::add_word(word_t w) {
             unassigned_domain_size++;
 
             // update word counts in letters_at_indices
-            for(uint i = 0; i < w.word.size(); i++) {
+            for(uint i = 0; i < w.word.size(); ++i) {
                 assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
                 letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
@@ -326,6 +327,79 @@ uint word_domain::num_letters_at_index(uint index, char letter) const {
         return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1u : 0u;
     }
     return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
+}
+
+/**
+ * @brief checks which of the input letters at an input index exist in domain words among those also with a required letter at a required index
+ * @pre not assigned -> index != required_index, equality doesn't make sense for intended use case of simple cycle constraints
+ *
+ * @param index index to search for letters along
+ * @param letters 0-indexed bitset of letters to search for, i.e. index 0 == 'a'
+ * @param required_index index at which required_letter must appear in words included in search
+ * @param required_letter letter words included in search must have at index required_index
+ *
+ * @returns 0-indexed bitset where bit set --> contains word with that letter at specified index AND required_letter @ index of required_index
+ * @note the above arrow is unidirectional, bit not set in input -> bit not set in output
+*/
+letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint index, const letter_bitset_t& letters, uint required_index, char required_letter) const {
+    letter_bitset_t res;
+
+    if(assigned) {
+        if(assigned_value.has_value()) {
+            assert(required_index < assigned_value.value().word.size());
+            assert(index < assigned_value.value().word.size());
+
+            if(assigned_value.value().word.at(required_index) == required_letter) {
+                res |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
+            }
+        }
+    } else {
+        assert(index != required_index);
+        
+        /**
+         * @brief private helper
+         * @pre cur_index > target_index
+         *
+         * @param node_idx node to traverse from
+         * @param cur_index initial index of node_idx
+         * @param target_index index of parent to read letter from
+         * @returns letter of the parent node of node_idx at a index of target_index
+        */
+        auto char_of_parent = [this](size_t node_idx, uint cur_index, const uint target_index) -> char {
+            assert(cur_index > 0 && cur_index < MAX_WORD_LEN);
+            assert(target_index >= 0 && target_index < MAX_WORD_LEN - 1);
+            assert(cur_index > target_index);
+
+            while(cur_index != target_index) {
+                node_idx = nodes[node_idx]->parent;
+                cur_index--;
+            }
+            return nodes[node_idx]->letter;
+        };
+
+        // traverse upwards from whichever is the higher depth to only have one path via parent instead of exponential growth of search paths
+        if(index > required_index) {
+            for(uint j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                if(letters[j]) {
+                    for(const size_t node_idx : letters_at_indices[index][j].nodes) {
+                        if(char_of_parent(node_idx, index, required_index) == required_letter) {
+                            res |= 1 << j;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            for(const size_t node_idx : letters_at_indices[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
+                res |= 1 << static_cast<uint>(char_of_parent(node_idx, required_index, index) - 'a');
+
+                // early exit iff all letters found
+                if(res == letters) break;
+            }
+        }
+    }
+
+    return res;
 }
 
 /**
@@ -480,7 +554,7 @@ void word_domain::start_new_ac3_call() {
     size_t stack_depth = ac3_pruned_assigned_val.size();
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
+            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
@@ -506,7 +580,7 @@ size_t word_domain::undo_prev_ac3_call() {
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated");
+            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
             assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
@@ -573,25 +647,25 @@ size_t word_domain::size() const {
 /**
  * @brief get letters at an index in the current domain, for AC-3 constraint satisfaction checking
  * @param index the index to get letters for
- * @returns set of chars, >= 'a', and <= 'z', which appear at the specific index in the current domain (taking into account assignment) 
+ * @returns bitset where true --> corresponding letter appears  at specified index in current domain (taking into account assignment) 
 */
-unordered_set<char> word_domain::get_all_letters_at_index(uint index) const {
+letter_bitset_t word_domain::get_all_letters_at_index(uint index) const {
     assert_m(index < MAX_WORD_LEN, "index out of bounds of max word length");
 
-    unordered_set<char> result;
+    letter_bitset_t result;
     if(assigned) {
         if(assigned_value.has_value()) {
             assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
             
-            return { assigned_value.value().word.at(index) };
+            result |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
         }
     } else {
-        for(char letter = 'a'; letter <= 'z'; letter++) {
-            if(num_letters_at_index(index, letter) > 0) {
-                result.insert(letter);
+        for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
+            if(num_letters_at_index(index, static_cast<char>(i + 'a')) > 0) {
+                result |= 1 << i;
             }
         }
-    } 
+    }
     
     return result;
 }

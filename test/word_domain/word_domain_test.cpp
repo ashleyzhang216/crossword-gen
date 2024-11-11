@@ -587,3 +587,61 @@ TEST_CASE("word_domain get_all_letters_at_index", "[word_domain][quick]") {
 
     REQUIRE(driver->test_get_all_letters_at_index(words, remove_params, init_num_words));
 }
+
+/**
+ * basic test case for has_letters_at_index_with_letter_assigned()
+*/
+TEST_CASE("word_domain has_letters_at_index_with_letter_assigned-basic", "[word_domain],[quick]") {
+    unique_ptr<word_domain_test_driver> driver = make_unique<word_domain_test_driver>("has_letters_at_index_with_letter_assigned-basic");
+
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(0));
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(1));
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(5));
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(MAX_WORD_LEN));
+
+    vector<word_t> init_words = {
+        word_t("aaaaa"), word_t("aaaab"), word_t("aabaa"), 
+        word_t("abcda"), word_t("bbcda"), word_t("abbaa"), 
+        word_t("abbac"), word_t("cbbac"), word_t("bbcdb")
+    };
+    driver->add_words(init_words);
+
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(5));
+
+    driver->assign_domain(word_t("abcda"));
+
+    REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(5));
+}
+
+/**
+ * more complex test case for has_letters_at_index_with_letter_assigned()
+*/
+TEST_CASE("word_domain has_letters_at_index_with_letter_assigned-complex", "[word_domain],[quick]") {
+    word_domain_test_driver parser("word_domain_test_driver-parser", "word_domain/data/data_small.json");
+    vector<word_t> domain;
+    for(const auto& pair : parser.get_word_map()) {
+        domain.push_back(pair.second);
+    }
+
+    for(uint i = MIN_WORD_LEN; i < MAX_WORD_LEN; ++i) {
+        vector<word_t> domain_copy = domain;
+        domain_copy.erase(
+            std::remove_if(domain_copy.begin(), domain_copy.end(),
+                [&i](const word_t& w) {
+                    return w.word.size() != i;
+                }
+            ),
+            domain_copy.end()
+        );
+
+        unique_ptr<word_domain_test_driver> driver = make_unique<word_domain_test_driver>("has_letters_at_index_with_letter_assigned-complex");
+        driver->add_words(domain_copy);
+        
+        REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+
+        if(domain_copy.size()) {
+            driver->assign_domain(domain_copy.at(domain_copy.size() / 2));
+            REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+        }
+    }
+}

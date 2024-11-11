@@ -14,6 +14,10 @@ using namespace common_data_types_ns;
 using json = nlohmann::json;
 
 namespace word_domain_data_types_ns {
+
+    // 0-indexed bitset of letters, i.e. index 0/LSB == 'a'
+    using letter_bitset_t = std::bitset<NUM_ENGLISH_LETTERS>;
+
     /**
      * @brief node for word_domain
     */
@@ -27,6 +31,9 @@ namespace word_domain_data_types_ns {
 
         // maps next letters -> idx of child trie node in id_obj_manager
         unordered_map<char, size_t> children;
+        
+        // for explicitly copying unique_ptr to a node by copying underlying object
+        unique_ptr<trie_node> clone() const;
 
         // constructor to initialize new words/head
         trie_node(size_t id, bool v, char l, size_t p) : id(id), valid(v), letter(l), parent(p) {}
@@ -62,12 +69,12 @@ namespace word_domain_data_types_ns {
          * nodes have no connections to one another
         */
         // contains nodes pruned during an AC-3 call
-        stack<unordered_set<size_t> > ac3_pruned_nodes; 
-        // # of words pruned during an AC-3 call
-        stack<size_t> ac3_pruned_words; 
+        stack<unordered_set<size_t> > ac3_pruned_nodes;
+        // number of words pruned during an AC-3 call
+        stack<size_t> ac3_pruned_words;
 
         // base constructor
-        letters_table_entry() : num_words(0) {}
+        letters_table_entry() : num_words(0u) {}
     };
 }; // word_domain_data_types_ns
 
