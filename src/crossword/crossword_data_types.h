@@ -8,6 +8,7 @@
 #define CROSSWORD_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
+#include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
 

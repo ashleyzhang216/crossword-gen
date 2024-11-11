@@ -9,6 +9,7 @@
 
 #include "../common/common_data_types.h"
 #include "../lib/src/json.hpp"
+#include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
 

@@ -72,7 +72,7 @@ void cw_utils::write_bar(double fraction) const {
 
     bar.value().filled_ratio = fraction;
     size_t width = bar.value().bar_width - bar.value().msg.size();
-    size_t offset = bar.value().bar_width - static_cast<unsigned>(width * fraction);
+    size_t offset = bar.value().bar_width - static_cast<unsigned>(static_cast<double>(width) * fraction);
 
     cout << '\r' << bar.value().msg;
     cout.write(bar.value().full_bar.data() + std::move(offset), static_cast<long>(std::move(width)));

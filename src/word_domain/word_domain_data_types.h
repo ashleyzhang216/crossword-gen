@@ -9,6 +9,7 @@
 
 #include "../common/common_data_types.h"
 #include "../lib/src/json.hpp"
+#include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
 using json = nlohmann::json;
@@ -71,7 +72,7 @@ namespace word_domain_data_types_ns {
         // contains nodes pruned during an AC-3 call
         stack<unordered_set<size_t> > ac3_pruned_nodes;
         // number of words pruned during an AC-3 call
-        stack<size_t> ac3_pruned_words;
+        stack<uint> ac3_pruned_words;
 
         // base constructor
         letters_table_entry() : num_words(0u) {}

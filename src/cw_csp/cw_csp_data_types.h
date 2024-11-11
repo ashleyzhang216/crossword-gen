@@ -10,6 +10,7 @@
 #include "../common/common_data_types.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
+#include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
 using namespace word_domain_data_types_ns;
@@ -77,6 +78,10 @@ namespace cw_csp_data_types_ns {
         }
     };
 
+    // friend operator declarations
+    bool operator==(const unique_ptr<cw_variable>& lhs, const unique_ptr<cw_variable>& rhs);
+    ostream& operator<<(ostream& os, const cw_variable& var);
+
     // base struct to represent a constraint
     struct cw_constraint {
         public:
@@ -115,6 +120,11 @@ namespace cw_csp_data_types_ns {
         protected:
             cw_constraint(size_t id) : id(id) {}
     };
+
+    // friend operator declarations
+    bool operator==(const cw_constraint& lhs, const cw_constraint& rhs);
+    bool operator==(const unique_ptr<cw_constraint>& lhs, const unique_ptr<cw_constraint>& rhs);
+    ostream& operator<<(ostream& os, const cw_constraint& var);
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist

@@ -24,6 +24,10 @@
 #include <array>
 #include <chrono>
 #include <mutex>
+#include <memory>
+#include <optional>
+#include <iomanip>
+#include <bitset>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
@@ -93,13 +97,16 @@ namespace common_data_types_ns {
         word_t(string w, int s, long f)           : word(w), freq(f), score(s), descr("") {}
         word_t(string w, int s, long f, string d) : word(w), freq(f), score(s), descr(d)  {}
 
-        // for printing
+        // friend operator for printing
         friend ostream& operator<<(ostream& os, const word_t& cw);
 
         // equality operators
         bool operator==(const word_t& rhs) const { return word == rhs.word; }
         bool operator!=(const word_t& rhs) const { return word != rhs.word; }
     }; // struct word_t
+
+    // operator for printing
+    ostream& operator<<(ostream& os, const word_t& cw);
     
 }; // common_data_types_ns
 

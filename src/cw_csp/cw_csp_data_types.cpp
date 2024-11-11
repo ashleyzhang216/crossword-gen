@@ -495,8 +495,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
         for(size_t step = 0; step < CYCLE_LEN; ++step) {
             const size_t next_idx = (CYCLE_LEN + idx - step - 1) % CYCLE_LEN;
-            assert((CYCLE_LEN + idx - step - 1) >= 0);
-            assert((CYCLE_LEN + idx - step - 1) < 2 * CYCLE_LEN);
 
             letter_bitset_t next_layer;
             for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {

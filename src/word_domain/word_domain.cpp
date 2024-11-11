@@ -177,7 +177,7 @@ optional<string> word_domain::parse_word(const string& word) {
             word_ss << c;
         } else if(c >= 'A' && c <= 'Z') {
             // valid uppercase letters, convert to lowercase
-            word_ss << (char)(c + 'a' - 'A'); // TODO: should this be static_cast<char> ?
+            word_ss << static_cast<char>(c + 'a' - 'A');
         } else if(c == '-' || c == '\'' || c == ' ' || c == ';' || (c >= '0' && c <= '9')) {
             // remove dashes/apostrophes/semicolons/numbers/spaces, do nothing
         } else {
@@ -220,7 +220,7 @@ void word_domain::add_word(word_t w) {
             */
             std::function<void(const size_t, const string&, uint pos)> add_word_to_trie;
             add_word_to_trie = [this, &add_word_to_trie](const size_t node_idx, const string& word, uint pos) {
-                assert(node_idx >= 0 && node_idx < nodes.size());
+                assert(node_idx < nodes.size());
 
                 // all letters added to tree
                 if(pos >= word.size()) {
@@ -367,7 +367,7 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
         */
         auto char_of_parent = [this](size_t node_idx, uint cur_index, const uint target_index) -> char {
             assert(cur_index > 0 && cur_index < MAX_WORD_LEN);
-            assert(target_index >= 0 && target_index < MAX_WORD_LEN - 1);
+            assert(target_index < MAX_WORD_LEN - 1);
             assert(cur_index > target_index);
 
             while(cur_index != target_index) {

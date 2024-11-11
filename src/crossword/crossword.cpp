@@ -85,8 +85,8 @@ crossword::crossword(string name, uint length, uint height, string contents) : c
  * @throws assertion_failure_exception iff out of bounds
 */
 void crossword::write_at(char c, uint row, uint col) {
-    assert(row >= 0 && row <= rows());
-    assert(col >= 0 && col <= cols());
+    assert(row < rows());
+    assert(col < cols());
 
     puzzle[row][col] = {
         .type = char_to_tile_type(c),
@@ -101,8 +101,8 @@ void crossword::write_at(char c, uint row, uint col) {
  * @throws assertion_failure_exception iff out of bounds
 */
 char crossword::read_at(uint row, uint col) const {
-    assert(row >= 0 && row <= rows());
-    assert(col >= 0 && col <= cols());
+    assert(row < rows());
+    assert(col < cols());
 
     return puzzle[row][col].c;
 }

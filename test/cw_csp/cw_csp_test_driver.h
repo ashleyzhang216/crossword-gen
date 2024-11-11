@@ -50,11 +50,12 @@ namespace cw_csp_test_driver_ns {
             cw_csp* dut = nullptr;
     }; // cw_csp_test_driver
 
-    // for constructing ground truth arc dependencies
-    auto insert_into_arc_dep = [](
+    // helper for constructing ground truth arc dependencies
+    template<typename... Args>
+    void insert_into_arc_dep(
         unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& arc_dep,
         vector<unique_ptr<cw_variable> >& vars, size_t var_idx,
-        vector<unique_ptr<cw_constraint> >& contrs, auto... args
+        vector<unique_ptr<cw_constraint> >& contrs, Args... args
     ) {
         auto insert_into_arc_dep_impl = [](
             auto& self, unordered_set<unique_ptr<cw_constraint> >& contrs_set, 
@@ -67,8 +68,8 @@ namespace cw_csp_test_driver_ns {
         };
 
         arc_dep[vars[var_idx]->clone()] = unordered_set<unique_ptr<cw_constraint> >();
-        return insert_into_arc_dep_impl(insert_into_arc_dep_impl, arc_dep[vars[var_idx]->clone()], contrs, args...);
-    };
+        insert_into_arc_dep_impl(insert_into_arc_dep_impl, arc_dep[vars[var_idx]->clone()], contrs, args...);
+    }
 } // cw_csp_test_driver_ns
 
 #endif // CW_CSP_TEST_DRIVER_H
