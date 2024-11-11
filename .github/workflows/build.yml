@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set build script permissions
+        working-directory: .
+        run: chmod +x build.sh
+
+      - name: Build
+        working-directory: .
+        run: |
+          sh build.sh
