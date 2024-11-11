@@ -1,0 +1,23 @@
+name: Run Test Suite
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-test-suite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set test script permissions
+        working-directory: ./test
+        run: chmod +x test.sh
+
+      - name: Run tests
+        working-directory: ./test
+        run: |
+          sh test.sh
