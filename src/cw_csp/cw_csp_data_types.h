@@ -41,6 +41,7 @@ namespace cw_csp_data_types_ns {
 
     // a variable in a constraint satisfaction problem
     struct cw_variable {
+        size_t id;             // for indexing in id_obj_manager
         uint origin_row;       // 0-indexed
         uint origin_col;       // 0-indexed
         uint length;           // >= MIN_WORD_LEN && <= MAX_WORD_LEN
@@ -49,37 +50,48 @@ namespace cw_csp_data_types_ns {
         word_domain domain;    // all possible words that fit
 
         // standard constructor for cw_csp
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, string pattern, unordered_set<word_t>&& domain);
 
         // testing-only constructor
-        cw_variable(uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t> domain);
+        cw_variable(size_t id, uint origin_row, uint origin_col, uint length, word_direction dir, unordered_set<word_t>&& domain);
 
         // equality operator, TODO: is this needed?
         bool operator==(const cw_variable& rhs) const;
 
         // operator to print out cw_variable for debug
         friend ostream& operator<<(ostream& os, const cw_variable& var);
+
+        // for copying, must deep copy/clone other domain
+        cw_variable(const cw_variable& other);
+        cw_variable& operator=(const cw_variable& other);
+
+        // moving ok with default since id_obj_manager has move semantics
+        cw_variable(cw_variable&& other) = default;
+        cw_variable& operator=(cw_variable&& other) = default;
+        
+        ~cw_variable() = default;
     };
 
     // equality constraints between 2 letters in 2 cw vars
     // uni-directional, in constraint set both a constraint and its reverse must both exist
     struct cw_constraint {
-        uint lhs_index; // index of shared letter in lhs
-        uint rhs_index; // index of shared letter in rhs
-        shared_ptr<cw_variable> lhs = nullptr;
-        shared_ptr<cw_variable> rhs = nullptr;
+        size_t id;                                           // for indexing in id_obj_manager
+        uint lhs_index;                                      // index of shared letter in lhs
+        uint rhs_index;                                      // index of shared letter in rhs
+        size_t lhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of lhs var in an id_obj_manager
+        size_t rhs{id_obj_manager<cw_variable>::INVALID_ID}; // index of rhs var in an id_obj_manager
 
-        // blank constructor for initialization
-        cw_constraint() {}
+        // default constructor for initialization in var_intersect_table
+        cw_constraint() = default;
         
         // value constructor
-        cw_constraint(uint lhs_index, uint rhs_index, shared_ptr<cw_variable> lhs, shared_ptr<cw_variable> rhs);
+        cw_constraint(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        bool prune_domain(); 
+        bool prune_domain(id_obj_manager<cw_variable>& vars); 
 
         // used by solved() in cw_csp to check that this constraint is satisfied
-        bool satisfied() const;
+        bool satisfied(const id_obj_manager<cw_variable>& vars) const;
         
         // equality operator, TODO: is this needed?
         bool operator==(const cw_constraint& rhs) const;

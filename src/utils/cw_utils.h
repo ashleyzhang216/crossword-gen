@@ -27,24 +27,32 @@ extern unordered_map<verbosity_t, string> verbosity_type_to_name;
 extern verbosity_t VERBOSITY;
 
 struct assertion_failure_exception : public exception {
-    const char *what() const throw() {
-        return "crossword-gen failed assertion";
-    }
+    public:
+        explicit assertion_failure_exception(const std::string& msg) : message(msg) {}
+        
+        const char* what() const noexcept override {
+            return message.c_str();
+        }
+
+    private:
+        std::string message;
 };
 
 #undef assert
-#define assert(x)                                                                                       \
-    if(!(x)) [[unlikely]] {                                                                             \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl; \
-        throw assertion_failure_exception();                                                            \
-    }                                                                                                   \
+#define assert(x)                                                                                         \
+    if(!(x)) [[unlikely]] {                                                                               \
+        stringstream ss;                                                                                  \
+        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl;     \
+        throw assertion_failure_exception(ss.str());                                                      \
+    }                                                                                                     \
 
 #undef assert_m
-#define assert_m(x, msg)                                                                                \
-    if(!(x)) [[unlikely]] {                                                                             \
-        cout << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl  \
-            << msg << endl;                                                                             \
-        throw assertion_failure_exception();                                                            \
+#define assert_m(x, msg)                                                                                  \
+    if(!(x)) [[unlikely]] {                                                                               \
+        stringstream ss;                                                                                  \
+        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << ", Msg: " \
+            << msg << endl;                                                                               \
+        throw assertion_failure_exception(ss.str());                                                      \
     } 
 
 /**
@@ -80,7 +88,7 @@ class cw_utils {
 
                 if(verbosity <= ERROR) {
                     log_to_ostream(cerr, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
-                    throw assertion_failure_exception();
+                    throw assertion_failure_exception("Log with verbosity: " + verbosity_type_to_name.at(verbosity));
                 } else {
                     log_to_ostream(cout, verbosity_type_to_name.at(verbosity), ": ", name, ' ', args...);
                 }
@@ -92,8 +100,8 @@ class cw_utils {
 
     protected:
         // fields for printing
-        const string name;
-        const verbosity_t max_verbosity;
+        string name;
+        verbosity_t max_verbosity;
 
         // declaration of global mutex to protect printing
         static mutex print_mx;
@@ -203,6 +211,139 @@ class progress_bar {
         const double granularity;
 
 }; // class progress_bar
+
+/**
+ * @brief helpers to check if struct has 'id' field of a certain type
+*/
+template <typename T, typename F>
+struct has_id : std::false_type {};
+
+template <typename T>
+struct has_id<T, decltype(std::declval<T>().id)>
+    : std::true_type {};
+
+/**
+ * @brief holds fixed size vector of elements containing a unique size_t 'id' field equal to its index
+*/
+template <class T>
+requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
+class id_obj_manager {
+    public:
+        id_obj_manager () = default;
+        ~id_obj_manager() = default;
+
+        // for id placeholders
+        static constexpr size_t INVALID_ID = ULONG_MAX;
+
+        // add element
+        void push_back(unique_ptr<T>&& ptr) {
+            if(!vec.has_value()) {
+                vec = vector<unique_ptr<T> >();
+            }
+
+            assert(vec.value().size() == ptr->id);
+            vec.value().push_back(std::move(ptr));
+        }
+
+        // access size
+        size_t size() const {
+            if(!vec.has_value()) return 0ul;
+            return vec.value().size();
+        }
+
+        // access vector element
+        unique_ptr<T>& operator[](size_t n) {
+            assert(vec.has_value());
+            assert(vec.value()[n]->id == n);
+            return vec.value()[n];
+        }
+        const unique_ptr<T>& operator[](size_t n) const {
+            return const_cast<const unique_ptr<T>&>(const_cast<id_obj_manager*>(this)->operator[](n));
+        }
+        
+        // ids of all managed elements
+        vector<size_t> ids() const {
+            vector<size_t> res(size());
+            for(size_t i = 0; i < size(); ++i) {
+                res[i] = i;
+            }
+            return res;
+        }
+
+        // shorthand for iterators
+        using iterator = typename vector<unique_ptr<T> >::iterator;
+        using const_iterator = typename vector<unique_ptr<T> >::const_iterator;
+
+        // iterators
+        iterator begin() {
+            return vec.has_value() ? vec->begin() : empty_vec.begin();
+        }
+        const_iterator begin() const {
+            return vec.has_value() ? vec->begin() : empty_vec.begin();
+        }
+        iterator end() {
+            return vec.has_value() ? vec->end() : empty_vec.end();
+        }
+        const_iterator end() const {
+            return vec.has_value() ? vec->end() : empty_vec.end();
+        }
+
+        // deep copy
+        id_obj_manager clone() const {
+            id_obj_manager copy;
+
+            if(vec.has_value()) {
+                vector<unique_ptr<T> > vec_copy;
+                vec_copy.reserve(vec->size());
+
+                for(const auto& ptr : vec.value()) {
+                    vec_copy.emplace_back(make_unique<T>(*ptr));
+                }
+
+                copy.init(std::move(vec_copy));
+            }
+            return copy;
+        }
+
+        // explicitly not ordinarily copyable
+        id_obj_manager(const id_obj_manager&) = delete;
+        id_obj_manager& operator=(const id_obj_manager&) = delete;
+
+        // movable
+        id_obj_manager(id_obj_manager&& other) : id_obj_manager() {
+            if(other.vec.has_value()) {
+                init(std::move(other.vec.value()));
+            }
+        }
+        id_obj_manager& operator=(id_obj_manager&& other) {
+            assert(!vec.has_value()); // cannot hold existing objects
+            if(other.vec.has_value()) {
+                init(std::move(other.vec.value()));
+            }
+            return *this;
+        }
+
+    protected:
+        // underlying data
+        optional<vector<unique_ptr<T> > > vec;
+
+        // fallback for iterators when vec is empty
+        static vector<unique_ptr<T> > empty_vec;
+
+        // initialize with data
+        void init(vector<unique_ptr<T> >&& data) {
+            assert(!vec.has_value());
+            vec = std::move(data);
+            for(size_t i = 0; i < size(); ++i) {
+                assert(vec.value()[i]->id == i);
+            }
+        }
+};
+
+// define empty_vec
+template <class T>
+requires std::conjunction_v<has_id<T, size_t>, std::is_copy_constructible<T>>
+vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined

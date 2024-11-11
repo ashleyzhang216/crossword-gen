@@ -24,4 +24,4 @@ mv ${TESTFILE} ${BUILDDIR}
 
 # run
 echo "Running"
-${BUILDDIR}/${TESTFILE} $1
+${BUILDDIR}/${TESTFILE} $@

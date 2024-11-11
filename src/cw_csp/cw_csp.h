@@ -62,7 +62,7 @@ namespace cw_csp_ns {
             void initialize_csp();
 
             // select next unassigned variable to explore
-            shared_ptr<cw_variable> select_unassigned_var(var_selection_method strategy);
+            size_t select_unassigned_var(var_selection_method strategy);
 
             // undo previous call of ac3() due to invalid CSP or backtracking
             void undo_ac3();
@@ -87,11 +87,11 @@ namespace cw_csp_ns {
             word_domain total_domain;
 
             // csp structures
-            vector<shared_ptr<cw_variable> >   variables;
-            vector<shared_ptr<cw_constraint> > constraints;
+            id_obj_manager<cw_variable>   variables;
+            id_obj_manager<cw_constraint> constraints;
 
-            // arc_dependencies[var_i] contains ptrs to all arcs of the form (var_k, var_i) 
-            unordered_map<shared_ptr<cw_variable>, unordered_set<shared_ptr<cw_constraint> > > arc_dependencies;
+            // arc_dependencies[id of var_i] contains all ids of arcs of the form (var_k, var_i) 
+            unordered_map<size_t, unordered_set<size_t> > arc_dependencies;
 
             // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
             stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 
