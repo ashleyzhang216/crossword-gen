@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
-        ("a,analysis",  "Name of JSON analysis file to generate if provided",                    cxxopts::value<string>())
+        ("P,profile",   "Name of JSON profile file to generate if provided",                     cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
 
@@ -161,13 +161,13 @@ int main(int argc, char** argv) {
 
     // ############### cw_timetracker ###############
 
-    if(result.count("analysis")) {
-        if(result["analysis"].as<string>() == "") {
-            cout << "Error: analysis output filepath must be nonempty, got: " << endl;
+    if(result.count("profile")) {
+        if(result["profile"].as<string>() == "") {
+            cout << "Error: profiling output filepath must be nonempty, got: " << endl;
             exit(1);
         }
 
-        cwgen->enable_analysis();
+        cwgen->enable_profile();
     }
 
     // ############### cw_csp solving ###############
@@ -183,8 +183,8 @@ int main(int argc, char** argv) {
 
     // ############### cw_timetracker results ###############
 
-    if(result.count("analysis")) {
-        cwgen->save_analysis(result["analysis"].as<string>() + ".json");
+    if(result.count("profile")) {
+        cwgen->save_profile(result["profile"].as<string>() + ".json");
     }
 
     return 0;

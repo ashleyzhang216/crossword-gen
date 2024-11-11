@@ -36,7 +36,7 @@ namespace cw_gen_ns {
             void set_dict(string dict) { this->dict = dict; }
             void set_contents(string contents) { this->contents = contents; has_grid_contents = true; }
             void enable_progress_bar() { display_progress_bar = true; }
-            void enable_analysis() { enable_timetracker = true; }
+            void enable_profile() { enable_timetracker = true; }
 
             // for checking legal length of contents
             uint num_tiles() { return this->length * this->height; }
@@ -53,8 +53,8 @@ namespace cw_gen_ns {
             // return result after running solve()
             string result() { assert(csp->solved()); return csp->result(); }
 
-            // generate analysis file, this object cannot be meaningfully used thereafter
-            void save_analysis(string filepath) { csp->save_timetracker_result(filepath); }
+            // generate profile file, this object cannot be meaningfully used thereafter
+            void save_profile(string filepath) { csp->save_timetracker_result(filepath); }
 
         private:
             // crossword constraint satisfaction problem to solve
