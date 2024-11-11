@@ -21,7 +21,7 @@ LIB_SRC_DIR=lib/src
 D = -D
 DEFINES = $(D) CW_TOP
 CPPFLAGS += -pipe
-CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -O3 -std=c++20 $(DEFINES)
+CXXFLAGS += -g -W -Werror -Wall -Wconversion -Wextra -O2 -std=c++20 $(DEFINES)
 INC=-I$(SRC_DIR)
 
 BIN = cw_gen
