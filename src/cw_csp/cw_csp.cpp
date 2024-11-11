@@ -375,10 +375,11 @@ void cw_csp::initialize_csp() {
 
 /**
  * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
+ * @param only_arcs only use arc constraints and ignore cycles, default = true
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
-bool cw_csp::ac3() {
+bool cw_csp::ac3(bool only_arcs) {
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -401,25 +402,9 @@ bool cw_csp::ac3() {
         constraints_in_queue.insert(constr_id);
     }
 
-    // first, run AC-3 algo while ignoring cycle constraints. if this is successful, re-run with cycle constraints
-    bool using_cycles = false;
-
     // run AC-3 algo
     size_t constr_id;
-    while(!constraint_queue.empty() || !using_cycles) {
-        // satisfied all arc constraints, now allowed to use cycle constraints too
-        if(constraint_queue.empty()) {
-            assert(!using_cycles);
-            using_cycles = true;
-            stamper.add_result("using cycle constraints: ");
-
-            // initialize constraint_queue again
-            for(size_t constr_id : constraints.ids()) {
-                constraint_queue.push(constr_id);
-                constraints_in_queue.insert(constr_id);
-            }
-        }
-
+    while(!constraint_queue.empty()) {
         // pop top constraint
         constr_id = constraint_queue.front();
         constraint_queue.pop();
@@ -427,7 +412,7 @@ bool cw_csp::ac3() {
         constraints_in_queue.erase(constr_id);
 
         // skip cycle constraints if not considering them yet
-        if(!using_cycles && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
+        if(only_arcs && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
             continue;
         }
 
@@ -628,7 +613,10 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
-    if(!ac3()) { stamper.add_result("fail initial ac3"); return false; }
+    if(!ac3(false)) {
+        stamper.add_result("fail initial ac3");
+        return false;
+    }
 
     switch(csp_strategy) {
         case BACKTRACKING: {

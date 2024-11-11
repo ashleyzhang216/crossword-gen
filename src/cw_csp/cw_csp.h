@@ -46,7 +46,7 @@ namespace cw_csp_ns {
             bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
 
             // execute AC-3 algorithm to reduce CSP
-            bool ac3();
+            bool ac3(bool only_arcs = true);
 
             // check if CSP is solved
             bool solved() const;
