@@ -672,13 +672,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     size_t next_var = select_unassigned_var(var_strategy);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
-
-    // TODO: remove this
-    // invalid base case: var is invalid, i.e. not assigned AND has domain of one already-assigned word
-    if(!variables[next_var]->domain.is_assigned() && (variables[next_var]->domain.size() == 1 && assigned_words.count(variables[next_var]->domain.get_cur_domain().at(0)) > 0)) {
-        stamper.add_result("invalid base case");
-        return false;
-    }
     
     // get domain of next variable as list of candidates to try to assign
     vector<word_t> domain_copy;
