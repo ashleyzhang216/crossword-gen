@@ -16,7 +16,7 @@ if __name__ == "__main__":
     permutations = get_permutations(grid)
     print("num permutations: ", len(permutations))
     
-    for i in range(0, len(permutations), 10):
+    for i in range(0, len(permutations)):
         d, _ = disqualified(permutations[i])
         if not d:
             save_grid(permutations[i])
