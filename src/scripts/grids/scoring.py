@@ -70,25 +70,25 @@ def words(grid):
     
     return num_words, freq
 
-# helper for contains_island
-def num_accessible_tiles(grid, loc):
-    x, y = grid.shape
-    visited = np.zeros_like(grid, dtype=bool)
-    stack = [loc]
-
-    while len(stack) > 0:
-        curr = stack.pop()
-        visited[curr] = True
-        candidates = [(curr[0] - 1, curr[1]), (curr[0] + 1, curr[1]), (curr[0], curr[1] - 1), (curr[0], curr[1] + 1)]
-
-        for c in candidates:
-            if c[0] >= 0 and c[0] < x and c[1] >= 0 and c[1] < y and not visited[c] and grid[c] == BLANK:
-                stack.append(c)
-    
-    return np.sum(visited)
-
 # returns true iff grid has isolated section not connected to rest of grid
 def contains_island(grid):
+    # returns number of blank tiles accessible from root tile
+    def num_accessible_tiles(grid, loc):
+        x, y = grid.shape
+        visited = np.zeros_like(grid, dtype=bool)
+        stack = [loc]
+
+        while len(stack) > 0:
+            curr = stack.pop()
+            visited[curr] = True
+            candidates = [(curr[0] - 1, curr[1]), (curr[0] + 1, curr[1]), (curr[0], curr[1] - 1), (curr[0], curr[1] + 1)]
+
+            for c in candidates:
+                if c[0] >= 0 and c[0] < x and c[1] >= 0 and c[1] < y and not visited[c] and grid[c] == BLANK:
+                    stack.append(c)
+        
+        return np.sum(visited)
+
     num_blank_tiles = np.sum(grid)
     x, y = grid.shape
     

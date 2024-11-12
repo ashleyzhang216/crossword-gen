@@ -39,9 +39,9 @@ def get_permutations(grid):
         p_grid = get_pattern_grid(pattern)
 
         x, y = p_grid.shape
-        for i in range(X - x):
-            for j in range(Y - y):
-                success, permutation = place_pattern(grid, p_grid, (i, j))
+        for i in range(x - 1, X):
+            for j in range(y - 1, Y - i):
+                success, permutation = place_pattern(grid, p_grid, (i - x + 1, j - y + 1))
                 if success:
                     permutations.append(permutation)
     
