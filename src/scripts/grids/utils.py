@@ -3,6 +3,8 @@ import numpy as np
 import os
 import shutil
 
+BLACK = 0
+BLANK = 1
 OUT_DIR = "out"
 TICK_FONT_SIZE = 5
 
@@ -41,5 +43,4 @@ def save_grid(grid, show=False):
 
     num_grids_made += 1
 
-    if show:
-        plt.show()
+    plt.close()
