@@ -87,6 +87,7 @@ cw_variable::cw_variable(const cw_variable& other)
 
 /**
  * @brief copy assignment for cw_variable
+ * TODO: convert this to construct new object using copy constructor then std::swap all members
 */
 cw_variable& cw_variable::operator=(const cw_variable& other) {
     if (this != &other) {
