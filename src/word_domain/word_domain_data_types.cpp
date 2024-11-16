@@ -60,7 +60,7 @@ letters_table_entry::letters_table_entry(letters_table_entry&& other) noexcept
 */
 letters_table_entry& letters_table_entry::operator=(letters_table_entry&& other) noexcept {
     letters_table_entry temp(std::move(other));
-    
+
     std::swap(num_words, temp.num_words);
     std::swap(nodes, temp.nodes);
     std::swap(ac3_pruned_nodes, temp.ac3_pruned_nodes);

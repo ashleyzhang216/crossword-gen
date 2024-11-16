@@ -40,8 +40,8 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         : common_parent(name, VERBOSITY),
         filepath_opt(filepath_opt),
         unassigned_domain_size(0),
+        letters_at_indices(make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()),
         assigned(false) {
-        
     // init root node of trie
     nodes.push_back(
         make_unique<trie_node>(TRIE_ROOT_NODE_IDX, false, '_', id_obj_manager<trie_node>::INVALID_ID)
@@ -137,6 +137,7 @@ word_domain::word_domain(string name, unordered_set<word_t>&& domain)
         : common_parent(name, VERBOSITY),
           filepath_opt(std::nullopt),
           unassigned_domain_size(0),
+          letters_at_indices(make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()),
           assigned(false) {
     // init root node of trie
     nodes.push_back(
@@ -208,7 +209,7 @@ void word_domain::add_word(word_t w) {
             // update word counts in letters_at_indices
             for(uint i = 0; i < w.word.size(); ++i) {
                 assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
-                letters_at_indices[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
+                (*letters_at_indices)[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
 
             /**
@@ -233,7 +234,7 @@ void word_domain::add_word(word_t w) {
                 if(!nodes[node_idx]->children.count(word.at(pos))) {
                     // create and add node to children of current node, entry in letters_at_indices, and nodes
                     nodes[node_idx]->children.insert({word.at(pos), nodes.size()});
-                    letters_at_indices[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(nodes.size());
+                    (*letters_at_indices)[pos][static_cast<size_t>(word.at(pos) - 'a')].nodes.insert(nodes.size());
                     nodes.push_back(make_unique<trie_node>(
                         nodes.size(), false, word.at(pos), node_idx
                     ));
@@ -326,7 +327,7 @@ uint word_domain::num_letters_at_index(uint index, char letter) const {
     if(assigned) {
         return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1u : 0u;
     }
-    return letters_at_indices[index][static_cast<size_t>(letter - 'a')].num_words;
+    return (*letters_at_indices)[index][static_cast<size_t>(letter - 'a')].num_words;
 }
 
 /**
@@ -381,7 +382,7 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
         if(index > required_index) {
             for(uint j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
                 if(letters[j]) {
-                    for(const size_t node_idx : letters_at_indices[index][j].nodes) {
+                    for(const size_t node_idx : (*letters_at_indices)[index][j].nodes) {
                         if(char_of_parent(node_idx, index, required_index) == required_letter) {
                             res |= 1 << j;
                             break;
@@ -390,7 +391,7 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
                 }
             }
         } else {
-            for(const size_t node_idx : letters_at_indices[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
+            for(const size_t node_idx : (*letters_at_indices)[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
                 res |= 1 << static_cast<uint>(char_of_parent(node_idx, required_index, index) - 'a');
 
                 // early exit iff all letters found
@@ -418,8 +419,8 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to remove_matching_words()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
 
@@ -448,17 +449,17 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
         */
        std::function<uint(const size_t, uint)> remove_children;
        remove_children = [this, &remove_children](const size_t node_idx, uint index) -> uint {
-            assert(letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.count(node_idx) > 0);
-            letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
-            letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx); 
+            assert((*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.count(node_idx) > 0);
+            (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
+            (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx); 
 
             // base case for leaf nodes
             if(nodes[node_idx]->valid) {
                 // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
                 assert(nodes[node_idx]->children.size() == 0);
 
-                letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words--;
-                letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
+                (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words--;
+                (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
                 return 1;
             }
 
@@ -469,8 +470,8 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
             }
 
             // update num_words
-            letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
-            letters_at_indices[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
+            (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
+            (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
 
             // for details on why these links aren't saved, see the proof in word_domain_data_types.h
             nodes[node_idx]->children.clear();
@@ -500,8 +501,8 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
                 if(nodes[node_idx]->children.size() == 0) {
                     // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
                     if(!letters_at_indices_updated) {
-                        letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
-                        letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx);
+                        (*letters_at_indices)[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
+                        (*letters_at_indices)[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx);
                     }
 
                     // remove node as child from parent
@@ -511,8 +512,8 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
 
                 // if this is the first recursive call, remove_children() already updated letters_at_indices for this node
                 if(!letters_at_indices_updated) { 
-                    letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
-                    letters_at_indices[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
+                    (*letters_at_indices)[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words -= num_leafs;
+                    (*letters_at_indices)[static_cast<size_t>(index)][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += num_leafs; // prune, add to ac3 layer
                 }
 
                 // recurse upwards
@@ -524,7 +525,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
         size_t total_leafs = 0;
 
         // need to make copy since removing from set being iterated on, should deallocate when out of scope
-        unordered_set<size_t> nodes_copy = letters_at_indices[index][static_cast<size_t>(letter - 'a')].nodes;
+        unordered_set<size_t> nodes_copy = (*letters_at_indices)[index][static_cast<size_t>(letter - 'a')].nodes;
         for(size_t node_idx : nodes_copy) {
             if(nodes[node_idx]->parent != id_obj_manager<trie_node>::INVALID_ID) {
                 // downwards removal in trie
@@ -554,16 +555,16 @@ void word_domain::start_new_ac3_call() {
     size_t stack_depth = ac3_pruned_assigned_val.size();
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
 
     ac3_pruned_assigned_val.push(std::nullopt);
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            letters_at_indices[i][j].ac3_pruned_nodes.push(unordered_set<size_t>());
-            letters_at_indices[i][j].ac3_pruned_words.push(0);
+            (*letters_at_indices)[i][j].ac3_pruned_nodes.push(unordered_set<size_t>());
+            (*letters_at_indices)[i][j].ac3_pruned_words.push(0);
         }
     }
 }
@@ -580,8 +581,8 @@ size_t word_domain::undo_prev_ac3_call() {
     assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m(letters_at_indices[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m(letters_at_indices[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
     
@@ -592,28 +593,28 @@ size_t word_domain::undo_prev_ac3_call() {
         num_restored_per_index = 0;
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
             // restore nodes
-            letters_at_indices[i][j].nodes.insert(
-                letters_at_indices[i][j].ac3_pruned_nodes.top().begin(), letters_at_indices[i][j].ac3_pruned_nodes.top().end()
+            (*letters_at_indices)[i][j].nodes.insert(
+                (*letters_at_indices)[i][j].ac3_pruned_nodes.top().begin(), (*letters_at_indices)[i][j].ac3_pruned_nodes.top().end()
             ); 
             // don't pop ac3_pruned_nodes yet, need it to restore links from parents
 
             // restore edges from parent nodes
-            for(const size_t node_idx : letters_at_indices[i][j].ac3_pruned_nodes.top()) {
+            for(const size_t node_idx : (*letters_at_indices)[i][j].ac3_pruned_nodes.top()) {
                 const size_t parent = nodes[node_idx]->parent;
                 if(parent != id_obj_manager<trie_node>::INVALID_ID) {
-                    assert_m(i == 0 || letters_at_indices[i-1][static_cast<size_t>(nodes[parent]->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
+                    assert_m(i == 0 || (*letters_at_indices)[i-1][static_cast<size_t>(nodes[parent]->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
                     assert_m(nodes[parent]->children.count(nodes[node_idx]->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
                     nodes[parent]->children.insert({nodes[node_idx]->letter, node_idx});
                 } else {
                     utils.log(ERROR, "parent of node index ", i, ", letter ", j, " deleted early during restoration");
                 }
             }
-            letters_at_indices[i][j].ac3_pruned_nodes.pop();
+            (*letters_at_indices)[i][j].ac3_pruned_nodes.pop();
 
             // restore num_words
-            letters_at_indices[i][j].num_words += letters_at_indices[i][j].ac3_pruned_words.top();
-            num_restored_per_index += letters_at_indices[i][j].ac3_pruned_words.top();
-            letters_at_indices[i][j].ac3_pruned_words.pop();
+            (*letters_at_indices)[i][j].num_words += (*letters_at_indices)[i][j].ac3_pruned_words.top();
+            num_restored_per_index += (*letters_at_indices)[i][j].ac3_pruned_words.top();
+            (*letters_at_indices)[i][j].ac3_pruned_words.pop();
         }
         assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
         if(num_restored_per_index != 0) num_restored = num_restored_per_index;
@@ -720,22 +721,63 @@ word_domain::word_domain(const word_domain& other)
       nodes(other.nodes.clone()),
       word_map(other.word_map),
       unassigned_domain_size(other.unassigned_domain_size),
-      letters_at_indices(other.letters_at_indices),
+      letters_at_indices(other.letters_at_indices ? 
+        make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >(*other.letters_at_indices) : nullptr),
       ac3_pruned_assigned_val(other.ac3_pruned_assigned_val),
       assigned(other.assigned),
       assigned_value(other.assigned_value) {
-    // do nothing else
+
+    assert(letters_at_indices);
 }
 word_domain& word_domain::operator=(const word_domain& other) {
-    if (this != &other) {
-        filepath_opt = other.filepath_opt;
-        nodes = other.nodes.clone();
-        word_map = other.word_map;
-        unassigned_domain_size = other.unassigned_domain_size;
-        letters_at_indices = other.letters_at_indices;
-        ac3_pruned_assigned_val = other.ac3_pruned_assigned_val;
-        assigned = other.assigned;
-        assigned_value = other.assigned_value;
+    if(this != &other) {
+        word_domain temp(other);
+        word_domain_ns::swap(*this, temp);
     }
     return *this;
+}
+
+/**
+ * @brief move for word_domain
+*/
+word_domain::word_domain(word_domain&& other) noexcept 
+    : common_parent(other.name, other.verbosity),
+      filepath_opt(std::move(other.filepath_opt)),
+      nodes(std::move(other.nodes)),
+      word_map(std::move(other.word_map)),
+      unassigned_domain_size(std::move(other.unassigned_domain_size)),
+      letters_at_indices(std::move(other.letters_at_indices)),
+      ac3_pruned_assigned_val(std::move(other.ac3_pruned_assigned_val)),
+      assigned(other.assigned),
+      assigned_value(std::move(other.assigned_value)) {
+    // do nothing else
+}
+word_domain& word_domain::operator=(word_domain&& other) noexcept {
+    word_domain temp(std::move(other));
+    word_domain_ns::swap(*this, temp);
+    return *this;
+}
+
+/**
+ * @brief member std::swap specialization for word_domain
+*/
+void word_domain::swap(word_domain& other) noexcept {
+    std::swap(utils, other.utils);
+    std::swap(name, other.name);
+    std::swap(verbosity, other.verbosity);
+    std::swap(filepath_opt, other.filepath_opt);
+    std::swap(nodes, other.nodes);
+    std::swap(word_map, other.word_map);
+    std::swap(unassigned_domain_size, other.unassigned_domain_size);
+    std::swap(letters_at_indices, other.letters_at_indices);
+    std::swap(ac3_pruned_assigned_val, other.ac3_pruned_assigned_val);
+    std::swap(assigned, other.assigned);
+    std::swap(assigned_value, other.assigned_value);
+}
+
+/**
+ * @brief friend std::swap specialization for word_domain, calls member function
+*/
+void word_domain_ns::swap(word_domain& lhs, word_domain& rhs) noexcept {
+    lhs.swap(rhs);
 }
