@@ -359,51 +359,75 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
         }
     } else {
         assert(index != required_index);
-        
-        /**
-         * @brief private helper
-         * @pre cur_index > target_index
-         *
-         * @param node_idx node to traverse from
-         * @param cur_index initial index of node_idx
-         * @param target_index index of parent to read letter from
-         * @returns letter of the parent node of node_idx at a index of target_index
-        */
-        auto char_of_parent = [this](size_t node_idx, uint cur_index, const uint target_index) -> char {
-            assert(cur_index > 0 && cur_index < MAX_WORD_LEN);
-            assert(target_index < MAX_WORD_LEN - 1);
-            assert(cur_index > target_index);
 
-            while(cur_index != target_index) {
-                node_idx = nodes[node_idx]->parent;
-                cur_index--;
-            }
-            return nodes[node_idx]->letter;
-        };
-
-        // traverse upwards from whichever is the higher depth to only have one path via parent instead of exponential growth of search paths
-        if(index > required_index) {
-            for(uint j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-                if(letters[j]) {
-                    for(const size_t node_idx : (*letters_at_indices)[index][j].nodes) {
-                        if(char_of_parent(node_idx, index, required_index) == required_letter) {
-                            res |= 1 << j;
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            for(const size_t node_idx : (*letters_at_indices)[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
-                res |= 1 << static_cast<uint>(char_of_parent(node_idx, required_index, index) - 'a');
-
-                // early exit iff all letters found
-                if(res == letters) break;
+        auto& target = (*letters_at_indices)[required_index][static_cast<size_t>(required_letter - 'a')].lai_subset;
+        for(size_t i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
+            if(letters[i] && (*target)[index][i] > 0) {
+                res |= 1 << i;
             }
         }
     }
 
     return res;
+
+    // letter_bitset_t res;
+
+    // if(assigned) {
+    //     if(assigned_value.has_value()) {
+    //         assert(required_index < assigned_value.value().word.size());
+    //         assert(index < assigned_value.value().word.size());
+
+    //         if(assigned_value.value().word.at(required_index) == required_letter) {
+    //             res |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
+    //         }
+    //     }
+    // } else {
+    //     assert(index != required_index);
+        
+    //     /**
+    //      * @brief private helper
+    //      * @pre cur_index > target_index
+    //      *
+    //      * @param node_idx node to traverse from
+    //      * @param cur_index initial index of node_idx
+    //      * @param target_index index of parent to read letter from
+    //      * @returns letter of the parent node of node_idx at a index of target_index
+    //     */
+    //     auto char_of_parent = [this](size_t node_idx, uint cur_index, const uint target_index) -> char {
+    //         assert(cur_index > 0 && cur_index < MAX_WORD_LEN);
+    //         assert(target_index < MAX_WORD_LEN - 1);
+    //         assert(cur_index > target_index);
+
+    //         while(cur_index != target_index) {
+    //             node_idx = nodes[node_idx]->parent;
+    //             cur_index--;
+    //         }
+    //         return nodes[node_idx]->letter;
+    //     };
+
+    //     // traverse upwards from whichever is the higher depth to only have one path via parent instead of exponential growth of search paths
+    //     if(index > required_index) {
+    //         for(uint j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+    //             if(letters[j]) {
+    //                 for(const size_t node_idx : (*letters_at_indices)[index][j].nodes) {
+    //                     if(char_of_parent(node_idx, index, required_index) == required_letter) {
+    //                         res |= 1 << j;
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         for(const size_t node_idx : (*letters_at_indices)[required_index][static_cast<size_t>(required_letter - 'a')].nodes) {
+    //             res |= 1 << static_cast<uint>(char_of_parent(node_idx, required_index, index) - 'a');
+
+    //             // early exit iff all letters found
+    //             if(res == letters) break;
+    //         }
+    //     }
+    // }
+
+    // return res;
 }
 
 /**
