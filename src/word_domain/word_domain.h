@@ -133,7 +133,7 @@ namespace word_domain_ns {
             optional<string> parse_word(const string& word);
 
             // helper to update lai_subset in letters_at_indices given a root trie node
-            template <bool Add>
+            template <bool Add, bool AssumeFixedSizeWords>
             size_t update_lai_subsets(const size_t leaf);
     }; // word_domain
 

@@ -229,7 +229,7 @@ void word_domain::add_word(word_t w) {
                     nodes[node_idx]->valid = true;
 
                     // update word counts in lai_subsets
-                    assert(update_lai_subsets<true>(node_idx) == word.size());
+                    assert(update_lai_subsets<true, false>(node_idx) == word.size());
                     return;
                 }
 
@@ -466,7 +466,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
                 (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
 
                 // update lai_subset word count values
-                assert(update_lai_subsets<false>(node_idx) == index + 1);
+                assert(update_lai_subsets<false, true>(node_idx) == index + 1);
 
                 // leaf node represents 1 word
                 return 1u;
@@ -621,7 +621,7 @@ size_t word_domain::undo_prev_ac3_call() {
                 // update lai_subsets word counts
                 if(nodes[node_idx]->valid) {
                     assert(nodes[node_idx]->children.size() == 0);
-                    assert(update_lai_subsets<true>(node_idx) == i + 1);
+                    assert(update_lai_subsets<true, true>(node_idx) == i + 1);
                 }
             }
             (*letters_at_indices)[i][j].ac3_pruned_nodes.pop();
@@ -732,13 +732,16 @@ vector<word_t> word_domain::get_cur_domain() const {
  * 
  * @param leaf idx of leaf node in id_obj_manager of word being added/removed
  * @param Add true --> word added, false --> word removed
+ * @param AssumeFixedSizeWords set true if all domain values expected to be the same length, enables an assert statement
  * @return inferred length of word based on trie, for defensive programming purposes
 */
-template <bool Add>
+template <bool Add, bool AssumeFixedSizeWords>
 size_t word_domain::update_lai_subsets(const size_t leaf) {
     assert(leaf != id_obj_manager<trie_node>::INVALID_ID);
     assert(nodes[leaf]->valid);
-    assert(nodes[leaf]->children.size() == 0);
+    if constexpr(AssumeFixedSizeWords) {
+        assert(nodes[leaf]->children.size() == 0);
+    }
 
     /**
      * @brief adds path to reach leaf in trie in forward order, including leaf itself and excluding root node
