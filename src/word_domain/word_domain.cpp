@@ -713,6 +713,60 @@ vector<word_t> word_domain::get_cur_domain() const {
 }
 
 /**
+ * @brief update values of lai_subset in letters_at_indices given addition/removal of a word from active domain
+ * 
+ * @param leaf idx of leaf node in id_obj_manager of word being added/removed
+ * @param Add true --> word added, false --> word removed
+ * @return inferred length of word based on trie, for defensive programming purposes
+*/
+template <bool Add>
+size_t word_domain::update_lai_subsets(const size_t leaf) {
+    assert(leaf != id_obj_manager<trie_node>::INVALID_ID);
+    assert(nodes[leaf]->valid);
+    assert(nodes[leaf]->children.size() == 0);
+
+    /**
+     * @brief adds path to reach leaf in trie in forward order, including leaf itself and excluding root node
+    */
+    std::function<void(vector<size_t>&, const size_t)> get_leaf_path;
+    get_leaf_path = [this, &get_leaf_path](vector<size_t>& path, const size_t cur) {
+        if(cur != TRIE_ROOT_NODE_IDX) {
+            assert(cur != id_obj_manager<trie_node>::INVALID_ID);
+            get_leaf_path(path, nodes[cur]->parent);
+            path.push_back(cur);
+        }
+    };
+
+    // get path to leaf node
+    vector<size_t> path;
+    get_leaf_path(path, leaf);
+    assert(path.size() >= MIN_WORD_LEN && path.size() <= MAX_WORD_LEN);
+    
+    // update lai_subset for each letter/index pair in path
+    for(size_t i = 0; i < path.size(); ++i) {
+        // shorthand
+        const size_t i_idx = i;
+        const size_t i_letter = static_cast<size_t>(nodes[path[i]]->letter - 'a');
+        unique_ptr<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >& target = (*letters_at_indices)[i_idx][i_letter].lai_subset;
+
+        // update entry in lai_subset for a letter/index pair
+        for(size_t j = 0; j < path.size(); ++j) {
+            // shorthand
+            const size_t j_idx = j;
+            const size_t j_letter = static_cast<size_t>(nodes[path[j]]->letter - 'a');
+
+            if constexpr(Add) {
+                (*target)[j_idx][j_letter]++;
+            } else {
+                (*target)[j_idx][j_letter]--;
+            }
+        }
+    }
+
+    return path.size();
+}
+
+/**
  * @brief copy for word_domain
 */
 word_domain::word_domain(const word_domain& other) 

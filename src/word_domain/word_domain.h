@@ -131,6 +131,10 @@ namespace word_domain_ns {
 
             // helper for filepath constructor to check if word is legal
             optional<string> parse_word(const string& word);
+
+            // helper to update lai_subset in letters_at_indices given a root trie node
+            template <bool Add>
+            size_t update_lai_subsets(const size_t leaf);
     }; // word_domain
 
     // friend declarations
