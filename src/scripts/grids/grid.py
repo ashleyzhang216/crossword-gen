@@ -6,7 +6,7 @@ from patterns import *
 
 # returns blank grid
 def blank_grid(dims):
-    return np.ones(dims)
+    return np.full(dims, 1)
 
 # places pattern on grid
 # returns success, new_grid
@@ -29,12 +29,6 @@ def place_pattern(grid, pattern_grid, loc):
         if new_grid[x - i - 1, y - j - 1] == BLACK:
             return False, None
         new_grid[x - i - 1, y - j - 1] = BLACK
-
-    # # make symmetrical
-    # for i in range(x):
-    #     for j in range(y - i):
-    #         if new_grid[i, j] == BLACK:
-    #             new_grid[x - i - 1, y - j - 1] = BLACK
     
     return True, new_grid
 
@@ -54,5 +48,3 @@ def get_permutations(grid):
                     permutations.append(permutation)
     
     return permutations
-
-

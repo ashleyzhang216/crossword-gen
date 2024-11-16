@@ -19,7 +19,7 @@ def clean_output():
     os.makedirs(OUT_DIR)
 
 # save grid as png to output directory
-def save_grid(grid, show=False):
+def save_grid(grid, score, show=False):
     global num_grids_made
 
     fig, ax = plt.subplots()
@@ -38,7 +38,7 @@ def save_grid(grid, show=False):
     ax.tick_params(which="major", bottom=False, left=False)
     ax.tick_params(which="minor", bottom=False, left=False)
 
-    plt.title("Grid " + str(num_grids_made))
+    plt.title("Grid " + str(num_grids_made) + ", Score: " + str(score))
     plt.savefig(OUT_DIR + "/grid" + str(num_grids_made) + ".png", dpi=300)
 
     num_grids_made += 1
