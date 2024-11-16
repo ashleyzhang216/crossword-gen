@@ -74,8 +74,22 @@ namespace word_domain_data_types_ns {
         // number of words pruned during an AC-3 call
         stack<uint> ac3_pruned_words;
 
+        // subset of letters_at_indices.num_words entries for all words with this specific letter at a specific index
+        unique_ptr<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > lai_subset;
+
+        // for copying, must deep copy lai_subset
+        letters_table_entry(const letters_table_entry& other);
+        letters_table_entry& operator=(const letters_table_entry& other);
+
+        // moving ok
+        letters_table_entry(letters_table_entry&& other) noexcept;
+        letters_table_entry& operator=(letters_table_entry&& other) noexcept;
+        
+        // default destructor ok with unique_ptr
+        ~letters_table_entry() = default;
+
         // base constructor
-        letters_table_entry() : num_words(0u) {}
+        letters_table_entry() : num_words(0u), lai_subset(make_unique<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()) {}
     };
 }; // word_domain_data_types_ns
 
