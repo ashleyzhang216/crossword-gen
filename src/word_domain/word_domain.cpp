@@ -225,8 +225,11 @@ void word_domain::add_word(word_t w) {
 
                 // all letters added to tree
                 if(pos >= word.size()) {
-                    // node->valid = true;
+                    // mark node as terminating valid word
                     nodes[node_idx]->valid = true;
+
+                    // update word counts in lai_subsets
+                    assert(update_lai_subsets<true>(node_idx) == word.size());
                     return;
                 }
 
@@ -444,7 +447,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
          * @invariant # of layers in ac3_pruned_assigned_val and ac3_pruned_nodes/ac3_pruned_words in each element of letters_at_indices must all be equal
          * 
          * @param node_idx idx of current node whose children (not itself) will be removed
-         * @param index depth of this parent node in trie or letter index in the word
+         * @param index depth of this parent node in trie or letter index in the word, root trie node defined as index/depth -1
          * @returns number of words/leaf nodes removed
         */
        std::function<uint(const size_t, uint)> remove_children;
@@ -458,9 +461,15 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
                 // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
                 assert(nodes[node_idx]->children.size() == 0);
 
+                // update letters_at_indices word count values
                 (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words--;
                 (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
-                return 1;
+
+                // update lai_subset word count values
+                assert(update_lai_subsets<false>(node_idx) == index + 1);
+
+                // leaf node represents 1 word
+                return 1u;
             }
 
             // recursive calls to children
@@ -595,7 +604,7 @@ size_t word_domain::undo_prev_ac3_call() {
             // restore nodes
             (*letters_at_indices)[i][j].nodes.insert(
                 (*letters_at_indices)[i][j].ac3_pruned_nodes.top().begin(), (*letters_at_indices)[i][j].ac3_pruned_nodes.top().end()
-            ); 
+            );
             // don't pop ac3_pruned_nodes yet, need it to restore links from parents
 
             // restore edges from parent nodes
@@ -608,10 +617,16 @@ size_t word_domain::undo_prev_ac3_call() {
                 } else {
                     utils.log(ERROR, "parent of node index ", i, ", letter ", j, " deleted early during restoration");
                 }
+
+                // update lai_subsets word counts
+                if(nodes[node_idx]->valid) {
+                    assert(nodes[node_idx]->children.size() == 0);
+                    assert(update_lai_subsets<true>(node_idx) == i + 1);
+                }
             }
             (*letters_at_indices)[i][j].ac3_pruned_nodes.pop();
 
-            // restore num_words
+            // restore num_words to update letters_at_indices word counts
             (*letters_at_indices)[i][j].num_words += (*letters_at_indices)[i][j].ac3_pruned_words.top();
             num_restored_per_index += (*letters_at_indices)[i][j].ac3_pruned_words.top();
             (*letters_at_indices)[i][j].ac3_pruned_words.pop();
@@ -758,6 +773,7 @@ size_t word_domain::update_lai_subsets(const size_t leaf) {
             if constexpr(Add) {
                 (*target)[j_idx][j_letter]++;
             } else {
+                assert((*target)[j_idx][j_letter] != 0);
                 (*target)[j_idx][j_letter]--;
             }
         }
