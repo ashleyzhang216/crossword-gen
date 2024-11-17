@@ -375,11 +375,10 @@ void cw_csp::initialize_csp() {
 
 /**
  * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
- * @param only_arcs only use arc constraints and ignore cycles, default = true
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
-bool cw_csp::ac3(bool only_arcs) {
+bool cw_csp::ac3() {
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -410,11 +409,6 @@ bool cw_csp::ac3(bool only_arcs) {
         constraint_queue.pop();
         assert(constraints_in_queue.count(constr_id) > 0);
         constraints_in_queue.erase(constr_id);
-
-        // skip cycle constraints if not considering them yet
-        if(only_arcs && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
-            continue;
-        }
 
         // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
         unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
@@ -613,7 +607,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
-    if(!ac3(false)) {
+    if(!ac3()) {
         stamper.add_result("fail initial ac3");
         return false;
     }
