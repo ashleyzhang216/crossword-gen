@@ -38,7 +38,6 @@ struct assertion_failure_exception : public exception {
         std::string message;
 };
 
-
 #undef assert
 #define assert(...) do {                                                         \
     if (!(__VA_ARGS__)) [[unlikely]] {                                           \
@@ -58,6 +57,7 @@ struct assertion_failure_exception : public exception {
         throw assertion_failure_exception(ss.str());                                                         \
     }                                                                                                        \
 } while(0)
+
 /**
  * @brief object to handle message logging, and other functionalities in the future
 */
