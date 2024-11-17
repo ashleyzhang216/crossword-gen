@@ -642,6 +642,36 @@ TEST_CASE("word_domain has_letters_at_index_with_letter_assigned-complex", "[wor
         if(domain_copy.size()) {
             driver->assign_domain(domain_copy.at(domain_copy.size() / 2));
             REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+            driver->unassign_domain();
+            REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
         }
+
+        vector<pair<uint, char> > remove_params = {
+            {static_cast<uint>((97 * domain_copy.size() + 89) % i), static_cast<char>(( 3 * domain_copy.size() +  5) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((79 * domain_copy.size() + 73) % i), static_cast<char>(( 7 * domain_copy.size() + 11) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((71 * domain_copy.size() + 67) % i), static_cast<char>((13 * domain_copy.size() + 17) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((61 * domain_copy.size() + 59) % i), static_cast<char>((19 * domain_copy.size() + 23) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((53 * domain_copy.size() + 47) % i), static_cast<char>((29 * domain_copy.size() + 31) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((41 * domain_copy.size() + 37) % i), static_cast<char>((37 * domain_copy.size() + 41) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((31 * domain_copy.size() + 29) % i), static_cast<char>((43 * domain_copy.size() + 47) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((23 * domain_copy.size() + 19) % i), static_cast<char>((53 * domain_copy.size() + 59) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((17 * domain_copy.size() + 13) % i), static_cast<char>((61 * domain_copy.size() + 67) % NUM_ENGLISH_LETTERS + 'a')},
+        };
+        
+        std::function<void(const uint)> run_test_at_depth;
+        run_test_at_depth = [&run_test_at_depth, &remove_params, &driver, &i](const uint depth) {
+            if(depth < remove_params.size()) {
+                REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+                
+                driver->start_new_ac3_call();
+                const size_t num_removed = driver->remove_matching_words(remove_params[depth].first, remove_params[depth].second);
+                run_test_at_depth(depth + 1);
+                REQUIRE(num_removed == driver->undo_prev_ac3_call());
+
+                REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+            }
+        };
+
+        run_test_at_depth(0);
     }
 }

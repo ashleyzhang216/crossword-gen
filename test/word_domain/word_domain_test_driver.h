@@ -88,6 +88,9 @@ namespace word_domain_test_driver_ns {
             void unassign_domain() { dut->unassign_domain(); }
             vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
             unordered_map<string, word_t>& get_word_map() { return dut->get_word_map(); }
+            size_t remove_matching_words(uint index, char letter) { return dut->remove_matching_words(index, letter); }
+            void start_new_ac3_call() { dut->start_new_ac3_call(); }
+            size_t undo_prev_ac3_call() { return dut->undo_prev_ac3_call(); }
 
             // destructor, all objects are raii and should delete automatically
             ~word_domain_test_driver() = default;
