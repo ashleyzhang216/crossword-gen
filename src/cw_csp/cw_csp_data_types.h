@@ -175,7 +175,6 @@ namespace cw_csp_data_types_ns {
     // cycle constraint between 4 distinct variables
     // the last arc rhs variable is the lhs variable in the first arc
     // adjacent lhs and rhs variables in different adjacent arcs are the same
-    // TODO: store data about previous calls to word_domain.has_letters_at_index_with_letter_assigned() to avoid recomputation
     struct cw_cycle : public cw_constraint {
         // for performance reasons, cycle length is restricted
         static constexpr size_t CYCLE_LEN = 4;
@@ -240,6 +239,5 @@ namespace std {
         size_t operator()(const unique_ptr<cw_csp_data_types_ns::cw_constraint>& var) const;
     };
 } // std
-
 
 #endif // CW_CSP_DATA_TYPES_H
