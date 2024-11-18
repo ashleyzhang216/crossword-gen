@@ -27,12 +27,12 @@ namespace cw_csp_test_driver_ns {
             bool test_constructor_empty(uint length, uint height, string filepath, 
                 const unordered_set<unique_ptr<cw_variable> >& expected_variables,
                 const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
-                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_arc_dependencies
+                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
             );
             bool test_constructor_contents(uint length, uint height, string contents, string filepath,
                 const unordered_set<unique_ptr<cw_variable> >& expected_variables,
                 const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
-                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_arc_dependencies
+                const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
             );
 
             // csp ac3 tests
@@ -50,14 +50,14 @@ namespace cw_csp_test_driver_ns {
             cw_csp* dut = nullptr;
     }; // cw_csp_test_driver
 
-    // helper for constructing ground truth arc dependencies
+    // helper for constructing ground truth constraint dependencies
     template<typename... Args>
-    void insert_into_arc_dep(
-        unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& arc_dep,
+    void insert_into_constr_dep(
+        unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& constr_dep,
         vector<unique_ptr<cw_variable> >& vars, size_t var_idx,
         vector<unique_ptr<cw_constraint> >& contrs, Args... args
     ) {
-        auto insert_into_arc_dep_impl = [](
+        auto insert_into_constr_dep_impl = [](
             auto& self, unordered_set<unique_ptr<cw_constraint> >& contrs_set, 
             vector<unique_ptr<cw_constraint> >& contrs, auto idx, auto... rest
         ) {
@@ -67,8 +67,8 @@ namespace cw_csp_test_driver_ns {
             }
         };
 
-        arc_dep[vars[var_idx]->clone()] = unordered_set<unique_ptr<cw_constraint> >();
-        insert_into_arc_dep_impl(insert_into_arc_dep_impl, arc_dep[vars[var_idx]->clone()], contrs, args...);
+        constr_dep[vars[var_idx]->clone()] = unordered_set<unique_ptr<cw_constraint> >();
+        insert_into_constr_dep_impl(insert_into_constr_dep_impl, constr_dep[vars[var_idx]->clone()], contrs, args...);
     }
 } // cw_csp_test_driver_ns
 

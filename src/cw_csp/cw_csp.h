@@ -40,7 +40,7 @@ namespace cw_csp_ns {
             // read-only getters for testing
             unordered_set<unique_ptr<cw_variable > >                                           get_variables()        const;
             unordered_set<unique_ptr<cw_constraint> >                                          get_constraints()      const;
-            unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_arc_dependencies() const;
+            unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_constr_dependencies() const;
 
             // solve CSP
             bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
@@ -90,11 +90,10 @@ namespace cw_csp_ns {
             id_obj_manager<cw_variable>   variables;
             id_obj_manager<cw_constraint> constraints;
 
-            // arc_dependencies[id of var_i] contains all ids of constraints with var_i as a dependency
+            // constr_dependencies[id of var_i] contains all ids of constraints with var_i as a dependency
             // i.e. arcs of the form (var_k, var_i) and all cycles containing var_i
-            // when a constraint is updated, arc_dependencies of all its dependents must be reevaluated
-            // TODO: rename this to constr_dependencies since it's not just for cw_arc now
-            unordered_map<size_t, unordered_set<size_t> > arc_dependencies;
+            // when a constraint is updated, constr_dependencies of all its dependents must be reevaluated
+            unordered_map<size_t, unordered_set<size_t> > constr_dependencies;
 
             // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
             stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 

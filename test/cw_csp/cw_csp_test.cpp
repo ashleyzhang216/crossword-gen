@@ -26,7 +26,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
     // 1x1 blank crossword
     vector<unique_ptr<cw_variable> > vars_1_1 = {}; // no words with len > 1
     vector<unique_ptr<cw_constraint> > contrs_1_1 = {}; // no variables
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_1_1 = {}; // no constraints
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_1_1 = {}; // no constraints
     unordered_set<unique_ptr<cw_variable> >   vars_1_1_set;
     std::transform(vars_1_1.begin(), vars_1_1.end(), std::inserter(vars_1_1_set, vars_1_1_set.end()),
         [](const unique_ptr<cw_variable>& elem) {
@@ -39,7 +39,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
             return elem->clone();
         }
     );
-    REQUIRE(dut->test_constructor_empty(1, 1, dict_barebones_path, vars_1_1_set, contrs_1_1_set, arc_dep_1_1));
+    REQUIRE(dut->test_constructor_empty(1, 1, dict_barebones_path, vars_1_1_set, contrs_1_1_set, constr_dep_1_1));
 
     // 2x2 blank crossword
     vector<unique_ptr<cw_variable> > vars_2_2 = make_vector_unique<cw_variable>(
@@ -64,11 +64,11 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         // cycles
         cw_cycle(8l, {2, 1, 3, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}) // 8
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2;
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3, 8);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_2_2;
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3, 8);
 
     unordered_set<unique_ptr<cw_variable> > vars_2_2_set;
     std::transform(vars_2_2.begin(), vars_2_2.end(), std::inserter(vars_2_2_set, vars_2_2_set.end()),
@@ -82,7 +82,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
             return elem->clone();
         }
     );
-    REQUIRE(dut->test_constructor_empty(2, 2, dict_barebones_path, vars_2_2_set, contrs_2_2_set, arc_dep_2_2));
+    REQUIRE(dut->test_constructor_empty(2, 2, dict_barebones_path, vars_2_2_set, contrs_2_2_set, constr_dep_2_2));
     
     // 3x3 blank crossword
     vector<unique_ptr<cw_variable> > vars_3_3 = make_vector_unique<cw_variable>(
@@ -127,13 +127,13 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_cycle(25l, {4, 2, 5, 0}, {{2, 1}, {2, 2}, {0, 2}, {1, 0}}), // 25
         cw_cycle(26l, {4, 2, 5, 1}, {{2, 1}, {2, 2}, {1, 2}, {1, 1}})  // 26
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3;
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15, 18, 19, 20, 22, 24, 25);
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16, 18, 19, 21, 23, 24, 26);
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 2, contrs_3_3, 11, 14, 17, 20, 21, 22, 23, 25, 26);
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 3, contrs_3_3, 0, 1, 2, 18, 19, 20, 21, 22, 23);
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 4, contrs_3_3, 3, 4, 5, 18, 20, 21, 24, 25, 26);
-    insert_into_arc_dep(arc_dep_3_3, vars_3_3, 5, contrs_3_3, 6, 7, 8, 19, 22, 23, 24, 25, 26);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_3;
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15, 18, 19, 20, 22, 24, 25);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16, 18, 19, 21, 23, 24, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 2, contrs_3_3, 11, 14, 17, 20, 21, 22, 23, 25, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 3, contrs_3_3, 0, 1, 2, 18, 19, 20, 21, 22, 23);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 4, contrs_3_3, 3, 4, 5, 18, 20, 21, 24, 25, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 5, contrs_3_3, 6, 7, 8, 19, 22, 23, 24, 25, 26);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_3_set;
     std::transform(vars_3_3.begin(), vars_3_3.end(), std::inserter(vars_3_3_set, vars_3_3_set.end()),
@@ -147,7 +147,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
             return elem->clone();
         }
     );
-    REQUIRE(dut->test_constructor_empty(3, 3, dict_barebones_path, vars_3_3_set, contrs_3_3_set, arc_dep_3_3));
+    REQUIRE(dut->test_constructor_empty(3, 3, dict_barebones_path, vars_3_3_set, contrs_3_3_set, constr_dep_3_3));
 
     // 3x4 blank crossword
     vector<unique_ptr<cw_variable> > vars_3_4 = make_vector_unique<cw_variable>(
@@ -211,14 +211,14 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_cycle(40, {5, 2, 6, 0}, {{2, 2}, {3, 2}, {0, 3}, {2, 0}}), // 40
         cw_cycle(41, {5, 2, 6, 1}, {{2, 2}, {3, 2}, {1, 3}, {2, 1}})  // 41
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4;
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 40, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2, 24, 25, 26, 27, 28, 29, 30, 31, 32);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5, 24, 27, 28, 33, 34, 35, 36, 37, 38);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8, 25, 29, 30, 33, 35, 36, 39, 40, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11, 26, 31, 32, 34, 37, 38, 39, 40, 41);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_4;
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 40, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5, 24, 27, 28, 33, 34, 35, 36, 37, 38);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8, 25, 29, 30, 33, 35, 36, 39, 40, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11, 26, 31, 32, 34, 37, 38, 39, 40, 41);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_4_set;
     std::transform(vars_3_4.begin(), vars_3_4.end(), std::inserter(vars_3_4_set, vars_3_4_set.end()),
@@ -232,7 +232,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
             return elem->clone();
         }
     );
-    REQUIRE(dut->test_constructor_empty(3, 4, dict_barebones_path, vars_3_4_set, contrs_3_4_set, arc_dep_3_4));
+    REQUIRE(dut->test_constructor_empty(3, 4, dict_barebones_path, vars_3_4_set, contrs_3_4_set, constr_dep_3_4));
 }
 
 /**
@@ -266,11 +266,11 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         // cycles
         cw_cycle(8l, {2, 1, 3, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}) // 8
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_2_2;
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1, 8);
-    insert_into_arc_dep(arc_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3, 8);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_2_2;
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 0, contrs_2_2, 4, 6, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 1, contrs_2_2, 5, 7, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 2, contrs_2_2, 0, 1, 8);
+    insert_into_constr_dep(constr_dep_2_2, vars_2_2, 3, contrs_2_2, 2, 3, 8);
 
     unordered_set<unique_ptr<cw_variable> > vars_2_2_set;
     std::transform(vars_2_2.begin(), vars_2_2.end(), std::inserter(vars_2_2_set, vars_2_2_set.end()),
@@ -286,7 +286,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
     );
     stringstream contents_2_2;
     contents_2_2 << WCD << WCD << WCD << WCD;
-    REQUIRE(dut->test_constructor_contents(2, 2, contents_2_2.str(), dict_barebones_path, vars_2_2_set, contrs_2_2_set, arc_dep_2_2));
+    REQUIRE(dut->test_constructor_contents(2, 2, contents_2_2.str(), dict_barebones_path, vars_2_2_set, contrs_2_2_set, constr_dep_2_2));
 
     // baseline 3x4 blank crossword
     vector<unique_ptr<cw_variable> > vars_3_4 = make_vector_unique<cw_variable>(
@@ -350,14 +350,14 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_cycle(40, {5, 2, 6, 0}, {{2, 2}, {3, 2}, {0, 3}, {2, 0}}), // 40
         cw_cycle(41, {5, 2, 6, 1}, {{2, 2}, {3, 2}, {1, 3}, {2, 1}})  // 41
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_4;
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 40, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2, 24, 25, 26, 27, 28, 29, 30, 31, 32);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5, 24, 27, 28, 33, 34, 35, 36, 37, 38);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8, 25, 29, 30, 33, 35, 36, 39, 40, 41);
-    insert_into_arc_dep(arc_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11, 26, 31, 32, 34, 37, 38, 39, 40, 41);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_4;
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 2, contrs_3_4, 14, 17, 20, 23, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 40, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 3, contrs_3_4, 0, 1, 2, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 4, contrs_3_4, 3, 4, 5, 24, 27, 28, 33, 34, 35, 36, 37, 38);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 5, contrs_3_4, 6, 7, 8, 25, 29, 30, 33, 35, 36, 39, 40, 41);
+    insert_into_constr_dep(constr_dep_3_4, vars_3_4, 6, contrs_3_4, 9, 10, 11, 26, 31, 32, 34, 37, 38, 39, 40, 41);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_4_set;
     std::transform(vars_3_4.begin(), vars_3_4.end(), std::inserter(vars_3_4_set, vars_3_4_set.end()),
@@ -376,7 +376,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
                  << WCD << WCD << WCD
                  << WCD << WCD << WCD
                  << WCD << WCD << WCD;
-    REQUIRE(dut->test_constructor_contents(3, 4, contents_3_4.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, arc_dep_3_4));
+    REQUIRE(dut->test_constructor_contents(3, 4, contents_3_4.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, constr_dep_3_4));
 
     // 3x4 crossword of larger size with black tiles blocking it
     stringstream contents_3_4_black_border;
@@ -386,7 +386,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
                               << WCD << WCD << WCD << BLK << BLK 
                               << BLK << BLK << BLK << BLK << BLK
                               << BLK << BLK << BLK << BLK << BLK;
-    REQUIRE(dut->test_constructor_contents(5, 6, contents_3_4_black_border.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, arc_dep_3_4));
+    REQUIRE(dut->test_constructor_contents(5, 6, contents_3_4_black_border.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, constr_dep_3_4));
 
     // 3x4 crossword embedded in a donut of black tiles and random single wildcards
     stringstream contents_3_4_black_border_with_dots;
@@ -396,7 +396,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
                                         << WCD << WCD << WCD << BLK << BLK << WCD << BLK
                                         << BLK << BLK << BLK << WCD << BLK << BLK << WCD
                                         << BLK << WCD << BLK << BLK << BLK << BLK << BLK;
-    REQUIRE(dut->test_constructor_contents(7, 6, contents_3_4_black_border_with_dots.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, arc_dep_3_4));
+    REQUIRE(dut->test_constructor_contents(7, 6, contents_3_4_black_border_with_dots.str(), dict_barebones_path, vars_3_4_set, contrs_3_4_set, constr_dep_3_4));
 
     // 3x3 donut crossword
     vector<unique_ptr<cw_variable> > vars_3_3_donut = make_vector_unique<cw_variable>(
@@ -421,11 +421,11 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         // cycles
         cw_cycle(8l, {3, 1, 4, 0}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}})  // 8
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_3_3_donut;
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 0, contrs_3_3_donut, 4, 5, 8);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 1, contrs_3_3_donut, 6, 7, 8);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 2, contrs_3_3_donut, 0, 2, 8);
-    insert_into_arc_dep(arc_dep_3_3_donut, vars_3_3_donut, 3, contrs_3_3_donut, 1, 3, 8);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_3_donut;
+    insert_into_constr_dep(constr_dep_3_3_donut, vars_3_3_donut, 0, contrs_3_3_donut, 4, 5, 8);
+    insert_into_constr_dep(constr_dep_3_3_donut, vars_3_3_donut, 1, contrs_3_3_donut, 6, 7, 8);
+    insert_into_constr_dep(constr_dep_3_3_donut, vars_3_3_donut, 2, contrs_3_3_donut, 0, 2, 8);
+    insert_into_constr_dep(constr_dep_3_3_donut, vars_3_3_donut, 3, contrs_3_3_donut, 1, 3, 8);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_3_donut_set;
     std::transform(vars_3_3_donut.begin(), vars_3_3_donut.end(), std::inserter(vars_3_3_donut_set, vars_3_3_donut_set.end()),
@@ -443,7 +443,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
     contents_3_3_donut << WCD << WCD << WCD 
                        << WCD << BLK << WCD 
                        << WCD << WCD << WCD;
-    REQUIRE(dut->test_constructor_contents(3, 3, contents_3_3_donut.str(), dict_barebones_path, vars_3_3_donut_set, contrs_3_3_donut_set, arc_dep_3_3_donut));
+    REQUIRE(dut->test_constructor_contents(3, 3, contents_3_3_donut.str(), dict_barebones_path, vars_3_3_donut_set, contrs_3_3_donut_set, constr_dep_3_3_donut));
 
     // single cross crossword with a single letter filled in
     vector<unique_ptr<cw_variable> > vars_5_6_cross = make_vector_unique<cw_variable>(
@@ -457,9 +457,9 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         // backward (horizontal --> vertical)
         cw_arc(1l, 1, 1, 1, 0)
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_5_6_cross;
-    insert_into_arc_dep(arc_dep_5_6_cross, vars_5_6_cross, 0, contrs_5_6_cross, 1);
-    insert_into_arc_dep(arc_dep_5_6_cross, vars_5_6_cross, 1, contrs_5_6_cross, 0);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_5_6_cross;
+    insert_into_constr_dep(constr_dep_5_6_cross, vars_5_6_cross, 0, contrs_5_6_cross, 1);
+    insert_into_constr_dep(constr_dep_5_6_cross, vars_5_6_cross, 1, contrs_5_6_cross, 0);
 
     unordered_set<unique_ptr<cw_variable> > vars_5_6_cross_set;
     std::transform(vars_5_6_cross.begin(), vars_5_6_cross.end(), std::inserter(vars_5_6_cross_set, vars_5_6_cross_set.end()),
@@ -480,7 +480,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
                        << BLK << BLK << WCD << BLK << BLK
                        << BLK << BLK << WCD << BLK << BLK
                        << BLK << BLK << BLK << BLK << BLK;
-    REQUIRE(dut->test_constructor_contents(5, 6, contents_5_6_cross.str(), dict_barebones_path, vars_5_6_cross_set, contrs_5_6_cross_set, arc_dep_5_6_cross));
+    REQUIRE(dut->test_constructor_contents(5, 6, contents_5_6_cross.str(), dict_barebones_path, vars_5_6_cross_set, contrs_5_6_cross_set, constr_dep_5_6_cross));
 
     // simple crossword with single variables & no constraints
     vector<unique_ptr<cw_variable> > vars_5_3_no_constraints = make_vector_unique<cw_variable>(
@@ -489,7 +489,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_variable(2l, 2, 2, 3, HORIZONTAL, unordered_set<word_t>{word_t("cab"), word_t("can"), word_t("cat"), word_t("dab"), word_t("dan"), word_t("gap")})
     );
     vector<unique_ptr<cw_constraint> > contrs_5_3_no_constraints = {}; // no intersections between words
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_5_3_no_constraints = {}; // no constraints
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_5_3_no_constraints = {}; // no constraints
 
     unordered_set<unique_ptr<cw_variable> > vars_5_3_no_constraints_set;
     std::transform(vars_5_3_no_constraints.begin(), vars_5_3_no_constraints.end(), std::inserter(vars_5_3_no_constraints_set, vars_5_3_no_constraints_set.end()),
@@ -507,7 +507,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
     contents_5_3_no_constraints << 'e' << BLK << WCD << WCD << WCD
                                 << 't' << BLK << BLK << BLK << BLK
                                 << 'a' << BLK << WCD << 'a' << WCD;
-    REQUIRE(dut->test_constructor_contents(5, 3, contents_5_3_no_constraints.str(), dict_simple_path, vars_5_3_no_constraints_set, contrs_5_3_no_constraints_set, arc_dep_5_3_no_constraints));
+    REQUIRE(dut->test_constructor_contents(5, 3, contents_5_3_no_constraints.str(), dict_simple_path, vars_5_3_no_constraints_set, contrs_5_3_no_constraints_set, constr_dep_5_3_no_constraints));
 
     // 6x7 crossword with complex intersections & mix of wildcards and letters
     vector<unique_ptr<cw_variable> > vars_6_7_complex = make_vector_unique<cw_variable>(
@@ -587,24 +587,24 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_cycle(49, {13,  3, 16,  2}, {{1, 0}, {2, 2}, {1, 3}, {1, 0}}), // 49
         cw_cycle(50, {13,  3, 14,  2}, {{1, 0}, {1, 2}, {1, 2}, {1, 0}})  // 50
     );
-    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > arc_dep_6_7_complex;
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 0,  contrs_6_7_complex, 24, 29);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 1,  contrs_6_7_complex, 36, 41, 46, 47);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 2,  contrs_6_7_complex, 30, 33, 37, 42, 46, 48, 49, 50);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 3,  contrs_6_7_complex, 34, 38, 43, 47, 48, 49, 50);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 4,  contrs_6_7_complex, 22, 25, 26, 44);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 5,  contrs_6_7_complex, 27, 31, 35, 39, 45);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 6,  contrs_6_7_complex, 23, 28, 32, 44, 45);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 7,  contrs_6_7_complex, 40);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 8,  contrs_6_7_complex, 0, 1, 44);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 9,  contrs_6_7_complex, 2, 3);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 10, contrs_6_7_complex, 4, 5, 6, 44, 45);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 11, contrs_6_7_complex, 7, 8);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 12, contrs_6_7_complex, 9, 10, 45);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 13, contrs_6_7_complex, 11, 12, 13, 49, 50);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 14, contrs_6_7_complex, 14, 15, 16, 46, 47, 48, 50);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 15, contrs_6_7_complex, 17, 18);
-    insert_into_arc_dep(arc_dep_6_7_complex, vars_6_7_complex, 16, contrs_6_7_complex, 19, 20, 21, 46, 47, 48, 49);
+    unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_6_7_complex;
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 0,  contrs_6_7_complex, 24, 29);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 1,  contrs_6_7_complex, 36, 41, 46, 47);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 2,  contrs_6_7_complex, 30, 33, 37, 42, 46, 48, 49, 50);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 3,  contrs_6_7_complex, 34, 38, 43, 47, 48, 49, 50);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 4,  contrs_6_7_complex, 22, 25, 26, 44);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 5,  contrs_6_7_complex, 27, 31, 35, 39, 45);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 6,  contrs_6_7_complex, 23, 28, 32, 44, 45);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 7,  contrs_6_7_complex, 40);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 8,  contrs_6_7_complex, 0, 1, 44);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 9,  contrs_6_7_complex, 2, 3);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 10, contrs_6_7_complex, 4, 5, 6, 44, 45);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 11, contrs_6_7_complex, 7, 8);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 12, contrs_6_7_complex, 9, 10, 45);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 13, contrs_6_7_complex, 11, 12, 13, 49, 50);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 14, contrs_6_7_complex, 14, 15, 16, 46, 47, 48, 50);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 15, contrs_6_7_complex, 17, 18);
+    insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 16, contrs_6_7_complex, 19, 20, 21, 46, 47, 48, 49);
 
     unordered_set<unique_ptr<cw_variable> > vars_6_7_complex_set;
     std::transform(vars_6_7_complex.begin(), vars_6_7_complex.end(), std::inserter(vars_6_7_complex_set, vars_6_7_complex_set.end()),
@@ -626,7 +626,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
                          << BLK << WCD << 'a' << WCD << 'o' << BLK 
                          << WCD << 'a' << 't' << BLK << 'b' << 'a' 
                          << WCD << 'n' << WCD << WCD << BLK << 'n';
-    REQUIRE(dut->test_constructor_contents(6, 7, contents_6_7_complex.str(), dict_simple_path, vars_6_7_complex_set, contrs_6_7_complex_set, arc_dep_6_7_complex));
+    REQUIRE(dut->test_constructor_contents(6, 7, contents_6_7_complex.str(), dict_simple_path, vars_6_7_complex_set, contrs_6_7_complex_set, constr_dep_6_7_complex));
 }
 
 /**

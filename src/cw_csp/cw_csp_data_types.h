@@ -94,10 +94,10 @@ namespace cw_csp_data_types_ns {
             virtual bool invalid(const id_obj_manager<cw_variable>& vars) const = 0;
 
             // ids of vars whose domain modification need re-evaluation of this constraint
-            // used to build arc dependencies table in cw_csp
+            // used to build constr_dependencies table in cw_csp
             virtual unordered_set<size_t> dependencies() const = 0;
 
-            // ids of var which may be modified in prune_domain() which can affect dependent arcs
+            // ids of var which may be modified in prune_domain() which can affect dependent constraints
             virtual unordered_set<size_t> dependents() const = 0;
 
             // for each pair of intersecting variables, their lhs/rhs index values
