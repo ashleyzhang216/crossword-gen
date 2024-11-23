@@ -31,14 +31,14 @@ namespace crossword_data_types_ns {
 
     // direction a word can be placed in a crossword
     enum word_direction {
-        HORIZONTAL = 0,
-        VERTICAL   = 1,
+        ACROSS = 0,
+        DOWN   = 1,
     };
 
     // for more interpretable prints
     const unordered_map<word_direction, string> word_dir_name = {
-        {HORIZONTAL, "HORIZONTAL"},
-        {VERTICAL, "VERTICAL"}
+        {ACROSS, "ACROSS"},
+        {DOWN,   "DOWN"  }
     };
 
 } // crossword_data_types_ns

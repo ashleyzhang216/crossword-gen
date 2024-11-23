@@ -136,7 +136,7 @@ void cw_csp::initialize_csp() {
                     if(cur_var_len >= MIN_WORD_LEN) {
                         // save new variable
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
                     }
 
@@ -155,7 +155,7 @@ void cw_csp::initialize_csp() {
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, VERTICAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
         }
     }
@@ -196,7 +196,7 @@ void cw_csp::initialize_csp() {
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
                     }
 
@@ -215,7 +215,7 @@ void cw_csp::initialize_csp() {
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
             // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, HORIZONTAL, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
         }
     }
@@ -230,13 +230,13 @@ void cw_csp::initialize_csp() {
     // lhs for horizontal variables, rhs for vertical
     // for(unique_ptr<cw_variable>& var_ptr : variables) {
     for(size_t i = 0; i < variables.size(); ++i) {
-        if(variables[i]->dir == HORIZONTAL) {
+        if(variables[i]->dir == ACROSS) {
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
                 assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs_index = letter;
             }
-        } else if(variables[i]->dir == VERTICAL) { 
+        } else if(variables[i]->dir == DOWN) { 
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
                 assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs = variables[i]->id;
@@ -504,7 +504,7 @@ void cw_csp::overwrite_cw() {
     for(unique_ptr<cw_variable>& var : variables) {
         // only write assigned variables
         if(var->domain.is_assigned()) {
-            if(var->dir == HORIZONTAL) {
+            if(var->dir == ACROSS) {
                 for(uint letter = 0; letter < var->length; letter++) {
                     // this square must be wildcard or the same letter about to be written
                     assert(
@@ -521,7 +521,7 @@ void cw_csp::overwrite_cw() {
                         cw.write_at(var->domain.get_cur_domain().at(0).word.at(letter), var->origin_row, var->origin_col + letter);
                     }
                 }
-            } else if(var->dir == VERTICAL) { 
+            } else if(var->dir == DOWN) { 
                 for(uint letter = 0; letter < var->length; letter++) {
 
                     // this square must be wildcard or the same letter about to be written
