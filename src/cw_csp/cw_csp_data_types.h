@@ -10,26 +10,15 @@
 #include "../common/common_data_types.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
+#include "../crossword/crossword_data_types.h"
 #include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
+using namespace crossword_data_types_ns;
 
 namespace cw_csp_data_types_ns {
-
-    // direction a word can be placed in a crossword
-    enum word_direction {
-        HORIZONTAL = 0,
-        VERTICAL   = 1,
-    };
-
-    // for more interpretable prints
-    const unordered_map<word_direction, string> word_dir_name = {
-        {HORIZONTAL, "HORIZONTAL"},
-        {VERTICAL, "VERTICAL"}
-    };
-
     // to choose between solving strategies, when more are added in the future
     enum csp_solving_strategy {
         BACKTRACKING = 0,

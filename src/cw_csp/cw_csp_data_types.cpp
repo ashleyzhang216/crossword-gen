@@ -62,7 +62,7 @@ size_t std::hash<unique_ptr<cw_variable> >::operator()(const unique_ptr<cw_varia
 */
 ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_variable& var) {
     os << "cw_variable(row: " << var.origin_row << ", col: " << var.origin_col << ", len: " << var.length
-       << ", dir: " << cw_csp_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
+       << ", dir: " << crossword_data_types_ns::word_dir_name.at(var.dir) << ", pattern: " 
        << var.pattern << ", domain: {";
     for(word_t w : var.domain.get_cur_domain()) {
         os << w.word << ", ";

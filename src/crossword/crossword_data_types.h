@@ -29,6 +29,18 @@ namespace crossword_data_types_ns {
         char c;            // WILDCARD iff type == TILE_EMPTY, BLACK iff type == TILE_BLACK
     };
 
+    // direction a word can be placed in a crossword
+    enum word_direction {
+        HORIZONTAL = 0,
+        VERTICAL   = 1,
+    };
+
+    // for more interpretable prints
+    const unordered_map<word_direction, string> word_dir_name = {
+        {HORIZONTAL, "HORIZONTAL"},
+        {VERTICAL, "VERTICAL"}
+    };
+
 } // crossword_data_types_ns
 
 #endif // CROSSWORD_DATA_TYPES_H

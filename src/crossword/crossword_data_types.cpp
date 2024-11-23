@@ -15,7 +15,7 @@ using namespace crossword_data_types_ns;
  * @return TILE_EMPTY iff c == WILDCARD, TILE_BLACK iff c == BLACK, TILE_FILLED otherwise
 */
 cw_tile_type crossword_data_types_ns::char_to_tile_type(const char& c) {
-    assert(c == WILDCARD || c == BLACK || (c >= 97 && c <= 122));
+    assert(c == WILDCARD || c == BLACK || (c >= 'a' && c <= 'z'));
     if(c == WILDCARD) return TILE_EMPTY;
     if(c == BLACK) return TILE_BLACK;
     return TILE_FILLED;
