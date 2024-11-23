@@ -72,13 +72,13 @@ unordered_set<unique_ptr<cw_constraint> > cw_csp::get_constraints() const {
 }
 
 /**
- * @brief getter function for arc_depenencies by value
+ * @brief getter function for constr_depenencies by value
  * 
- * @return copy of all objects that arc_depenencies items index to
+ * @return copy of all objects that constr_depenencies items index to
 */
-unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint>> > cw_csp::get_arc_dependencies() const {
+unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint>> > cw_csp::get_constr_dependencies() const {
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > result;
-    for(const auto& pair : arc_dependencies) {
+    for(const auto& pair : constr_dependencies) {
         for(const size_t constr : pair.second) {
             result[variables[pair.first]->clone()].insert(constraints[constr]->clone());
         }
@@ -276,12 +276,12 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building length 2 arc_dependencies");
+    utils.log(DEBUG, "cw_csp building length 2 constr_dependencies");
 
     // build arc table to list out all dependencies for easy arc queueing in AC-3
     for(size_t i = 0; i < constraints.size(); ++i) {
         for(size_t var : constraints[i]->dependencies()) {
-            arc_dependencies[var].insert(i);
+            constr_dependencies[var].insert(i);
         }
     }
 
@@ -311,7 +311,7 @@ void cw_csp::initialize_csp() {
         const size_t first_var = first_arc->rhs;
         const size_t cur_var   = cur_arc->lhs;
         
-        for(const size_t dep : arc_dependencies.at(cur_var)) {
+        for(const size_t dep : constr_dependencies.at(cur_var)) {
             const cw_constraint * const next_constr = constraints[dep].get();
             const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
             assert(next_arc);
@@ -350,8 +350,8 @@ void cw_csp::initialize_csp() {
     // add cycles starting with each variable
     for(const size_t id : variables.ids()) {
         // filter out edge case for variables that don't intersect with any others
-        if(arc_dependencies.count(id)) {
-            for(const size_t dep : arc_dependencies.at(id)) {
+        if(constr_dependencies.count(id)) {
+            for(const size_t dep : constr_dependencies.at(id)) {
                 const cw_constraint * const constr = constraints[dep].get();
                 const cw_arc * const arc = dynamic_cast<const cw_arc* const>(constr);
                 assert(arc);
@@ -363,23 +363,22 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    utils.log(DEBUG, "cw_csp building cycle arc_dependencies");
+    utils.log(DEBUG, "cw_csp building cycle constr_dependencies");
 
     // add dependencies of newly created arc constraints
     for(size_t i = num_arcs; i < constraints.size(); ++i) {
         for(size_t var : constraints[i]->dependencies()) {
-            arc_dependencies[var].insert(i);
+            constr_dependencies[var].insert(i);
         }
     }
 }
 
 /**
  * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
- * @param only_arcs only use arc constraints and ignore cycles, default = true
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
-bool cw_csp::ac3(bool only_arcs) {
+bool cw_csp::ac3() {
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -411,12 +410,7 @@ bool cw_csp::ac3(bool only_arcs) {
         assert(constraints_in_queue.count(constr_id) > 0);
         constraints_in_queue.erase(constr_id);
 
-        // skip cycle constraints if not considering them yet
-        if(only_arcs && constraints[constr_id]->dependents().size() == cw_cycle::CYCLE_LEN) {
-            continue;
-        }
-
-        // prune invalid words in domain, and if domain changed, add dependent arcs to constraint queue
+        // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
         unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
@@ -429,12 +423,12 @@ bool cw_csp::ac3(bool only_arcs) {
                 return false;
             }
 
-            // add dependent arcs to queue
+            // add dependent constraints to queue
             for(size_t dep : modified) {
-                for(size_t dep_arc : arc_dependencies.at(dep)) {
-                    if(constraints_in_queue.count(dep_arc) == 0) {
-                        constraint_queue.push(dep_arc);
-                        constraints_in_queue.insert(dep_arc);
+                for(size_t dep_constr : constr_dependencies.at(dep)) {
+                    if(constraints_in_queue.count(dep_constr) == 0) {
+                        constraint_queue.push(dep_constr);
+                        constraints_in_queue.insert(dep_constr);
                     }
                 }
             }
@@ -613,7 +607,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
-    if(!ac3(false)) {
+    if(!ac3()) {
         stamper.add_result("fail initial ac3");
         return false;
     }

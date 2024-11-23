@@ -39,21 +39,24 @@ struct assertion_failure_exception : public exception {
 };
 
 #undef assert
-#define assert(x)                                                                                         \
-    if(!(x)) [[unlikely]] {                                                                               \
-        stringstream ss;                                                                                  \
-        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << endl;     \
-        throw assertion_failure_exception(ss.str());                                                      \
-    }                                                                                                     \
+#define assert(...) do {                                                         \
+    if (!(__VA_ARGS__)) [[unlikely]] {                                           \
+        std::stringstream ss;                                                    \
+        ss << "\nAssertion failed\n"                                             \
+           << "File: " << __FILE__ << ": " << std::dec << __LINE__ << std::endl; \
+        throw assertion_failure_exception(ss.str());                             \
+    }                                                                            \
+} while(0)
 
 #undef assert_m
-#define assert_m(x, msg)                                                                                  \
-    if(!(x)) [[unlikely]] {                                                                               \
-        stringstream ss;                                                                                  \
-        ss << "\nAssertion failed\n" << "File: " << __FILE__ << ": " << std::dec << __LINE__ << ", Msg: " \
-            << msg << endl;                                                                               \
-        throw assertion_failure_exception(ss.str());                                                      \
-    } 
+#define assert_m(cond, ...) do {                                                                             \
+    if (!(cond)) [[unlikely]] {                                                                              \
+        std::stringstream ss;                                                                                \
+        ss << "\nAssertion failed\n"                                                                         \
+           << "File: " << __FILE__ << ": " << std::dec << __LINE__ << ", Msg: " << __VA_ARGS__ << std::endl; \
+        throw assertion_failure_exception(ss.str());                                                         \
+    }                                                                                                        \
+} while(0)
 
 /**
  * @brief object to handle message logging, and other functionalities in the future

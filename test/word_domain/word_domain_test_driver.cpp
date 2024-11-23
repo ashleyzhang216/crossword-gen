@@ -51,16 +51,16 @@ bool word_domain_test_driver::test_trie_basic(string pattern, unordered_set<word
 */
 bool word_domain_test_driver::test_letters_at_indicies_add(
     vector<word_t> words,
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+    letter_idx_table<uint> initial_num_words,
+    letter_idx_table<uint> initial_num_nodes,
+    vector<letter_idx_table<uint> > num_words_ground_truths,
+    vector<letter_idx_table<uint> > num_nodes_ground_truths
 ) {
     
     bool result = true;
     assert(words.size() == num_words_ground_truths.size()); 
     assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
-    array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices = dut->get_letters_at_indices();
+    letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
     result &= check_condition("letters_at_indicies initial num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
@@ -85,7 +85,7 @@ bool word_domain_test_driver::test_letters_at_indicies_add(
  * @returns true iff all row sums are as expected
 */
 bool word_domain_test_driver::test_letters_at_indicies_row_sums(
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
+    letter_idx_table<uint> num_words,
     uint&& word_len, uint total_words
 ) {
     bool result = true;
@@ -109,17 +109,17 @@ bool word_domain_test_driver::test_letters_at_indicies_row_sums(
 */
 bool word_domain_test_driver::test_letters_at_indicies_remove(
     vector<word_t> init_words, vector<pair<uint, char> > remove_params,
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+    letter_idx_table<uint> initial_num_words,
+    letter_idx_table<uint> initial_num_nodes,
+    vector<letter_idx_table<uint> > num_words_ground_truths,
+    vector<letter_idx_table<uint> > num_nodes_ground_truths
 ) {
     bool result = true;
     assert(remove_params.size() == num_words_ground_truths.size()); 
     assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
 
     for(word_t word : init_words) dut->add_word(word);
-    array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices = dut->get_letters_at_indices();
+    letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
     result &= check_condition("letters_at_indicies initial num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
@@ -187,17 +187,17 @@ bool word_domain_test_driver::test_letters_at_indicies_remove(
 */
 bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
     vector<word_t> init_words, vector<pair<uint, char> > remove_params, optional<word_t> last_remaining, 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+    letter_idx_table<uint> initial_num_words,
+    letter_idx_table<uint> initial_num_nodes,
+    vector<letter_idx_table<uint> > num_words_ground_truths,
+    vector<letter_idx_table<uint> > num_nodes_ground_truths
 ) {
     bool result = true;
     assert(remove_params.size() == num_words_ground_truths.size()); 
     assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
 
     for(word_t word : init_words) dut->add_word(word);
-    array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices = dut->get_letters_at_indices();
+    letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
     result &= check_condition("letters_at_indicies initial num nodes", letters_at_indicies_entries_equal(initial_num_nodes, letters_at_indices, false));
@@ -270,12 +270,12 @@ bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
 */
 bool word_domain_test_driver::test_get_all_letters_at_index(
     vector<word_t> words, vector<pair<uint, char> > remove_params, 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words
+    letter_idx_table<uint> initial_num_words
 ) {
     bool result = true;
 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = initial_num_words;
-    array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices = dut->get_letters_at_indices();
+    letter_idx_table<uint> num_words = initial_num_words;
+    letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
     letter_bitset_t expected, actual;
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
@@ -451,8 +451,8 @@ bool word_domain_test_driver::test_has_letters_at_index_with_letter_assigned(uin
  * @returns true iff arrays are equal
 */
 bool word_domain_test_driver::letters_at_indicies_entries_equal(
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
-    array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
+    letter_idx_table<uint> expected,
+    letter_idx_table<letters_table_entry> ground_truth,
     bool test_num_words
 ) {
     bool result = true;
@@ -481,7 +481,7 @@ bool word_domain_test_driver::letters_at_indicies_entries_equal(
  * @returns bitset with all letters with at least 1 appearance at specified index set true
  * 
 */
-letter_bitset_t word_domain_test_driver::get_all_letters_at_index(uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words) {
+letter_bitset_t word_domain_test_driver::get_all_letters_at_index(uint index, letter_idx_table<uint>& num_words) {
     assert_m(index < MAX_WORD_LEN, "index exceeds table dimension");
 
     letter_bitset_t expected;

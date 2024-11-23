@@ -51,17 +51,17 @@ TEST_CASE("word_domain trie-basic_json", "[word_domain],[quick]") {
 */
 TEST_CASE("word_domain letters_at_indicies-same_len", "[word_domain],[quick]") {
     shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-letters_at_indicies-same_len");
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_words;
+    letter_idx_table<uint> init_words;
     //               a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
     init_words.fill({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_nodes = init_words;
+    letter_idx_table<uint> init_nodes = init_words;
 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_words;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_nodes;
+    letter_idx_table<uint> num_words = init_words;
+    letter_idx_table<uint> num_nodes = init_nodes;
 
     vector<word_t> words;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_truth;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_truth;
+    vector<letter_idx_table<uint> > num_words_truth;
+    vector<letter_idx_table<uint> > num_nodes_truth;
 
     uint num_duplicates = 0;
 
@@ -133,7 +133,7 @@ TEST_CASE("word_domain remove_matching_words-letters_at_indicies", "[word_domain
     };
     vector<pair<uint, char> > remove_params;
 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words = {{
+    letter_idx_table<uint> init_num_words = {{
         //a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
         { 6, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         { 3, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -141,7 +141,7 @@ TEST_CASE("word_domain remove_matching_words-letters_at_indicies", "[word_domain
         { 6, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         { 5, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes = {{
+    letter_idx_table<uint> init_num_nodes = {{
         //a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
         { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         { 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -149,10 +149,10 @@ TEST_CASE("word_domain remove_matching_words-letters_at_indicies", "[word_domain
         { 4, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         { 5, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    letter_idx_table<uint> num_words = init_num_words;
+    letter_idx_table<uint> num_nodes = init_num_nodes;
+    vector<letter_idx_table<uint> > num_words_ground_truths;
+    vector<letter_idx_table<uint> > num_nodes_ground_truths;
 
     remove_params.push_back({4u, 'c'});
     num_words[4][2] -= 2; num_words[3][0] -= 2; num_words[2][1] -= 2; num_words[1][1] -= 2; num_words[0][0]--; num_words[0][2]--;
@@ -216,24 +216,24 @@ TEST_CASE("word_domain remove_matching_words-complex-letters_at_indicies", "[wor
         }
     }
     driver->add_words(init_words);
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words = {{
+    letter_idx_table<uint> init_num_words = {{
         //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes = {{
+    letter_idx_table<uint> init_num_nodes = {{
         //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
         {    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    0,    0,    0,    0,    0,    0},
         {   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,    0,    0,    0,    0,    0,    0},
         {  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    letter_idx_table<uint> num_words = init_num_words;
+    letter_idx_table<uint> num_nodes = init_num_nodes;
+    vector<letter_idx_table<uint> > num_words_ground_truths;
+    vector<letter_idx_table<uint> > num_nodes_ground_truths;
     vector<pair<uint, char> > remove_params;
     uint num_words_remaining = static_cast<uint>(init_words.size());
     uint factor;
@@ -370,24 +370,24 @@ TEST_CASE("word_domain adding_removing_assigning-letters_at_indicies", "[word_do
         }
     }
     driver->add_words(init_words);
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words = {{
+    letter_idx_table<uint> init_num_words = {{
         //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes = {{
+    letter_idx_table<uint> init_num_nodes = {{
         //   a     b     c     d     e     f     g     h     i     j     k     l     m     n     o     p     q     r     s     t     u     v     w     x     y     z
         {    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    0,    0,    0,    0,    0,    0},
         {   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,   20,    0,    0,    0,    0,    0,    0},
         {  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,  400,    0,    0,    0,    0,    0,    0},
         { 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000,    0,    0,    0,    0,    0,    0},
     }};
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    letter_idx_table<uint> num_words = init_num_words;
+    letter_idx_table<uint> num_nodes = init_num_nodes;
+    vector<letter_idx_table<uint> > num_words_ground_truths;
+    vector<letter_idx_table<uint> > num_nodes_ground_truths;
     vector<pair<uint, char> > remove_params;
     uint num_words_remaining = static_cast<uint>(init_words.size());
     uint factor;
@@ -501,15 +501,15 @@ TEST_CASE("word_domain remove_matching_words-max_length-letters_at_indicies", "[
 
     driver->add_words(init_words);
 
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    letter_idx_table<uint> init_num_words;
     init_num_words.fill({ 1 << (MAX_WORD_LEN - 1), 1 << (MAX_WORD_LEN - 1), });
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_nodes;
+    letter_idx_table<uint> init_num_nodes;
     for(uint i = 0; i < MAX_WORD_LEN; i++) init_num_nodes[i] = {1u << i, 1u << i,};
     
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words = init_num_words;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_nodes = init_num_nodes;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths;
-    vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths;
+    letter_idx_table<uint> num_words = init_num_words;
+    letter_idx_table<uint> num_nodes = init_num_nodes;
+    vector<letter_idx_table<uint> > num_words_ground_truths;
+    vector<letter_idx_table<uint> > num_nodes_ground_truths;
     vector<pair<uint, char> > remove_params;
     uint num_words_remaining = static_cast<uint>(init_words.size());
     stringstream last_word;
@@ -557,7 +557,7 @@ TEST_CASE("word_domain get_all_letters_at_index", "[word_domain][quick]") {
     const size_t word_len = 9;
     const uint num_word_variations = 3;
     const uint num_removes = 10;
-    array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> init_num_words;
+    letter_idx_table<uint> init_num_words;
     //                   a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
     init_num_words.fill({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
 
@@ -642,6 +642,36 @@ TEST_CASE("word_domain has_letters_at_index_with_letter_assigned-complex", "[wor
         if(domain_copy.size()) {
             driver->assign_domain(domain_copy.at(domain_copy.size() / 2));
             REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+            driver->unassign_domain();
+            REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
         }
+
+        vector<pair<uint, char> > remove_params = {
+            {static_cast<uint>((97 * domain_copy.size() + 89) % i), static_cast<char>(( 3 * domain_copy.size() +  5) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((79 * domain_copy.size() + 73) % i), static_cast<char>(( 7 * domain_copy.size() + 11) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((71 * domain_copy.size() + 67) % i), static_cast<char>((13 * domain_copy.size() + 17) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((61 * domain_copy.size() + 59) % i), static_cast<char>((19 * domain_copy.size() + 23) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((53 * domain_copy.size() + 47) % i), static_cast<char>((29 * domain_copy.size() + 31) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((41 * domain_copy.size() + 37) % i), static_cast<char>((37 * domain_copy.size() + 41) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((31 * domain_copy.size() + 29) % i), static_cast<char>((43 * domain_copy.size() + 47) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((23 * domain_copy.size() + 19) % i), static_cast<char>((53 * domain_copy.size() + 59) % NUM_ENGLISH_LETTERS + 'a')},
+            {static_cast<uint>((17 * domain_copy.size() + 13) % i), static_cast<char>((61 * domain_copy.size() + 67) % NUM_ENGLISH_LETTERS + 'a')},
+        };
+        
+        std::function<void(const uint)> run_test_at_depth;
+        run_test_at_depth = [&run_test_at_depth, &remove_params, &driver, &i](const uint depth) {
+            if(depth < remove_params.size()) {
+                REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+                
+                driver->start_new_ac3_call();
+                const size_t num_removed = driver->remove_matching_words(remove_params[depth].first, remove_params[depth].second);
+                run_test_at_depth(depth + 1);
+                REQUIRE(num_removed == driver->undo_prev_ac3_call());
+
+                REQUIRE(driver->test_has_letters_at_index_with_letter_assigned(i));
+            }
+        };
+
+        run_test_at_depth(0);
     }
 }

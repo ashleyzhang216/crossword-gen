@@ -34,40 +34,40 @@ namespace word_domain_test_driver_ns {
             // basic directed test for letters_at_indicies
             bool test_letters_at_indicies_add(
                 vector<word_t> words,
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+                letter_idx_table<uint> initial_num_words,
+                letter_idx_table<uint> initial_num_nodes,
+                vector<letter_idx_table<uint> > num_words_ground_truths,
+                vector<letter_idx_table<uint> > num_nodes_ground_truths
             );
 
             // basic test to check if alls row sums equal to word length for cw_variable use case
             bool test_letters_at_indicies_row_sums(
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> num_words,
+                letter_idx_table<uint> num_words,
                 uint&& word_len, uint total_words
             );
 
             // basic directed test for letters_at_indicies state after calling removal func
             bool test_letters_at_indicies_remove(
                 vector<word_t> init_words, vector<pair<uint, char> > remove_params,
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+                letter_idx_table<uint> initial_num_words,
+                letter_idx_table<uint> initial_num_nodes,
+                vector<letter_idx_table<uint> > num_words_ground_truths,
+                vector<letter_idx_table<uint> > num_nodes_ground_truths
             );
 
             // directed test for letters_at_indicies state after remove calls and during assignment in an AC-3 step
             bool test_letters_at_indicies_remove_assign(
                 vector<word_t> init_words, vector<pair<uint, char> > remove_params, optional<word_t> last_remaining, 
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words,
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_nodes,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_words_ground_truths,
-                vector<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > num_nodes_ground_truths
+                letter_idx_table<uint> initial_num_words,
+                letter_idx_table<uint> initial_num_nodes,
+                vector<letter_idx_table<uint> > num_words_ground_truths,
+                vector<letter_idx_table<uint> > num_nodes_ground_truths
             );
 
             // directed test for get_all_letters_at_index state after add, remove, and assign calls
             bool test_get_all_letters_at_index(
                 vector<word_t> words, vector<pair<uint, char> > remove_params, 
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> initial_num_words
+                letter_idx_table<uint> initial_num_words
             );
             
             // basic check after remove tests that the domain is empty
@@ -88,6 +88,9 @@ namespace word_domain_test_driver_ns {
             void unassign_domain() { dut->unassign_domain(); }
             vector<word_t> get_cur_domain() { return dut->get_cur_domain(); }
             unordered_map<string, word_t>& get_word_map() { return dut->get_word_map(); }
+            size_t remove_matching_words(uint index, char letter) { return dut->remove_matching_words(index, letter); }
+            void start_new_ac3_call() { dut->start_new_ac3_call(); }
+            size_t undo_prev_ac3_call() { return dut->undo_prev_ac3_call(); }
 
             // destructor, all objects are raii and should delete automatically
             ~word_domain_test_driver() = default;
@@ -98,14 +101,14 @@ namespace word_domain_test_driver_ns {
 
             // helper function for test_letters_at_indicies_add()
             bool letters_at_indicies_entries_equal(
-                array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> expected,
-                array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> ground_truth,
+                letter_idx_table<uint> expected,
+                letter_idx_table<letters_table_entry> ground_truth,
                 bool test_num_words
             );
 
             // helper function for test_get_all_letters_at_index()
             letter_bitset_t get_all_letters_at_index(
-                uint index, array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>& num_words
+                uint index, letter_idx_table<uint>& num_words
             );
     }; // word_domain_test_driver
 } // word_domain_test_driver_ns

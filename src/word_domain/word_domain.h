@@ -76,7 +76,7 @@ namespace word_domain_ns {
             vector<word_t> get_cur_domain() const;
 
             // expose letters_at_indicies for testing
-            array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() { return letters_at_indices; }
+            letter_idx_table<letters_table_entry> get_letters_at_indices() const { assert(letters_at_indices); return *letters_at_indices; }
 
             // expose word_map for testing, undefined if domain assigned
             unordered_map<string, word_t>& get_word_map() { return word_map; }
@@ -86,8 +86,14 @@ namespace word_domain_ns {
             word_domain& operator=(const word_domain& other);
 
             // movable
-            word_domain(word_domain&& other) = default;
-            word_domain& operator=(word_domain&& other) noexcept = default;
+            word_domain(word_domain&& other) noexcept;
+            word_domain& operator=(word_domain&& other) noexcept;
+
+            // specialize std::swap for copy/move assignment
+            void swap(word_domain& other) noexcept;
+
+            // expose std::swap specialization for friend use
+            friend void swap(word_domain& lhs, word_domain& rhs) noexcept;
         
         private:
             // opt file that this object may have read from
@@ -108,9 +114,7 @@ namespace word_domain_ns {
 
             // stores # of words with letters at each index
             // contents undefined if domain assigned
-            // TODO: this is NUM_ENGLISH_LETTERS * MAX_WORD_LEN * sizeof(letters_table_entry) bytes, at least ~2KB
-            //       should this be moved to heap to avoid crashing if too many cw_variable and thus word_domain are initialized?
-            array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> letters_at_indices;
+            unique_ptr<letter_idx_table<letters_table_entry> > letters_at_indices;
 
             // each layer corresponds to one call to AC-3 algorithm, and possibly contains a pruned assigned value 
             // top layer corresponds to most recent AC-3 call
@@ -127,7 +131,14 @@ namespace word_domain_ns {
 
             // helper for filepath constructor to check if word is legal
             optional<string> parse_word(const string& word);
+
+            // helper to update lai_subset in letters_at_indices given a root trie node
+            template <bool Add, bool AssumeFixedSizeWords>
+            size_t update_lai_subsets(const size_t leaf);
     }; // word_domain
+
+    // friend declarations
+    void swap(word_domain& lhs, word_domain& rhs) noexcept;
 }; // word_domain_ns
 
 #endif // WORD_DOMAIN_H
