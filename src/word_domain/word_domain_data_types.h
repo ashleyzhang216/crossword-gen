@@ -19,6 +19,10 @@ namespace word_domain_data_types_ns {
     // 0-indexed bitset of letters, i.e. index 0/LSB == 'a'
     using letter_bitset_t = std::bitset<NUM_ENGLISH_LETTERS>;
 
+    // table with one entry per unique letter/index pair 
+    template <typename T>
+    using letter_idx_table = array<array<T, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>;
+
     /**
      * @brief node for word_domain
     */
@@ -75,7 +79,7 @@ namespace word_domain_data_types_ns {
         stack<uint> ac3_pruned_words;
 
         // subset of letters_at_indices.num_words entries for all words with this specific letter at a specific index
-        unique_ptr<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > lai_subset;
+        unique_ptr<letter_idx_table<uint> > lai_subset;
 
         // for copying, must deep copy lai_subset
         letters_table_entry(const letters_table_entry& other);
@@ -89,7 +93,7 @@ namespace word_domain_data_types_ns {
         ~letters_table_entry() = default;
 
         // base constructor
-        letters_table_entry() : num_words(0u), lai_subset(make_unique<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()) {}
+        letters_table_entry() : num_words(0u), lai_subset(make_unique<letter_idx_table<uint> >()) {}
     };
 }; // word_domain_data_types_ns
 

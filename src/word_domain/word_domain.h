@@ -76,7 +76,7 @@ namespace word_domain_ns {
             vector<word_t> get_cur_domain() const;
 
             // expose letters_at_indicies for testing
-            array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> get_letters_at_indices() const { assert(letters_at_indices); return *letters_at_indices; }
+            letter_idx_table<letters_table_entry> get_letters_at_indices() const { assert(letters_at_indices); return *letters_at_indices; }
 
             // expose word_map for testing, undefined if domain assigned
             unordered_map<string, word_t>& get_word_map() { return word_map; }
@@ -114,7 +114,7 @@ namespace word_domain_ns {
 
             // stores # of words with letters at each index
             // contents undefined if domain assigned
-            unique_ptr<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> > letters_at_indices;
+            unique_ptr<letter_idx_table<letters_table_entry> > letters_at_indices;
 
             // each layer corresponds to one call to AC-3 algorithm, and possibly contains a pruned assigned value 
             // top layer corresponds to most recent AC-3 call

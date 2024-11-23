@@ -25,7 +25,7 @@ letters_table_entry::letters_table_entry(const letters_table_entry& other)
       nodes(other.nodes),
       ac3_pruned_nodes(other.ac3_pruned_nodes),
       ac3_pruned_words(other.ac3_pruned_words),
-      lai_subset(make_unique<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>>(*other.lai_subset)) {
+      lai_subset(make_unique<letter_idx_table<uint> >(*other.lai_subset)) {
     // do nothing else
 }
 
@@ -38,7 +38,7 @@ letters_table_entry& letters_table_entry::operator=(const letters_table_entry& o
         nodes = other.nodes;
         ac3_pruned_nodes = other.ac3_pruned_nodes;
         ac3_pruned_words = other.ac3_pruned_words;
-        lai_subset = make_unique<array<array<uint, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN>>(*other.lai_subset);
+        lai_subset = make_unique<letter_idx_table<uint> >(*other.lai_subset);
     }
     return *this;
 }

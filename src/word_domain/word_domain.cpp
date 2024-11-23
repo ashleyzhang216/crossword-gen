@@ -40,7 +40,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         : common_parent(name, VERBOSITY),
         filepath_opt(filepath_opt),
         unassigned_domain_size(0),
-        letters_at_indices(make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()),
+        letters_at_indices(make_unique<letter_idx_table<letters_table_entry> >()),
         assigned(false) {
     // init root node of trie
     nodes.push_back(
@@ -137,7 +137,7 @@ word_domain::word_domain(string name, unordered_set<word_t>&& domain)
         : common_parent(name, VERBOSITY),
           filepath_opt(std::nullopt),
           unassigned_domain_size(0),
-          letters_at_indices(make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >()),
+          letters_at_indices(make_unique<letter_idx_table<letters_table_entry> >()),
           assigned(false) {
     // init root node of trie
     nodes.push_back(
@@ -760,7 +760,7 @@ word_domain::word_domain(const word_domain& other)
       word_map(other.word_map),
       unassigned_domain_size(other.unassigned_domain_size),
       letters_at_indices(other.letters_at_indices ? 
-        make_unique<array<array<letters_table_entry, NUM_ENGLISH_LETTERS>, MAX_WORD_LEN> >(*other.letters_at_indices) : nullptr),
+        make_unique<letter_idx_table<letters_table_entry> >(*other.letters_at_indices) : nullptr),
       ac3_pruned_assigned_val(other.ac3_pruned_assigned_val),
       assigned(other.assigned),
       assigned_value(other.assigned_value) {
