@@ -24,9 +24,16 @@ namespace crossword_data_types_ns {
     cw_tile_type char_to_tile_type(const char& c);
 
     // representation of one cw tile
+    // struct cw_tile {
+    //     cw_tile_type type; // type/status of tile
+    //     char c;            // WILDCARD iff type == TILE_EMPTY, BLACK iff type == TILE_BLACK
+    // };
     struct cw_tile {
-        cw_tile_type type; // type/status of tile
-        char c;            // WILDCARD iff type == TILE_EMPTY, BLACK iff type == TILE_BLACK
+        cw_tile_type type;
+        char initial_val;
+
+        optional<char> across; // type == TILE_EMPTY || type == TILE_BLACK --> no value
+        optional<char> down;   // type == TILE_EMPTY || type == TILE_BLACK --> no value
     };
 
     // direction a word can be placed in a crossword
@@ -39,6 +46,14 @@ namespace crossword_data_types_ns {
     const unordered_map<word_direction, string> word_dir_name = {
         {ACROSS, "ACROSS"},
         {DOWN,   "DOWN"  }
+    };
+
+    // represent writing of one word to the grid
+    struct word_assignment {
+        uint origin_row;
+        uint origin_col;
+        string word;
+        word_direction dir;
     };
 
 } // crossword_data_types_ns

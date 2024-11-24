@@ -32,15 +32,17 @@ namespace crossword_ns {
             uint rows() const { return height; }
             uint cols() const { return length; }
 
-            // access/modify puzzle
-            void write_at(char c, uint row, uint col);
+            // access/modify puzzle for testing or internal use only
+            void write_at(char c, uint row, uint col, word_direction dir);
+            void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_at(uint row, uint col) const;
+
+            // access/modify puzzle for csp
+            void write_word(word_assignment&& assignment);
+            string undo_prev_write_word();
 
             // for printing puzzle out
             friend ostream& operator<<(ostream& os, const crossword& cw);
-
-            // destructor
-            ~crossword();
 
         private:
             // dimensions of crossword puzzle
@@ -51,7 +53,9 @@ namespace crossword_ns {
             // { {tile, tile},
             //   {tile, tile} }
             vector<vector<cw_tile> > puzzle;
-
+            
+            // previous word assignments
+            stack<word_assignment> prev_written_words;
     }; // crossword
     
     // for printing crossword contents
