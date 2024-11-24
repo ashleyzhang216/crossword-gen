@@ -40,9 +40,13 @@ namespace crossword_ns {
             // access/modify puzzle for csp
             void write_word(word_assignment&& assignment);
             string undo_prev_write_word();
+            
+            // TODO: add func for access/modify grid layout
 
             // for printing puzzle out
             friend ostream& operator<<(ostream& os, const crossword& cw);
+
+            // TODO: add func for printing original grid out
 
         private:
             // dimensions of crossword puzzle

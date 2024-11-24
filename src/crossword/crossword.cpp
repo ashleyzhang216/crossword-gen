@@ -27,10 +27,6 @@ crossword::crossword(string name, uint length, uint height) : common_parent(name
     for(uint i = 0; i < height; i++) {
         puzzle[i].resize(length);
         for(uint j = 0; j < length; j++) {
-            // puzzle[i][j] = {
-            //     .type = TILE_EMPTY,
-            //     .c = WILDCARD
-            // };
             puzzle[i][j] = {
                 .type        = TILE_EMPTY,
                 .initial_val = WILDCARD,
@@ -55,10 +51,6 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
     // update puzzle contents
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
-            // puzzle[i][j] = {
-            //     .type = char_to_tile_type(contents[i][j]),
-            //     .c = contents[i][j]
-            // };
             cw_tile_type tile_type = char_to_tile_type(contents[i][j]);
             puzzle[i][j] = {
                 .type        = tile_type,
@@ -82,10 +74,6 @@ crossword::crossword(string name, uint length, uint height, string contents) : c
     // update puzzle contents
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
-            // puzzle[i][j] = {
-            //     .type = char_to_tile_type(contents.at(i*length + j)),
-            //     .c = contents.at(i*length + j)
-            // };
             cw_tile_type tile_type = char_to_tile_type(contents.at(i*length + j));
             puzzle[i][j] = {
                 .type        = tile_type,
@@ -107,6 +95,7 @@ crossword::crossword(string name, uint length, uint height, string contents) : c
 void crossword::write_at(char c, uint row, uint col, word_direction dir) {
     assert(row < rows());
     assert(col < cols());
+    assert(c >= 'a' && c <= 'z');
 
     optional<char>&       this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
     const optional<char>& other_opt = (dir == ACROSS ? puzzle[row][col].down   : puzzle[row][col].across);
@@ -123,11 +112,6 @@ void crossword::write_at(char c, uint row, uint col, word_direction dir) {
 
     puzzle[row][col].type = TILE_FILLED;
     this_opt = std::make_optional<char>(c);
-
-    // puzzle[row][col] = {
-    //     .type = char_to_tile_type(c),
-    //     .c = c
-    // };
 }
 
 /**
@@ -140,6 +124,7 @@ void crossword::write_at(char c, uint row, uint col, word_direction dir) {
 void crossword::erase_at(char expected_c, uint row, uint col, word_direction dir) {
     assert(row < rows());
     assert(col < cols());
+    assert(expected_c >= 'a' && expected_c <= 'z');
 
     optional<char>&       this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
     const optional<char>& other_opt = (dir == ACROSS ? puzzle[row][col].down   : puzzle[row][col].across);
@@ -171,11 +156,21 @@ char crossword::read_at(uint row, uint col) const {
         return WILDCARD;
     } else {
         // filled tile
-        assert(puzzle[row][col].across.has_value() || puzzle[row][col].down.has_value());
-        if(puzzle[row][col].across.has_value() && puzzle[row][col].down.has_value()) {
-            assert(puzzle[row][col].across.value() == puzzle[row][col].down.value());
+        const bool has_across = puzzle[row][col].across.has_value();
+        const bool has_down   = puzzle[row][col].down  .has_value();
+
+        assert(has_across || has_down);
+
+        // enforce equality if written in both directions
+        if(has_across) {
+            const char across_val = puzzle[row][col].across.value();
+            assert(across_val == puzzle[row][col].down.value_or(across_val));
+            return across_val;
+        } else {
+            const char down_val = puzzle[row][col].down.value();
+            assert(down_val == puzzle[row][col].across.value_or(down_val));
+            return down_val;
         }
-        return puzzle[row][col].across.value_or(puzzle[row][col].down.value());
     }
 }
 

@@ -494,6 +494,7 @@ string cw_csp::result() const {
 /**
  * @brief overwrite wildcards in cw puzzle with progress so far
  */
+/*
 void cw_csp::overwrite_cw() {
     cw_timestamper stamper(tracker, TS_CSP_OVERWRITE_CW, "");
 
@@ -547,10 +548,12 @@ void cw_csp::overwrite_cw() {
 
     prev_overwritten_tiles.push(overwritten_tiles);
 }
+*/
 
 /**
  * @brief undo previous call to overwrite_cw()
 */
+/*
 void cw_csp::undo_overwrite_cw() { 
     cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "");
 
@@ -561,6 +564,7 @@ void cw_csp::undo_overwrite_cw() {
     }
     prev_overwritten_tiles.pop();
 }
+*/
 
 /**
  * @brief selects one unassigned var ptr in variables
@@ -693,9 +697,18 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 utils.log(DEBUG, "adding new word: ", word, " to var: ", *variables[next_var]);
 
                 // add to crossword assignment
-                overwrite_cw();
+                // overwrite_cw();
+                cw.write_word({
+                    .origin_row = variables[next_var]->origin_row,
+                    .origin_col = variables[next_var]->origin_col,
+                    .word = word.word,
+                    .dir = variables[next_var]->dir
+                });
+
                 if(solve_backtracking(var_strategy, false, depth + 1)) return true;
-                undo_overwrite_cw();
+                // undo_overwrite_cw();
+                assert(cw.undo_prev_write_word() == word.word);
+
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
                 word_stamper.add_result("recursive fail");
             } else {

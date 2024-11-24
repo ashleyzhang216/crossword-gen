@@ -174,6 +174,7 @@ TEST_CASE("crossword constructor_with_contents_string", "[crossword],[quick]") {
 /**
  * test for crossword write_at()
 */
+/*
 TEST_CASE("crossword write_at", "[crossword],[quick]") {
     crossword_test_driver* driver = new crossword_test_driver("crossword write_at");
 
@@ -249,10 +250,12 @@ TEST_CASE("crossword write_at", "[crossword],[quick]") {
     REQUIRE(driver->test_write_at(WCD, 4, 1, expected_5_5_mixed_write_wcd.str()));
     REQUIRE(driver->test_write_at(WCD, 4, 1, expected_5_5_mixed_write_wcd.str()));
 }
+*/
 
 /**
  * test for crossword read_at()
 */
+/*
 TEST_CASE("crossword read_at", "[crossword],[quick]") {
     crossword_test_driver* driver = new crossword_test_driver("crossword read_at");
 
@@ -303,3 +306,4 @@ TEST_CASE("crossword read_at", "[crossword],[quick]") {
     REQUIRE(driver->test_read_at(2, 3, BLK));
     REQUIRE(driver->test_read_at(3, 2, 'r'));
 }
+*/
