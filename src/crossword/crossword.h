@@ -32,14 +32,12 @@ namespace crossword_ns {
             uint rows() const { return height; }
             uint cols() const { return length; }
 
-            // access/modify puzzle for testing or internal use only
-            void write_at(char c, uint row, uint col, word_direction dir);
-            void erase_at(char expected_c, uint row, uint col, word_direction dir);
+            // access tiles for csp
             char read_at(uint row, uint col) const;
 
             // access/modify puzzle for csp
-            void write_word(word_assignment&& assignment);
-            string undo_prev_write_word();
+            void write(word_assignment&& assignment);
+            string undo_prev_write();
             
             // TODO: add func for access/modify grid layout
 
@@ -48,7 +46,7 @@ namespace crossword_ns {
 
             // TODO: add func for printing original grid out
 
-        private:
+        protected:
             // dimensions of crossword puzzle
             uint length;
             uint height;
@@ -60,6 +58,10 @@ namespace crossword_ns {
             
             // previous word assignments
             stack<word_assignment> prev_written_words;
+
+            // access/modify puzzle for internal use only
+            void write_at(char c, uint row, uint col, word_direction dir);
+            void erase_at(char expected_c, uint row, uint col, word_direction dir);
     }; // crossword
     
     // for printing crossword contents

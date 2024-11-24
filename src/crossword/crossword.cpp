@@ -192,7 +192,7 @@ ostream& crossword_ns::operator<<(ostream& os, const crossword& cw) {
  * @brief assign a word to this grid
  * @param assignment rval assignment params struct
 */
-void crossword::write_word(word_assignment&& assignment) {
+void crossword::write(word_assignment&& assignment) {
     switch(assignment.dir) {
         case ACROSS: {
             for(uint j = 0; j < assignment.word.size(); ++j) {
@@ -215,7 +215,7 @@ void crossword::write_word(word_assignment&& assignment) {
  * 
  * @return word removed from grid, purely for defensive programming
 */
-string crossword::undo_prev_write_word() {
+string crossword::undo_prev_write() {
     assert(!prev_written_words.empty());
 
     word_assignment assignment = prev_written_words.top();

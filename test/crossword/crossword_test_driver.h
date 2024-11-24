@@ -33,13 +33,12 @@ namespace crossword_test_driver_ns {
             // cw tests for reading and writing
             // bool test_write_at(char c, uint row, uint col, string ground_truth);
             // bool test_read_at (uint row, uint col, char ground_truth);
-            
-            // destructor
-            ~crossword_test_driver() { delete dut; }
 
+            // cw tests for writing words and undoing
+            bool test_modification(uint length, uint height, string contents, vector<word_assignment> assignments, vector<string> ground_truth);
+            
         private:
-            // TODO: change to use unique_ptr
-            crossword* dut = nullptr;
+            unique_ptr<crossword> dut;
     }; // crossword_test_driver
 } // crossword_test_driver_ns
 

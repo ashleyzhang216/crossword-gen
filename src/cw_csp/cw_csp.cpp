@@ -698,7 +698,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 // add to crossword assignment
                 // overwrite_cw();
-                cw.write_word({
+                cw.write({
                     .origin_row = variables[next_var]->origin_row,
                     .origin_col = variables[next_var]->origin_col,
                     .word = word.word,
@@ -707,7 +707,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 if(solve_backtracking(var_strategy, false, depth + 1)) return true;
                 // undo_overwrite_cw();
-                assert(cw.undo_prev_write_word() == word.word);
+                assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
                 word_stamper.add_result("recursive fail");
