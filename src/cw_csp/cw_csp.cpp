@@ -486,9 +486,7 @@ bool cw_csp::solved() const {
 */
 string cw_csp::result() const {
     assert(solved());
-    stringstream cw_ss;
-    cw_ss << cw;
-    return cw_ss.str();
+    return cw.serialize_result();
 }
 
 /**

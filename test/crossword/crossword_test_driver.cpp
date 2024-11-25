@@ -26,9 +26,7 @@ bool crossword_test_driver::test_constructor_empty(uint length, uint height, str
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
     dut = make_unique<crossword>(dut_name.str(), length, height);
 
-    stringstream result;
-    result << *dut;
-    return check_condition(dut_name.str(), result.str() == ground_truth);
+    return check_condition(dut_name.str(), dut->serialize_result() == ground_truth);
 }
 
 /**
@@ -45,9 +43,7 @@ bool crossword_test_driver::test_constructor_contents_vector(uint length, uint h
     dut_name << name << " test_constructor_contents_vector(): " << length << ", " << height;
     dut = make_unique<crossword>(dut_name.str(), length, height, contents);
 
-    stringstream result;
-    result << *dut;
-    return check_condition(dut_name.str(), result.str() == ground_truth);
+    return check_condition(dut_name.str(), dut->serialize_result() == ground_truth);
 }
 
 /**
@@ -64,9 +60,7 @@ bool crossword_test_driver::test_constructor_contents_string(uint length, uint h
     dut_name << name << " test_constructor_contents_string(): " << length << ", " << height;
     dut = make_unique<crossword>(dut_name.str(), length, height, contents);
 
-    stringstream result;
-    result << *dut;
-    return check_condition(dut_name.str(), result.str() == ground_truth);
+    return check_condition(dut_name.str(), dut->serialize_result() == ground_truth);
 }
 
 /**
@@ -88,7 +82,7 @@ bool crossword_test_driver::test_modification(uint length, uint height, const st
     dut = make_unique<crossword>(dut_name.str(), length, height, contents);
 
     std::function<bool(size_t)> test_at_depth;
-    test_at_depth = [this, &test_at_depth, &assignments, &ground_truth](size_t i) -> bool {
+    test_at_depth = [this, &test_at_depth, &assignments, &ground_truth, &contents, &length](size_t i) -> bool {
         if(i >= assignments.size()) {
             return true;
         }
@@ -97,15 +91,13 @@ bool crossword_test_driver::test_modification(uint length, uint height, const st
         string cur_word = assignments[i].word;
 
         dut->write(std::move(assignments[i]));
-        stringstream pre_result;
-        pre_result << *dut;
-        result &= pre_result.str() == ground_truth[i];
+        result &= dut->serialize_result() == ground_truth[i];
+        result &= dut->serialize_initial() == construct_cw_output(contents, length);
 
         result &= test_at_depth(i + 1);
 
-        stringstream post_result;
-        post_result << *dut;
-        result &= post_result.str() == ground_truth[i];
+        result &= dut->serialize_result() == ground_truth[i];
+        result &= dut->serialize_initial() == construct_cw_output(contents, length);
         result &= dut->undo_prev_write() == cur_word;
 
         return result;

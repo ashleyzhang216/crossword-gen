@@ -41,10 +41,9 @@ namespace crossword_ns {
             
             // TODO: add func for access/modify grid layout
 
-            // for printing puzzle out
-            friend ostream& operator<<(ostream& os, const crossword& cw);
-
-            // TODO: add func for printing original grid out
+            // printing puzzle progress and original out
+            string serialize_result()  const;
+            string serialize_initial() const;
 
         protected:
             // dimensions of crossword puzzle
@@ -62,10 +61,8 @@ namespace crossword_ns {
             // access/modify puzzle for internal use only
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
+            char read_initial_at(uint row, uint col) const;
     }; // crossword
-    
-    // for printing crossword contents
-    ostream& operator<<(ostream& os, const crossword& cw);
 } // crossword_ns
 
 #endif // CROSSWORD_H

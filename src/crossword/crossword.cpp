@@ -144,7 +144,6 @@ void crossword::erase_at(char expected_c, uint row, uint col, word_direction dir
  * reads char contained at a single tile
  * @param row target row
  * @param col target column
- * @throws assertion_failure_exception iff out of bounds
 */
 char crossword::read_at(uint row, uint col) const {
     assert(row < rows());
@@ -175,17 +174,47 @@ char crossword::read_at(uint row, uint col) const {
 }
 
 /**
- * @brief operator to print crossword contents for testing
+ * reads initial char value from a single tile
+ * @param row target row
+ * @param col target column
 */
-ostream& crossword_ns::operator<<(ostream& os, const crossword& cw) {
-    for(uint row = 0; row < cw.rows(); row++) {
-        os << endl;
-        for(uint col = 0; col < cw.cols(); col++) {
-            os << cw.read_at(row, col) << " ";
+char crossword::read_initial_at(uint row, uint col) const {
+    assert(row < rows());
+    assert(col < cols());
+
+    return puzzle[row][col].initial_val;
+}
+
+/**
+ * @brief serialize crossword progress
+*/
+string crossword::serialize_result() const {
+    stringstream ss;
+    
+    for(uint row = 0; row < rows(); row++) {
+        ss << endl;
+        for(uint col = 0; col < cols(); col++) {
+            ss << read_at(row, col) << " ";
         }
     }
 
-    return os;
+    return ss.str();
+}
+
+/**
+ * @brief serialize initial crossword layout, with any grid modifications
+*/
+string crossword::serialize_initial() const {
+    stringstream ss;
+    
+    for(uint row = 0; row < rows(); row++) {
+        ss << endl;
+        for(uint col = 0; col < cols(); col++) {
+            ss << read_initial_at(row, col) << " ";
+        }
+    }
+
+    return ss.str();
 }
 
 /**
