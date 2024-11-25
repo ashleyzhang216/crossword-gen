@@ -67,12 +67,6 @@ namespace cw_csp_ns {
             // undo previous call of ac3() due to invalid CSP or backtracking
             void undo_ac3();
 
-            // function to overwrite cw with progress
-            // void overwrite_cw();
-
-            // function to undo previous call to overwrite_cw();
-            // void undo_overwrite_cw();
-
             // use backtracking to solve CSP
             bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth);
 

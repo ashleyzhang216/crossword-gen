@@ -76,7 +76,7 @@ unordered_set<unique_ptr<cw_constraint> > cw_csp::get_constraints() const {
  * 
  * @return copy of all objects that constr_depenencies items index to
 */
-unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint>> > cw_csp::get_constr_dependencies() const {
+unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > cw_csp::get_constr_dependencies() const {
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > result;
     for(const auto& pair : constr_dependencies) {
         for(const size_t constr : pair.second) {
@@ -295,7 +295,7 @@ void cw_csp::initialize_csp() {
      * @param prev vector of previous arcs in current cycle prototype
      * @param visited set of previously visited vars in current cycle prototype
     */
-    set<set<size_t>> unique_cycles;
+    set<set<size_t> > unique_cycles;
     std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
     find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
         assert(prev.size());
@@ -490,81 +490,6 @@ string cw_csp::result() const {
     cw_ss << cw;
     return cw_ss.str();
 }
-
-/**
- * @brief overwrite wildcards in cw puzzle with progress so far
- */
-/*
-void cw_csp::overwrite_cw() {
-    cw_timestamper stamper(tracker, TS_CSP_OVERWRITE_CW, "");
-
-    // used to track overwritten chars for undo-ing later
-    vector<tuple<char, uint, uint> > overwritten_tiles;
-
-    // iterate across each variable to write onto cw
-    for(unique_ptr<cw_variable>& var : variables) {
-        // only write assigned variables
-        if(var->domain.is_assigned()) {
-            if(var->dir == ACROSS) {
-                for(uint letter = 0; letter < var->length; letter++) {
-                    // this square must be wildcard or the same letter about to be written
-                    assert(
-                        cw.read_at(var->origin_row, var->origin_col + letter) == WILDCARD ||
-                        cw.read_at(var->origin_row, var->origin_col + letter) == var->domain.get_cur_domain().at(0).word.at(letter)
-                    );
-
-                    // if this will actually overwrite a wildcard
-                    if(cw.read_at(var->origin_row, var->origin_col + letter) == WILDCARD) {
-                        // record overwritting
-                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var->origin_row, var->origin_col + letter));
-
-                        // overwrite cw
-                        cw.write_at(var->domain.get_cur_domain().at(0).word.at(letter), var->origin_row, var->origin_col + letter);
-                    }
-                }
-            } else if(var->dir == DOWN) { 
-                for(uint letter = 0; letter < var->length; letter++) {
-
-                    // this square must be wildcard or the same letter about to be written
-                    assert(
-                        cw.read_at(var->origin_row + letter, var->origin_col) == WILDCARD ||
-                        cw.read_at(var->origin_row + letter, var->origin_col) == var->domain.get_cur_domain().at(0).word.at(letter)
-                    );
-
-                    // if this will actually overwrite a wildcard
-                    if(cw.read_at(var->origin_row + letter, var->origin_col) == WILDCARD) {
-                        // record overwriting
-                        overwritten_tiles.push_back(std::make_tuple(WILDCARD, var->origin_row + letter, var->origin_col));
-
-                        // overwrite cw
-                        cw.write_at(var->domain.get_cur_domain().at(0).word.at(letter), var->origin_row + letter, var->origin_col);
-                    }
-                }
-            } else {
-                utils.log(ERROR, "got unknown direction type: ", var->dir);
-            }
-        }
-    }
-
-    prev_overwritten_tiles.push(overwritten_tiles);
-}
-*/
-
-/**
- * @brief undo previous call to overwrite_cw()
-*/
-/*
-void cw_csp::undo_overwrite_cw() { 
-    cw_timestamper stamper(tracker, TS_CSP_UNDO_OVERWRITE_CW, "");
-
-    assert(prev_overwritten_tiles.size() > 0);
-
-    for(const auto& tuple : prev_overwritten_tiles.top()) {
-        cw.write_at(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
-    }
-    prev_overwritten_tiles.pop();
-}
-*/
 
 /**
  * @brief selects one unassigned var ptr in variables
