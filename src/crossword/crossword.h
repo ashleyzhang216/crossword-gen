@@ -41,9 +41,14 @@ namespace crossword_ns {
             
             // TODO: add func for access/modify grid layout
 
+            // TODO: add func to get copy of crossword with some extra black tile
+
             // printing puzzle progress and original out
             string serialize_result()  const;
             string serialize_initial() const;
+
+            // undo all word writes
+            void reset();
 
         protected:
             // dimensions of crossword puzzle
@@ -62,6 +67,8 @@ namespace crossword_ns {
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_initial_at(uint row, uint col) const;
+
+            // TODO: add function to convert tile to black tile, with symmetrical param
     }; // crossword
 } // crossword_ns
 

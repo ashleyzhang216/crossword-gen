@@ -55,8 +55,8 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
             puzzle[i][j] = {
                 .type        = tile_type,
                 .initial_val = contents[i][j],
-                .across      = tile_type == TILE_FILLED ? std::make_optional<char>(contents[i][j]) : std::nullopt,
-                .down        = tile_type == TILE_FILLED ? std::make_optional<char>(contents[i][j]) : std::nullopt
+                .across      = std::nullopt,
+                .down        = std::nullopt
             };
         }
     }
@@ -78,8 +78,8 @@ crossword::crossword(string name, uint length, uint height, string contents) : c
             puzzle[i][j] = {
                 .type        = tile_type,
                 .initial_val = contents.at(i*length + j),
-                .across      = tile_type == TILE_FILLED ? std::make_optional<char>(contents.at(i*length + j)) : std::nullopt,
-                .down        = tile_type == TILE_FILLED ? std::make_optional<char>(contents.at(i*length + j)) : std::nullopt
+                .across      = std::nullopt,
+                .down        = std::nullopt
             };
         }
     }
@@ -97,16 +97,9 @@ void crossword::write_at(char c, uint row, uint col, word_direction dir) {
     assert(col < cols());
     assert(c >= 'a' && c <= 'z');
 
-    optional<char>&       this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
-    const optional<char>& other_opt = (dir == ACROSS ? puzzle[row][col].down   : puzzle[row][col].across);
+    optional<char>& this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
 
-    assert(
-        // empty tile to write to
-        puzzle[row][col].type == TILE_EMPTY || 
-
-        // writing to tile with this char already assigned
-        (puzzle[row][col].type == TILE_FILLED && other_opt.has_value() && other_opt.value() == c)
-    );
+    assert(puzzle[row][col].type != TILE_BLACK);
     assert(!this_opt.has_value());
     assert(puzzle[row][col].initial_val == c || puzzle[row][col].initial_val == WILDCARD);
 
@@ -154,10 +147,14 @@ char crossword::read_at(uint row, uint col) const {
     } else if(puzzle[row][col].type == TILE_EMPTY) {
         return WILDCARD;
     } else {
-        // filled tile
+        // catch edge case initially filled where vals of across/down don't matter
+        const cw_tile_type initial_type = char_to_tile_type(puzzle[row][col].initial_val);
+        if(initial_type == TILE_FILLED) {
+            return puzzle[row][col].initial_val;
+        }
+
         const bool has_across = puzzle[row][col].across.has_value();
         const bool has_down   = puzzle[row][col].down  .has_value();
-
         assert(has_across || has_down);
 
         // enforce equality if written in both directions
@@ -264,4 +261,21 @@ string crossword::undo_prev_write() {
     }
 
     return assignment.word;
+}
+
+/**
+ * @brief resets all previous calls to write()
+*/
+void crossword::reset() {
+    while(!prev_written_words.empty()) {
+        undo_prev_write();
+    }
+
+    // for defensive programming
+    for(uint row = 0; row < rows(); row++) {
+        for(uint col = 0; col < cols(); col++) {
+            assert(!puzzle[row][col].across.has_value());
+            assert(!puzzle[row][col].down.has_value());
+        }
+    }
 }
