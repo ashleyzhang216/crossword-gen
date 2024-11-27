@@ -92,6 +92,8 @@ namespace cw_csp_data_types_ns {
             // for each pair of intersecting variables, their lhs/rhs index values
             virtual vector<pair<uint, uint> > intersection_indices() const = 0;
 
+            // TODO: add function to get intersection tile(s)
+
             // equality operator
             friend bool operator==(const cw_constraint& lhs, const cw_constraint& rhs);
             friend bool operator==(const unique_ptr<cw_constraint>& lhs, const unique_ptr<cw_constraint>& rhs);

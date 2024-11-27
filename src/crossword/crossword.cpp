@@ -15,26 +15,14 @@ using namespace crossword_ns;
  * @param length # of columns
  * @param height # of rows
 */
-crossword::crossword(string name, uint length, uint height) : common_parent(name, VERBOSITY) {
+crossword::crossword(string name, uint length, uint height) 
+    : common_parent(name, VERBOSITY),
+      length(length),
+      height(height),
+      puzzle(height, vector<cw_tile>(length, cw_tile(TILE_EMPTY, WILDCARD))),
+      invalid_freq(height, vector<uint>(length, 0u)) {
     assert(length > 0);
     assert(height > 0);
-
-    this->length = length;
-    this->height = height;
-
-    // declare puzzle vector size, initialize all tiles to empty
-    puzzle.resize(height);
-    for(uint i = 0; i < height; i++) {
-        puzzle[i].resize(length);
-        for(uint j = 0; j < length; j++) {
-            puzzle[i][j] = {
-                .type        = TILE_EMPTY,
-                .initial_val = WILDCARD,
-                .across      = std::nullopt,
-                .down        = std::nullopt
-            };
-        }
-    }
 }
 
 /**
@@ -48,16 +36,12 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
     assert(puzzle.size() == height);
     for(uint i = 0; i < height; i++) assert(puzzle[i].size() == length);
 
-    // update puzzle contents
+    // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
-            cw_tile_type tile_type = char_to_tile_type(contents[i][j]);
-            puzzle[i][j] = {
-                .type        = tile_type,
-                .initial_val = contents[i][j],
-                .across      = std::nullopt,
-                .down        = std::nullopt
-            };
+            if(contents[i][j] != WILDCARD) {
+                puzzle[i][j] = cw_tile(char_to_tile_type(contents[i][j]), contents[i][j]);
+            }
         }
     }
 }
@@ -71,16 +55,12 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
 crossword::crossword(string name, uint length, uint height, string contents) : crossword(name, length, height) {
     assert(contents.size() == length * height);
 
-    // update puzzle contents
+    // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
-            cw_tile_type tile_type = char_to_tile_type(contents.at(i*length + j));
-            puzzle[i][j] = {
-                .type        = tile_type,
-                .initial_val = contents.at(i*length + j),
-                .across      = std::nullopt,
-                .down        = std::nullopt
-            };
+            if(contents.at(i*length + j) != WILDCARD) {
+                puzzle[i][j] = cw_tile(char_to_tile_type(contents.at(i*length + j)), contents.at(i*length + j));
+            }
         }
     }
 }
@@ -97,7 +77,7 @@ void crossword::write_at(char c, uint row, uint col, word_direction dir) {
     assert(col < cols());
     assert(c >= 'a' && c <= 'z');
 
-    optional<char>& this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
+    optional<char>& this_opt = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down);
 
     assert(puzzle[row][col].type != TILE_BLACK);
     assert(!this_opt.has_value());
@@ -183,38 +163,6 @@ char crossword::read_initial_at(uint row, uint col) const {
 }
 
 /**
- * @brief serialize crossword progress
-*/
-string crossword::serialize_result() const {
-    stringstream ss;
-    
-    for(uint row = 0; row < rows(); row++) {
-        ss << endl;
-        for(uint col = 0; col < cols(); col++) {
-            ss << read_at(row, col) << " ";
-        }
-    }
-
-    return ss.str();
-}
-
-/**
- * @brief serialize initial crossword layout, with any grid modifications
-*/
-string crossword::serialize_initial() const {
-    stringstream ss;
-    
-    for(uint row = 0; row < rows(); row++) {
-        ss << endl;
-        for(uint col = 0; col < cols(); col++) {
-            ss << read_initial_at(row, col) << " ";
-        }
-    }
-
-    return ss.str();
-}
-
-/**
  * @brief assign a word to this grid
  * @param assignment rval assignment params struct
 */
@@ -264,6 +212,17 @@ string crossword::undo_prev_write() {
 }
 
 /**
+ * @brief report tiles that caused csp to become invalid in AC-3 algorithm
+ * 
+ * @param tiles rvalue vec of tile indices in the format of {row, col}  
+*/
+void crossword::report_invalidating_tiles(vector<pair<uint, uint> >&& tiles) {
+    for(const auto& tile : tiles) {
+        invalid_freq[tile.first][tile.second]++;
+    }
+}
+
+/**
  * @brief resets all previous calls to write()
 */
 void crossword::reset() {
@@ -271,11 +230,43 @@ void crossword::reset() {
         undo_prev_write();
     }
 
-    // for defensive programming
     for(uint row = 0; row < rows(); row++) {
         for(uint col = 0; col < cols(); col++) {
+            // for defensive programming
             assert(!puzzle[row][col].across.has_value());
             assert(!puzzle[row][col].down.has_value());
         }
     }
+}
+
+/**
+ * @brief serialize crossword progress
+*/
+string crossword::serialize_result() const {
+    stringstream ss;
+    
+    for(uint row = 0; row < rows(); row++) {
+        ss << endl;
+        for(uint col = 0; col < cols(); col++) {
+            ss << read_at(row, col) << " ";
+        }
+    }
+
+    return ss.str();
+}
+
+/**
+ * @brief serialize initial crossword layout, with any grid modifications
+*/
+string crossword::serialize_initial() const {
+    stringstream ss;
+    
+    for(uint row = 0; row < rows(); row++) {
+        ss << endl;
+        for(uint col = 0; col < cols(); col++) {
+            ss << read_initial_at(row, col) << " ";
+        }
+    }
+
+    return ss.str();
 }

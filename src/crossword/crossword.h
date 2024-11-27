@@ -39,9 +39,10 @@ namespace crossword_ns {
             void write(word_assignment&& assignment);
             string undo_prev_write();
             
-            // TODO: add func for access/modify grid layout
+            // TODO: add func to add some extra black tile
 
-            // TODO: add func to get copy of crossword with some extra black tile
+            // report tiles whose intersection(s) caused csp to become invalid
+            void report_invalidating_tiles(vector<pair<uint, uint> >&& tiles);
 
             // printing puzzle progress and original out
             string serialize_result()  const;
@@ -49,6 +50,11 @@ namespace crossword_ns {
 
             // undo all word writes
             void reset();
+
+            // returns copy of this grid without progress
+            // TODO: implement
+            // TODO: figure out if this should zero out invalid_freq
+            crossword clone() const;
 
         protected:
             // dimensions of crossword puzzle
@@ -63,12 +69,17 @@ namespace crossword_ns {
             // previous word assignments
             stack<word_assignment> prev_written_words;
 
+            // represents how frequent a tile's intersection caused a csp to become invalid
+            // same shape as puzzle
+            // TODO: figure out when this should be zero'd: on reset? or when black tile added?
+            vector<vector<uint> > invalid_freq;
+
             // access/modify puzzle for internal use only
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_initial_at(uint row, uint col) const;
 
-            // TODO: add function to convert tile to black tile, with symmetrical param
+            // TODO: add function to convert a tile in grid to black tile, with symmetrical param
     }; // crossword
 } // crossword_ns
 

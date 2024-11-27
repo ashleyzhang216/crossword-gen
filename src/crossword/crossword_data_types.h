@@ -24,16 +24,19 @@ namespace crossword_data_types_ns {
     cw_tile_type char_to_tile_type(const char& c);
 
     // representation of one cw tile
-    // struct cw_tile {
-    //     cw_tile_type type; // type/status of tile
-    //     char c;            // WILDCARD iff type == TILE_EMPTY, BLACK iff type == TILE_BLACK
-    // };
     struct cw_tile {
+        // current type. cannot switch between BLACK and FILLED/EMPTY through writing/erasing words 
         cw_tile_type type;
+
+        // when changed to modify grid, must reset values of across/down and recalculate type
         char initial_val;
 
-        optional<char> across; // type == TILE_EMPTY || type == TILE_BLACK --> no value
-        optional<char> down;   // type == TILE_EMPTY || type == TILE_BLACK --> no value
+        // values written to this tile by across/down vars
+        // type != TILE_FILLED --> both have no value
+        optional<char> across;
+        optional<char> down;
+
+        cw_tile(cw_tile_type t, char v) : type(t), initial_val(v), across(std::nullopt), down(std::nullopt) {}
     };
 
     // direction a word can be placed in a crossword

@@ -89,9 +89,6 @@ namespace cw_csp_ns {
             // when a constraint is updated, constr_dependencies of all its dependents must be reevaluated
             unordered_map<size_t, unordered_set<size_t> > constr_dependencies;
 
-            // previous cw tile values overwritten during call to overwrite_cw(), used for undo_overwrite_cw()
-            // stack<vector<tuple<char, uint, uint> > > prev_overwritten_tiles; 
-
             // words already assigned to the crossword, used to avoid duplicates
             unordered_set<word_t> assigned_words;
 
