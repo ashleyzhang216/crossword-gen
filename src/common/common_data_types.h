@@ -28,6 +28,7 @@
 #include <optional>
 #include <iomanip>
 #include <bitset>
+#include <functional>
 
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word

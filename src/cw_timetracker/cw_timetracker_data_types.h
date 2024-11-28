@@ -27,8 +27,6 @@ namespace cw_timetracker_data_types_ns {
         TS_CSP_SOLVED,            // cw_csp.solved()
         TS_CSP_AC3,               // cw_csp.ac3()
         TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
-        TS_CSP_OVERWRITE_CW,      // cw_csp.overwrite_cw() 
-        TS_CSP_UNDO_OVERWRITE_CW, // cw_csp.undo_overwrite_cw()
         TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
         TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
         TS_CSP_GATHER_DOMAIN,     // get_cur_domain() call and sort in in cw_csp.solve_backtracking()
