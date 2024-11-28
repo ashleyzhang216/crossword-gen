@@ -620,7 +620,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 utils.log(DEBUG, "adding new word: ", word, " to var: ", *variables[next_var]);
 
                 // add to crossword assignment
-                // overwrite_cw();
                 cw.write({
                     .origin_row = variables[next_var]->origin_row,
                     .origin_col = variables[next_var]->origin_col,
@@ -628,8 +627,12 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                     .dir = variables[next_var]->dir
                 });
 
-                if(solve_backtracking(var_strategy, false, depth + 1)) return true;
-                // undo_overwrite_cw();
+                // recurse
+                if(solve_backtracking(var_strategy, false, depth + 1)) {
+                    return true;
+                }
+                
+                // undo adding to crossword asignment
                 assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
