@@ -20,13 +20,13 @@ namespace crossword_ns {
     class crossword : public common_parent {
         public:
             // base constructor
-            crossword(string name, uint length, uint height);
+            crossword(const string& name, uint length, uint height);
 
             // constructor with declaration of puzzle contents in vector form
-            crossword(string name, uint length, uint height, vector<vector<char> > contents);
+            crossword(const string& name, uint length, uint height, vector<vector<char> > contents);
 
             // constructor with declaration of puzzle contents in string form
-            crossword(string name, uint length, uint height, string contents);
+            crossword(const string& name, uint length, uint height, string contents);
 
             // get dimensions
             uint rows() const { return height; }
@@ -39,8 +39,6 @@ namespace crossword_ns {
             void write(word_assignment&& assignment);
             string undo_prev_write();
             
-            // TODO: add func to add some extra black tile
-
             // report tiles whose intersection(s) caused csp to become invalid
             void report_invalidating_tiles(vector<pair<uint, uint> >&& tiles);
 
@@ -51,10 +49,9 @@ namespace crossword_ns {
             // undo all word writes
             void reset();
 
-            // returns copy of this grid without progress
-            // TODO: implement
-            // TODO: figure out if this should zero out invalid_freq
-            crossword clone() const;
+            // returns permutation of puzzle, i.e. copy of grid with additional black tile and without progress
+            // TODO: add params to this function to control things like symmetry
+            crossword get_permutation() const;
 
         protected:
             // dimensions of crossword puzzle
@@ -71,15 +68,18 @@ namespace crossword_ns {
 
             // represents how frequent a tile's intersection caused a csp to become invalid
             // same shape as puzzle
-            // TODO: figure out when this should be zero'd: on reset? or when black tile added?
             vector<vector<uint> > invalid_freq;
+
+            // number of non-black tiles
+            uint num_fillable_tiles;
 
             // access/modify puzzle for internal use only
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_initial_at(uint row, uint col) const;
 
-            // TODO: add function to convert a tile in grid to black tile, with symmetrical param
+            // varies grid by converting at least one fillable tile to a black tile
+            void permute();
     }; // crossword
 } // crossword_ns
 

@@ -15,12 +15,13 @@ using namespace crossword_ns;
  * @param length # of columns
  * @param height # of rows
 */
-crossword::crossword(string name, uint length, uint height) 
+crossword::crossword(const string& name, uint length, uint height) 
     : common_parent(name, VERBOSITY),
       length(length),
       height(height),
       puzzle(height, vector<cw_tile>(length, cw_tile(TILE_EMPTY, WILDCARD))),
-      invalid_freq(height, vector<uint>(length, 0u)) {
+      invalid_freq(height, vector<uint>(length, 0u)),
+      num_fillable_tiles(length * height) {
     assert(length > 0);
     assert(height > 0);
 }
@@ -31,19 +32,20 @@ crossword::crossword(string name, uint length, uint height)
  * @param height # of rows
  * @param contents vector contents of puzzle
 */
-crossword::crossword(string name, uint length, uint height, vector<vector<char> > contents) : crossword(name, length, height) {
-    // validate input puzzle size
-    assert(puzzle.size() == height);
-    for(uint i = 0; i < height; i++) assert(puzzle[i].size() == length);
-
-    // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
-    for(uint i = 0; i < height; i++) {
-        for(uint j = 0; j < length; j++) {
-            if(contents[i][j] != WILDCARD) {
-                puzzle[i][j] = cw_tile(char_to_tile_type(contents[i][j]), contents[i][j]);
+crossword::crossword(const string& name, uint length, uint height, vector<vector<char> > contents) 
+    : crossword(
+        name, 
+        length, 
+        height, 
+        [&contents]() {
+            string flat;
+            for (const auto& row : contents) {
+                flat.append(row.begin(), row.end());
             }
-        }
-    }
+            return flat;
+        }()
+      ) {
+    // do nothing
 }
 
 /**
@@ -52,14 +54,20 @@ crossword::crossword(string name, uint length, uint height, vector<vector<char> 
  * @param height # of rows
  * @param contents string contents of puzzle, indexed by row then column
 */
-crossword::crossword(string name, uint length, uint height, string contents) : crossword(name, length, height) {
+crossword::crossword(const string& name, uint length, uint height, string contents) : crossword(name, length, height) {
     assert(contents.size() == length * height);
 
     // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
-            if(contents.at(i*length + j) != WILDCARD) {
-                puzzle[i][j] = cw_tile(char_to_tile_type(contents.at(i*length + j)), contents.at(i*length + j));
+            char cur = contents.at(i*length + j);
+            cw_tile_type type = char_to_tile_type(cur);
+
+            if(type != TILE_EMPTY) {
+                puzzle[i][j] = cw_tile(type, cur);
+            }
+            if(type == TILE_BLACK) {
+                num_fillable_tiles--;
             }
         }
     }
@@ -237,6 +245,30 @@ void crossword::reset() {
             assert(!puzzle[row][col].down.has_value());
         }
     }
+}
+
+/**
+ * @brief returns permutation of this puzzle with additional black tile
+*/
+crossword crossword::get_permutation() const {
+    crossword next = *this;
+    next.reset();
+    next.permute();
+
+    return next;
+}
+
+/**
+ * @brief add additional black tile to grid and zero out invalid_freq
+ * @pre no progress made on this grid, i.e. prev_written_words is empty
+*/
+void crossword::permute() {
+    assert(prev_written_words.empty());
+
+    // TODO: implement
+
+    // reset invalid_freq
+    invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
 }
 
 /**
