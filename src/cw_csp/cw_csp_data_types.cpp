@@ -289,6 +289,26 @@ vector<pair<uint, uint> > cw_arc::intersection_indices() const {
     return {{lhs_index, rhs_index}};  
 }
 
+/**
+ * @brief get indices of tiles at which vars for this constraint intersect, for an arc, there is only 1
+ *
+ * @param vars ref to id_obj_manager to index into to get lhs/rhs vars
+ * @return the single {row, col} tile at which vars intersect
+*/
+vector<pair<uint, uint> > cw_arc::intersection_tiles(const id_obj_manager<cw_variable>& vars) const {
+    pair<uint, uint> lhs_tile = std::make_pair(
+        vars[lhs]->origin_row + (vars[lhs]->dir == DOWN   ? lhs_index : 0u),
+        vars[lhs]->origin_col + (vars[lhs]->dir == ACROSS ? lhs_index : 0u)
+    );
+    pair<uint, uint> rhs_tile = std::make_pair(
+        vars[rhs]->origin_row + (vars[rhs]->dir == DOWN   ? rhs_index : 0u),
+        vars[rhs]->origin_col + (vars[rhs]->dir == ACROSS ? rhs_index : 0u)
+    );
+
+    assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
+    return {lhs_tile};
+}
+
 // ############### cw_cycle ###############
 
 /**
@@ -620,4 +640,33 @@ unordered_set<size_t> cw_cycle::dependents() const {
 */
 vector<pair<uint, uint> > cw_cycle::intersection_indices() const {
     return intersections;
+}
+
+/**
+ * @brief get indices of tiles at which vars for this constraint intersect, for a cycle, there is 4
+ *
+ * @param vars ref to id_obj_manager to index into to get vars
+ * @return the four {row, col} tiles at which vars in this cycle intersect
+*/
+vector<pair<uint, uint> > cw_cycle::intersection_tiles(const id_obj_manager<cw_variable>& vars) const {
+    vector<pair<uint, uint> > res;
+
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        const size_t lhs = var_cycle[i];
+        const size_t rhs = var_cycle[(i + 1) % CYCLE_LEN];
+
+        pair<uint, uint> lhs_tile = std::make_pair(
+            vars[lhs]->origin_row + (vars[lhs]->dir == DOWN   ? intersections[i].first : 0u),
+            vars[lhs]->origin_col + (vars[lhs]->dir == ACROSS ? intersections[i].first : 0u)
+        );
+        pair<uint, uint> rhs_tile = std::make_pair(
+            vars[rhs]->origin_row + (vars[rhs]->dir == DOWN   ? intersections[i].second : 0u),
+            vars[rhs]->origin_col + (vars[rhs]->dir == ACROSS ? intersections[i].second : 0u)
+        );
+
+        assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
+        res.push_back(lhs_tile);
+    }
+
+    return res;
 }

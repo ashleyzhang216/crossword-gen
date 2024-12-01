@@ -92,7 +92,8 @@ namespace cw_csp_data_types_ns {
             // for each pair of intersecting variables, their lhs/rhs index values
             virtual vector<pair<uint, uint> > intersection_indices() const = 0;
 
-            // TODO: add function to get intersection tile(s)
+            // tiles at which this constraint intersect, in the form of {row, col}
+            virtual vector<pair<uint, uint> > intersection_tiles(const id_obj_manager<cw_variable>& vars) const = 0;
 
             // equality operator
             friend bool operator==(const cw_constraint& lhs, const cw_constraint& rhs);
@@ -148,6 +149,9 @@ namespace cw_csp_data_types_ns {
 
         // only pair of intersections is (lhs_index, rhs_index)
         virtual vector<pair<uint, uint> > intersection_indices() const override;
+
+        // tiles at which this constraint intersect, in the form of {row, col}
+        virtual vector<pair<uint, uint> > intersection_tiles(const id_obj_manager<cw_variable>& vars) const override;
         
         // equality operator
         virtual bool equals(const cw_constraint& other_constr) const override;
@@ -200,6 +204,9 @@ namespace cw_csp_data_types_ns {
 
         // equivalent to getter for intersections
         virtual vector<pair<uint, uint> > intersection_indices() const override;
+
+        // tiles at which this constraint intersect, in the form of {row, col}
+        virtual vector<pair<uint, uint> > intersection_tiles(const id_obj_manager<cw_variable>& vars) const override;
 
         // equality operator
         virtual bool equals(const cw_constraint& other_constr) const override;

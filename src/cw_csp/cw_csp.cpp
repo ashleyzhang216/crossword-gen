@@ -400,6 +400,9 @@ bool cw_csp::ac3() {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
 
+                // report violating tiles that caused this to become invalid to the crossword grid
+                cw.report_invalidating_tiles(constraints[constr_id]->intersection_tiles(variables));
+
                 // undo pruning
                 undo_ac3();
                 stamper.add_result("fail");
