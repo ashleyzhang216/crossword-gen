@@ -248,11 +248,19 @@ void crossword::reset() {
 }
 
 /**
- * @brief returns permutation of this puzzle with additional black tile
+ * @brief returns copy of this puzzle without progress
 */
-crossword crossword::get_permutation() const {
+crossword crossword::clone() const {
     crossword next = *this;
     next.reset();
+    return next;
+}
+
+/**
+ * @brief returns permutation of this puzzle without progress and with additional black tile
+*/
+crossword crossword::get_permutation() const {
+    crossword next = clone();
     next.permute();
 
     return next;
