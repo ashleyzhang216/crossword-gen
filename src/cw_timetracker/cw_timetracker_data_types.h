@@ -33,7 +33,17 @@ namespace cw_timetracker_data_types_ns {
     };
 
     // mapping from timestep type to display name
-    extern unordered_map<ts_type_t, string> ts_type_name_map;
+    NLOHMANN_JSON_SERIALIZE_ENUM( ts_type_t, {
+        {TS_CSP_TOTAL,             "Total"},
+        {TS_CSP_INITIALIZE,        "Initialize"},
+        {TS_CSP_SOLVE,             "Solve"},
+        {TS_CSP_SOLVED,            "Solved"},
+        {TS_CSP_AC3,               "AC3"},
+        {TS_CSP_UNDO_AC3,          "Undo AC3"},
+        {TS_CSP_BACKTRACK_STEP,    "Solve Backtracking"},
+        {TS_CSP_TRY_ASSIGN,        "Try Assign"},
+        {TS_CSP_GATHER_DOMAIN,     "Gather Domain"}
+    })
 }; // cw_timetracker_data_types_ns
 
 #endif // CW_TIMETRACKER_DATA_TYPES_H

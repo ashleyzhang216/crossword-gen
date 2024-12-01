@@ -24,7 +24,7 @@ namespace cw_timetracker_ns {
         cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
 
         // ends timestep measurement
-        void resolve(uint expected_id, string r = "");
+        void resolve(uint expected_id, const optional<string>& r);
 
         // returns true iff timestep has been resolved
         bool resolved() { return end.has_value(); }
@@ -63,7 +63,7 @@ namespace cw_timetracker_ns {
             uint start_timestep(ts_type_t type, string name);
             
             // end previous timestep
-            void end_timestep(uint id, string result = "");
+            void end_timestep(uint id, const optional<string>& result);
 
             // write results into JSON file and resolves root timestep
             void save_results(string filepath);
