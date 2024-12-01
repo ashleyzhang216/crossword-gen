@@ -647,5 +647,5 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
  * @brief get permutation of this csp with a permutated crossword grid
 */
 cw_csp cw_csp::get_permutation() const {
-    return cw_csp(name + " permutation", cw.get_permutation(), filepath, false, use_timetracker);
+    return cw_csp(name + " permutation", cw.get_permutation(), filepath, print_progress_bar, use_timetracker);
 }

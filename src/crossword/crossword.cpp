@@ -269,11 +269,26 @@ crossword crossword::get_permutation() const {
 /**
  * @brief add additional black tile to grid and zero out invalid_freq
  * @pre no progress made on this grid, i.e. prev_written_words is empty
+ *
+ * TODO: currently sets the first fillable tile it finds to black, add a real implementation
 */
 void crossword::permute() {
     assert(prev_written_words.empty());
 
-    // TODO: implement
+    // TODO: remove test implementation
+    auto set_first_fillable_black = [this]() -> void {
+        for(uint row = 0; row < rows(); row++) {
+            for(uint col = 0; col < cols(); col++) {
+                if(puzzle[row][col].type != TILE_BLACK) {
+                    puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
+                    num_fillable_tiles--;
+                    return;
+                }
+            }
+        }
+    };
+
+    set_first_fillable_black();
 
     // reset invalid_freq
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
