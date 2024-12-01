@@ -9,38 +9,19 @@
 using namespace cw_csp_ns;
 
 /**
- * @brief constructor for constraint satisfaction problem w/o puzzle contents
+ * @brief constructor for constraint satisfaction problem with or without puzzle contents
  * 
- * @param length the length of puzzle to be created
- * @param height the height of puzzle to be created
+ * @param name name of this object
+ * @param grid rvalue crossword grid to solve and assume ownership of, can have or not have contents
  * @param filepath relative filepath to dictionary of words file
  * @param print_progress_bar displays progress bar iff true
  * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name, VERBOSITY), 
-          tracker("cw_csp", use_timetracker), 
-          cw(name + " cw", length, height), 
-          total_domain(name + " total_domain", filepath, print_progress_bar), 
-          print_progress_bar(print_progress_bar) {
-    initialize_csp();
-}
-
-/**
- * @brief constructor for constraint satisfaction problem with puzzle contents
- * 
- * @param length the length of puzzle to be created
- * @param height the height of puzzle to be created
- * @param contents the contents to populate puzzle with
- * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true
- * @param use_timetracker enables cw_timetracker iff true
-*/
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name, VERBOSITY), 
-          tracker("cw_csp", use_timetracker), 
-          cw(name + " cw", length, height, contents), 
-          total_domain(name + " total_domain", filepath, print_progress_bar), 
+cw_csp::cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker) 
+        : common_parent(name, VERBOSITY),
+          tracker("cw_csp", use_timetracker),
+          cw(std::move(grid)),
+          total_domain(name + " total_domain", filepath, print_progress_bar),
           print_progress_bar(print_progress_bar) {
     initialize_csp();
 }

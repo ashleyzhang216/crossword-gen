@@ -37,11 +37,8 @@ string cw_gen::squash_options(vector<string> options) {
  * @brief build cw_csp after all params set
 */
 void cw_gen::build() {
-    if(has_grid_contents) {
-        csp = make_unique<cw_csp>("puzzle", length, height, contents, dict_path[dict], display_progress_bar, enable_timetracker);
-    } else {
-        csp = make_unique<cw_csp>("puzzle", length, height, dict_path[dict], display_progress_bar, enable_timetracker);
-    }
+    crossword cw = has_grid_contents ? crossword("puzzle cw", length, height, contents) : crossword("puzzle cw", length, height);
+    csp = make_unique<cw_csp>("puzzle", std::move(cw), dict_path[dict], display_progress_bar, enable_timetracker);
 }
 
 /**
