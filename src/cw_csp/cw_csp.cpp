@@ -20,6 +20,8 @@ using namespace cw_csp_ns;
 cw_csp::cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name, VERBOSITY),
           tracker("cw_csp", use_timetracker),
+          filepath(filepath),
+          use_timetracker(use_timetracker),
           cw(std::move(grid)),
           total_domain(name + " total_domain", filepath, print_progress_bar),
           print_progress_bar(print_progress_bar) {
@@ -639,4 +641,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
     stamper.add_result("fail, exhausted domain");
     return false;
+}
+
+/**
+ * @brief get permutation of this csp with a permutated crossword grid
+*/
+cw_csp cw_csp::get_permutation() const {
+    return cw_csp(name + " permutation", cw.get_permutation(), filepath, false, use_timetracker);
 }

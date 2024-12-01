@@ -35,8 +35,8 @@ namespace cw_csp_ns {
             cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
-            unordered_set<unique_ptr<cw_variable > >                                           get_variables()        const;
-            unordered_set<unique_ptr<cw_constraint> >                                          get_constraints()      const;
+            unordered_set<unique_ptr<cw_variable > >                                           get_variables()           const;
+            unordered_set<unique_ptr<cw_constraint> >                                          get_constraints()         const;
             unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_constr_dependencies() const;
 
             // solve CSP
@@ -53,6 +53,20 @@ namespace cw_csp_ns {
 
             // save timetracker results for analysis
             void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
+
+            // returns permutation of csp, i.e. csp with a permutated crossword grid
+            cw_csp get_permutation() const;
+
+            // copy disallowed, construct new cw_csp with same params
+            cw_csp(const cw_csp& other) = delete;
+            cw_csp& operator=(const cw_csp& other) = delete;
+
+            // movable
+            cw_csp(cw_csp&& other) noexcept = default;
+            cw_csp& operator=(cw_csp&& other) noexcept = default;
+
+            // default ok
+            ~cw_csp() = default;
         
         protected:
             // helper func to populate variables & constraints
@@ -70,6 +84,12 @@ namespace cw_csp_ns {
         private:
             // timetracker object for analysis
             mutable cw_timetracker tracker;
+
+            // original word dictionary filepath
+            string filepath;
+
+            // original tracker enabling input param
+            bool use_timetracker;
 
             // crossword to be solved
             crossword cw;

@@ -73,7 +73,7 @@ namespace cw_timetracker_ns {
 
         private:
             // whether this object should do anything at all
-            const bool enabled;
+            bool enabled;
 
             // next id to assign, for invariant checking
             uint next_id;
