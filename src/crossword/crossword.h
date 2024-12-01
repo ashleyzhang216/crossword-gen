@@ -53,6 +53,12 @@ namespace crossword_ns {
             // TODO: add params to this function to control things like symmetry
             crossword get_permutation() const;
 
+            // movable
+            crossword(crossword&& other) noexcept = default;
+            crossword& operator=(crossword&& other) noexcept = default;
+
+            ~crossword() = default;
+
         protected:
             // dimensions of crossword puzzle
             uint length;
@@ -80,6 +86,10 @@ namespace crossword_ns {
 
             // varies grid by converting at least one fillable tile to a black tile
             void permute();
+
+            // copy protected
+            crossword(const crossword& other) = default;
+            crossword& operator=(const crossword& other) = default;
     }; // crossword
 } // crossword_ns
 
