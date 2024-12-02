@@ -258,8 +258,10 @@ crossword crossword::clone() const {
 
 /**
  * @brief returns all permutations of this puzzle without progress and with additional black tile
+ *
+ * @param explored_grids ref to set of grids already being explored, to avoid duplicates
 */
-vector<crossword> crossword::permutations() const {
+vector<crossword> crossword::permutations(unordered_set<string>& explored_grids) const {
     vector<crossword> res;
     
     for(uint row = 0; row < rows(); row++) {
@@ -267,7 +269,7 @@ vector<crossword> crossword::permutations() const {
             if(puzzle[row][col].type != TILE_BLACK) {
                 crossword next = clone();
 
-                if(next.try_set_black(row, col)) {
+                if(next.try_set_black(row, col, explored_grids)) {
                     res.push_back(std::move(next));
                 }
 
@@ -285,9 +287,10 @@ vector<crossword> crossword::permutations() const {
  *
  * @param row target row
  * @param col target col
+ * @param explored_grids ref to set of grids already being explored, to avoid duplicates
  * @return true iff successful, i.e. making this tile black does not violate any grid restrictions
 */
-bool crossword::try_set_black(uint row, uint col) {
+bool crossword::try_set_black(uint row, uint col, unordered_set<string>& explored_grids) {
     assert(prev_written_words.empty());
     assert(row < rows());
     assert(col < cols());
@@ -297,7 +300,16 @@ bool crossword::try_set_black(uint row, uint col) {
     puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
     num_fillable_tiles--;
 
+    // make sure this isn't a duplicate grid
+    string serialized = serialize_initial();
+    if(explored_grids.count(serialized)) {
+        return false;
+    }
+    explored_grids.insert(std::move(serialized));
+
     // TODO: implement real checks
+
+    // TODO: also need to check for duplicate grids somehow, maybe hash the serialize_initial() of this
 
     // do we need to somehow tell permutations() things like the words lengths we split up??
     // maybe change bool return result for optional<a struct that includes scoring data on how good this permutation is>

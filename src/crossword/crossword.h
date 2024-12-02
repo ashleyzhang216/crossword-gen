@@ -51,7 +51,7 @@ namespace crossword_ns {
 
             // returns all permutations of puzzle, i.e. copies of grid with additional black tile and without progress
             // TODO: add params to this function to control things like symmetry
-            vector<crossword> permutations() const;
+            vector<crossword> permutations(unordered_set<string>& explored_grids) const;
 
             // movable
             crossword(crossword&& other) noexcept = default;
@@ -88,7 +88,7 @@ namespace crossword_ns {
             crossword clone() const;
 
             // try to set a tile to black
-            bool try_set_black(uint row, uint col);
+            bool try_set_black(uint row, uint col, unordered_set<string>& explored_grids);
 
             // copy protected
             crossword(const crossword& other) = default;

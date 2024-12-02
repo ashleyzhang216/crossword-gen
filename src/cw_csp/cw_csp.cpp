@@ -211,7 +211,6 @@ void cw_csp::initialize_csp() {
 
     // iterate across each variable to populate var_intersect_table
     // lhs for horizontal variables, rhs for vertical
-    // for(unique_ptr<cw_variable>& var_ptr : variables) {
     for(size_t i = 0; i < variables.size(); ++i) {
         if(variables[i]->dir == ACROSS) {
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
@@ -648,9 +647,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
 /**
  * @brief get all permutations of this csp with a permutated crossword grid
+ *
+ * @param explored_grids ref to set of grids already being explored, to avoid duplicates
 */
-vector<cw_csp> cw_csp::permutations() const {
-    vector<crossword> p = cw.permutations();
+vector<cw_csp> cw_csp::permutations(unordered_set<string>& explored_grids) const {
+    vector<crossword> p = cw.permutations(explored_grids);
     vector<cw_csp> res;
 
     for(size_t i = 0; i < p.size(); ++i) {
