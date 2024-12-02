@@ -324,31 +324,34 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
         auto num_accessible_tiles = [this](pair<uint, uint>& root) -> uint {
             vector<vector<bool> > visited(height, vector<bool>(length, false));
             stack<pair<uint, uint> > frontier;
+
+            visited[root.first][root.second] = true;
             frontier.push(std::move(root));
 
             uint num_visited = 0u;
             while(!frontier.empty()) {
                 pair<uint, uint> cur = frontier.top();
                 frontier.pop();
-                visited[cur.first][cur.second] = true;
+                assert(visited[cur.first][cur.second]);
                 ++num_visited;
 
                 vector<pair<uint, uint> > candidates;
                 if(cur.first > 0u) {
                     candidates.push_back(std::make_pair(cur.first - 1, cur.second));
                 }
-                if(cur.first + 1 < rows()) {
+                if(cur.first + 1u < rows()) {
                     candidates.push_back(std::make_pair(cur.first + 1, cur.second));
                 }
                 if(cur.second > 0u) {
                     candidates.push_back(std::make_pair(cur.first, cur.second - 1));
                 }
-                if(cur.second + 1 < cols()) {
+                if(cur.second + 1u < cols()) {
                     candidates.push_back(std::make_pair(cur.first, cur.second + 1));
                 }
 
                 for(pair<uint, uint>& c : candidates) {
-                    if(!visited[c.first][c.second]) {
+                    if(!visited[c.first][c.second] && puzzle[c.first][c.second].type != TILE_BLACK) {
+                        visited[c.first][c.second] = true;
                         frontier.push(std::move(c));
                     }
                 }
@@ -383,10 +386,10 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
             return 1u + length_in_dir(row + dir.first, col + dir.second, dir);
         };
 
-        uint up    = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair(-1,  0));
-        uint down  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 1,  0));
-        uint left  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0, -1));
-        uint right = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0,  1));
+        uint up    = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair(-1,  0)) - 1u;
+        uint down  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 1,  0)) - 1u;
+        uint left  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0, -1)) - 1u;
+        uint right = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0,  1)) - 1u;
 
         // check if reqs.min_new_word_len violated
         if(
@@ -419,6 +422,8 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     vector<uint> old_lens;
     vector<uint> new_lens;
 
+    bool added_symmetrical_black = false;
+
     // set black, then test for violations of grid restrictions
     puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
     num_fillable_tiles--;
@@ -427,15 +432,16 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     if(reqs.symmetric && puzzle[rows() - row - 1][cols() - col - 1].type != TILE_BLACK) {
         puzzle[rows() - row - 1][cols() - col - 1] = cw_tile(TILE_BLACK, BLACK);
         num_fillable_tiles--;
-
-        // validate word lengths of intersection for mirrored black tile
-        if(!intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
-            return false;
-        }
+        added_symmetrical_black = true;
     }
 
     // validate word lengths of intersection for this black tile
     if(!intersection_info(row, col, old_lens, new_lens)) {
+        return false;
+    }
+
+    // validate word lengths of intersection for mirrored black tile
+    if(added_symmetrical_black && !intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
         return false;
     }
 
@@ -451,10 +457,7 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     }
     explored_grids.insert(std::move(serialized));
 
-    // TODO: implement real checks
-
-    // do we need to somehow tell permutations() things like the words lengths we split up??
-    // maybe change bool return result for optional<a struct that includes scoring data on how good this permutation is>
+    // TODO: do something with the data from calling intersection_info(), populate some real score struct
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
     return true;
