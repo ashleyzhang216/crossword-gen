@@ -301,9 +301,148 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     assert(col < cols());
     assert(puzzle[row][col].type != TILE_BLACK);
 
+    /**
+     * @brief check if no closed off section
+     *
+     * @return true iff all fillable tiles in grid accessible from one another
+     */
+    auto connected = [this]() -> bool {
+        // finds first fillable tile
+        auto find_first_fillable = [this]() -> optional<pair<uint, uint> > {
+            for(uint row = 0; row < rows(); row++) {
+                for(uint col = 0; col < cols(); col++) {
+                    if(puzzle[row][col].type != TILE_BLACK) {
+                        return std::make_optional(std::make_pair(row, col));
+                    }
+                }
+            }
+
+            return std::nullopt;
+        };
+
+        // finds number of fillable tiles accessible via adjacent tiles from a root
+        auto num_accessible_tiles = [this](pair<uint, uint>& root) -> uint {
+            vector<vector<bool> > visited(height, vector<bool>(length, false));
+            stack<pair<uint, uint> > frontier;
+            frontier.push(std::move(root));
+
+            uint num_visited = 0u;
+            while(!frontier.empty()) {
+                pair<uint, uint> cur = frontier.top();
+                frontier.pop();
+                visited[cur.first][cur.second] = true;
+                ++num_visited;
+
+                vector<pair<uint, uint> > candidates;
+                if(cur.first > 0u) {
+                    candidates.push_back(std::make_pair(cur.first - 1, cur.second));
+                }
+                if(cur.first + 1 < rows()) {
+                    candidates.push_back(std::make_pair(cur.first + 1, cur.second));
+                }
+                if(cur.second > 0u) {
+                    candidates.push_back(std::make_pair(cur.first, cur.second - 1));
+                }
+                if(cur.second + 1 < cols()) {
+                    candidates.push_back(std::make_pair(cur.first, cur.second + 1));
+                }
+
+                for(pair<uint, uint>& c : candidates) {
+                    if(!visited[c.first][c.second]) {
+                        frontier.push(std::move(c));
+                    }
+                }
+            }
+
+            return num_visited;
+        };
+
+        optional<pair<uint, uint> > root = find_first_fillable();
+        if(!root.has_value()) {
+            return false;
+        }
+        return num_accessible_tiles(root.value()) == num_fillable_tiles;
+    };
+
+    /**
+     * @brief gets information about the word(s) a new black tile intersects
+     *
+     * @param row target row of new black tile
+     * @param col target col of new black tile
+     * @param old_lens ref to vector to add lengths of words this tile intersects to
+     * @param new_lens ref to vector to add lengths of new words created by this black tile to
+     * @return true iff reqs.min_new_word_len not violated
+     */
+    auto intersection_info = [this](uint row, uint col, vector<uint>& old_lens, vector<uint>& new_lens) -> bool {
+        // finds number of fillable tiles in some direction
+        std::function<uint(int, int, const pair<int, int>&)> length_in_dir;
+        length_in_dir = [this, &length_in_dir](int row, int col, const pair<int, int>& dir) -> uint {
+            if(row < 0 || row >= static_cast<int>(rows())) return 0u;
+            if(col < 0 || col >= static_cast<int>(cols())) return 0u;
+
+            return 1u + length_in_dir(row + dir.first, col + dir.second, dir);
+        };
+
+        uint up    = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair(-1,  0));
+        uint down  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 1,  0));
+        uint left  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0, -1));
+        uint right = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0,  1));
+
+        // check if reqs.min_new_word_len violated
+        if(
+            (up    != 0u && up    < reqs.min_new_word_len) ||
+            (down  != 0u && down  < reqs.min_new_word_len) ||
+            (left  != 0u && left  < reqs.min_new_word_len) ||
+            (right != 0u && right < reqs.min_new_word_len)
+        ) {
+            return false;
+        }
+
+        // ignore non-words (length of 1) that this tile split
+        if(up != 0u || down != 0u) {
+            old_lens.push_back(up + down + 1u);
+        }
+        if(left != 0u || right != 0u) {
+            old_lens.push_back(left + right + 1u);
+        }
+
+        // ignore new words of length 0, i.e. this tile is adjacent to another black tile or boundary
+        if(up    != 0u) new_lens.push_back(up);
+        if(down  != 0u) new_lens.push_back(down);
+        if(left  != 0u) new_lens.push_back(left);
+        if(right != 0u) new_lens.push_back(right);
+
+        return true;
+    };
+
+    // for calls to intersection_info() later
+    vector<uint> old_lens;
+    vector<uint> new_lens;
+
     // set black, then test for violations of grid restrictions
     puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
     num_fillable_tiles--;
+
+    // add second black tile if symmetric
+    if(reqs.symmetric && puzzle[rows() - row - 1][cols() - col - 1].type != TILE_BLACK) {
+        puzzle[rows() - row - 1][cols() - col - 1] = cw_tile(TILE_BLACK, BLACK);
+        num_fillable_tiles--;
+
+        // validate word lengths of intersection for mirrored black tile
+        if(!intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
+            return false;
+        }
+    }
+
+    // validate word lengths of intersection for this black tile
+    if(!intersection_info(row, col, old_lens, new_lens)) {
+        return false;
+    }
+
+    // enforce connectedness
+    if(reqs.connected && !connected()) {
+        return false;
+    }
 
     // make sure this isn't a duplicate grid
     string serialized = serialize_initial();

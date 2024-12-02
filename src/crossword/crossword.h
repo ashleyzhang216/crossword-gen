@@ -42,15 +42,15 @@ namespace crossword_ns {
             // report tiles whose intersection(s) caused csp to become invalid
             void report_invalidating_tiles(vector<pair<uint, uint> >&& tiles);
 
-            // printing puzzle progress and original out
-            string serialize_result()  const;
-            string serialize_initial() const;
-
             // undo all word writes
             void reset();
 
             // returns all permutations of puzzle, i.e. copies of grid with additional black tile and without progress
             vector<crossword> permutations(unordered_set<string>& explored_grids) const;
+
+            // printing puzzle progress and original out
+            string serialize_result()  const;
+            string serialize_initial() const;
 
             // movable
             crossword(crossword&& other) noexcept = default;
