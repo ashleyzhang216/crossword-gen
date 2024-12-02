@@ -54,8 +54,8 @@ namespace cw_csp_ns {
             // save timetracker results for analysis
             void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
 
-            // returns permutation of csp, i.e. csp with a permutated crossword grid
-            cw_csp get_permutation() const;
+            // returns permutations of csp, i.e. csp with a permutated crossword grid
+            vector<cw_csp> permutations() const;
 
             // copy disallowed, construct new cw_csp with same params
             cw_csp(const cw_csp& other) = delete;

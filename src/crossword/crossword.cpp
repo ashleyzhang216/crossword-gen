@@ -257,41 +257,53 @@ crossword crossword::clone() const {
 }
 
 /**
- * @brief returns permutation of this puzzle without progress and with additional black tile
+ * @brief returns all permutations of this puzzle without progress and with additional black tile
 */
-crossword crossword::get_permutation() const {
-    crossword next = clone();
-    next.permute();
+vector<crossword> crossword::permutations() const {
+    vector<crossword> res;
+    
+    for(uint row = 0; row < rows(); row++) {
+        for(uint col = 0; col < cols(); col++) {
+            if(puzzle[row][col].type != TILE_BLACK) {
+                crossword next = clone();
 
-    return next;
+                if(next.try_set_black(row, col)) {
+                    res.push_back(std::move(next));
+                }
+
+                // TODO: use entry in invalid_freq and run other functions to record score for this permutation
+            }
+        }
+    }
+
+    // TODO: sort permutations by score
+    return res;
 }
 
 /**
- * @brief add additional black tile to grid and zero out invalid_freq
- * @pre no progress made on this grid, i.e. prev_written_words is empty
+ * @brief try to set a fillable tile to a black tile
  *
- * TODO: currently sets the first fillable tile it finds to black, add a real implementation
+ * @param row target row
+ * @param col target col
+ * @return true iff successful, i.e. making this tile black does not violate any grid restrictions
 */
-void crossword::permute() {
+bool crossword::try_set_black(uint row, uint col) {
     assert(prev_written_words.empty());
+    assert(row < rows());
+    assert(col < cols());
+    assert(puzzle[row][col].type != TILE_BLACK);
 
-    // TODO: remove test implementation
-    auto set_first_fillable_black = [this]() -> void {
-        for(uint row = 0; row < rows(); row++) {
-            for(uint col = 0; col < cols(); col++) {
-                if(puzzle[row][col].type != TILE_BLACK) {
-                    puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
-                    num_fillable_tiles--;
-                    return;
-                }
-            }
-        }
-    };
+    // set black, then test for violations of grid restrictions
+    puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
+    num_fillable_tiles--;
 
-    set_first_fillable_black();
+    // TODO: implement real checks
 
-    // reset invalid_freq
+    // do we need to somehow tell permutations() things like the words lengths we split up??
+    // maybe change bool return result for optional<a struct that includes scoring data on how good this permutation is>
+
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
+    return true;
 }
 
 /**

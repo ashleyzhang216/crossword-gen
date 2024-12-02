@@ -647,8 +647,15 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 }
 
 /**
- * @brief get permutation of this csp with a permutated crossword grid
+ * @brief get all permutations of this csp with a permutated crossword grid
 */
-cw_csp cw_csp::get_permutation() const {
-    return cw_csp(name + " permutation", cw.get_permutation(), filepath, print_progress_bar, use_timetracker);
+vector<cw_csp> cw_csp::permutations() const {
+    vector<crossword> p = cw.permutations();
+    vector<cw_csp> res;
+
+    for(size_t i = 0; i < p.size(); ++i) {
+        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), filepath, print_progress_bar, use_timetracker));
+    }
+
+    return res;
 }
