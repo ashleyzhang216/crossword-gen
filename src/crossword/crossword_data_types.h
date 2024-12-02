@@ -59,6 +59,42 @@ namespace crossword_data_types_ns {
         word_direction dir;
     };
 
+    // hard requirements on all permutations
+    // these do not apply the whole grid, only the new black tile
+    // the only exception to the above rule is connected
+    struct permutation_reqs {
+        // puzzle[i][j] becomes black --> puzzle[rows() - i - 1][cols() - j - 1] must also become black
+        bool symmetric;
+
+        // every fillable tile must be reachable from each other, applies to entire grid
+        // i.e. no closed off sections, or graph of var nodes & constraint edges is connected
+        bool connected;
+
+        // for each word a new black tile intersects, it either shorten them or splits them into 2 new words
+        // minimum length of the new words created
+        uint min_new_word_len;
+
+        // default value
+        permutation_reqs() : symmetric(true), connected(true), min_new_word_len(MIN_WORD_LEN) {}
+
+        // value constructor
+        // TODO: use this to allow user to input non-default reqs via CLI
+        permutation_reqs(bool s, bool c, uint l)
+            : symmetric(s),
+              connected(c),
+              min_new_word_len(l) {
+            // do nothing
+        }
+    };
+
+    // struct permutation_score {
+    //     // length of words it split up
+    //     // new word lens
+
+    //     // touching boundary
+    //     // next to other black tile
+    // };
+
 } // crossword_data_types_ns
 
 #endif // CROSSWORD_DATA_TYPES_H

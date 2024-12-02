@@ -14,14 +14,16 @@ using namespace crossword_ns;
  * @param name name of this crossword object
  * @param length # of columns
  * @param height # of rows
+ * @param reqs optional non-default permutation requirements
 */
-crossword::crossword(const string& name, uint length, uint height) 
+crossword::crossword(const string& name, uint length, uint height, permutation_reqs reqs)
     : common_parent(name, VERBOSITY),
       length(length),
       height(height),
       puzzle(height, vector<cw_tile>(length, cw_tile(TILE_EMPTY, WILDCARD))),
       invalid_freq(height, vector<uint>(length, 0u)),
-      num_fillable_tiles(length * height) {
+      num_fillable_tiles(length * height),
+      reqs(reqs) {
     assert(length > 0);
     assert(height > 0);
 }
@@ -31,8 +33,9 @@ crossword::crossword(const string& name, uint length, uint height)
  * @param length # of columns
  * @param height # of rows
  * @param contents vector contents of puzzle
+ * @param reqs optional non-default permutation requirements
 */
-crossword::crossword(const string& name, uint length, uint height, vector<vector<char> > contents) 
+crossword::crossword(const string& name, uint length, uint height, vector<vector<char> > contents, permutation_reqs reqs) 
     : crossword(
         name, 
         length, 
@@ -43,7 +46,8 @@ crossword::crossword(const string& name, uint length, uint height, vector<vector
                 flat.append(row.begin(), row.end());
             }
             return flat;
-        }()
+        }(),
+        reqs
       ) {
     // do nothing
 }
@@ -53,8 +57,9 @@ crossword::crossword(const string& name, uint length, uint height, vector<vector
  * @param length # of columns
  * @param height # of rows
  * @param contents string contents of puzzle, indexed by row then column
+ * @param reqs optional non-default permutation requirements
 */
-crossword::crossword(const string& name, uint length, uint height, string contents) : crossword(name, length, height) {
+crossword::crossword(const string& name, uint length, uint height, string contents, permutation_reqs reqs) : crossword(name, length, height, reqs) {
     assert(contents.size() == length * height);
 
     // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
@@ -269,7 +274,7 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
             if(puzzle[row][col].type != TILE_BLACK) {
                 crossword next = clone();
 
-                if(next.try_set_black(row, col, explored_grids)) {
+                if(next.permute(row, col, explored_grids)) {
                     res.push_back(std::move(next));
                 }
 
@@ -283,14 +288,14 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
 }
 
 /**
- * @brief try to set a fillable tile to a black tile
+ * @brief try to create a valid permutation by setting a fillable tile to a black tile
  *
- * @param row target row
- * @param col target col
+ * @param row target row of fillable tile to set to black tile
+ * @param col target col of fillable tile to set to black tile
  * @param explored_grids ref to set of grids already being explored, to avoid duplicates
  * @return true iff successful, i.e. making this tile black does not violate any grid restrictions
 */
-bool crossword::try_set_black(uint row, uint col, unordered_set<string>& explored_grids) {
+bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grids) {
     assert(prev_written_words.empty());
     assert(row < rows());
     assert(col < cols());
@@ -308,8 +313,6 @@ bool crossword::try_set_black(uint row, uint col, unordered_set<string>& explore
     explored_grids.insert(std::move(serialized));
 
     // TODO: implement real checks
-
-    // TODO: also need to check for duplicate grids somehow, maybe hash the serialize_initial() of this
 
     // do we need to somehow tell permutations() things like the words lengths we split up??
     // maybe change bool return result for optional<a struct that includes scoring data on how good this permutation is>
