@@ -285,8 +285,9 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
         for(uint col = 0; col < cols(); col++) {
             if(puzzle[row][col].type != TILE_BLACK) {
                 crossword next = clone();
+                optional<permutation_score> result = next.permute(row, col, explored_grids);
 
-                if(next.permute(row, col, explored_grids)) {
+                if(result.has_value()) {
                     res.push_back(std::move(next));
                 }
 
@@ -305,9 +306,9 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
  * @param row target row of fillable tile to set to black tile
  * @param col target col of fillable tile to set to black tile
  * @param explored_grids ref to set of grids already being explored, to avoid duplicates
- * @return true iff successful, i.e. making this tile black does not violate any grid restrictions
+ * @return optional with score value for this permutation iff successful, i.e. making this tile black does not violate any grid restrictions
 */
-bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grids) {
+optional<permutation_score> crossword::permute(uint row, uint col, unordered_set<string>& explored_grids) {
     assert(prev_written_words.empty());
     assert(row < rows());
     assert(col < cols());
@@ -500,26 +501,26 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     // validate word lengths of intersection for this black tile
     if(!intersection_info(row, col, old_lens, new_lens)) {
         cout << "fail intersections for this" << endl << endl; // DEBUG
-        return false;
+        return std::nullopt;
     }
 
     // validate word lengths of intersection for mirrored black tile
     if(added_symmetrical_black && !intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
         cout << "fail intersections for mirror" << endl << endl; // DEBUG
-        return false;
+        return std::nullopt;
     }
 
     // enforce connectedness
     if(reqs.connected && !connected()) {
         cout << "not connected" << endl << endl; // DEBUG
-        return false;
+        return std::nullopt;
     }
 
     // make sure this isn't a duplicate grid
     string serialized = serialize_initial();
     if(explored_grids.count(serialized)) {
         cout << "duplicate" << endl << endl; // DEBUG
-        return false;
+        return std::nullopt;
     }
     explored_grids.insert(std::move(serialized));
 
@@ -541,8 +542,14 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     }
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
-    (void)permutation_score(std::move(old_lens), std::move(new_lens), std::move(neighborhood_size), std::move(cluster_size), std::move(times_invalid), boundary[0]);
-    return true;
+    return std::make_optional(permutation_score(
+        std::move(old_lens),
+        std::move(new_lens),
+        std::move(neighborhood_size),
+        std::move(cluster_size),
+        std::move(times_invalid),
+        boundary[0]
+    ));
 }
 
 /**

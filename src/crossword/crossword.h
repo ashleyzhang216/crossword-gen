@@ -91,7 +91,7 @@ namespace crossword_ns {
             crossword clone() const;
 
             // try to set a tile to black
-            bool permute(uint row, uint col, unordered_set<string>& explored_grids);
+            optional<permutation_score> permute(uint row, uint col, unordered_set<string>& explored_grids);
 
             // copy protected
             crossword(const crossword& other) = default;
