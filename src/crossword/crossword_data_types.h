@@ -100,7 +100,7 @@ namespace crossword_data_types_ns {
         // length of new words generated, larger and more values is better
         vector<uint> new_lens;
 
-        // number of the adjacent 8 tiles initially set as black, lower is better
+        // number of the adjacent 8 tiles set as black in input, lower is better
         // one entry for each black tile added
         vector<uint> neighborhood_size;
 
@@ -108,12 +108,18 @@ namespace crossword_data_types_ns {
         // one entry for each black tile added
         vector<uint> cluster_size;
 
+        // value from crossword::invalid_freq for the new black tile(s)
+        vector<uint> times_invalid;
+
         // touching boundary of puzzle
         // one value is ok, if multiple black tiles added, they must be symmetric, so this value must be same for both
         bool on_boundary;
 
+        // maximum number of neighbors
+        static constexpr uint NUM_ADJACENT_TILES = 8u;
+
         // value constructor
-        permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, bool b);
+        permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, const vector<uint>& t, bool b);
     };
 
 } // crossword_data_types_ns

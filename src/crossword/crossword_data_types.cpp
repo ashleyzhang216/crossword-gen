@@ -78,22 +78,25 @@ permutation_reqs::permutation_reqs(bool s, bool c, uint l)
  * @param nl value for new_lens
  * @param n value for neighborhood_size
  * @param c value for cluster_size
+ * @param t value for times_invalid
  * @param b value for on_boundary
  */
-permutation_score::permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, bool b)
+permutation_score::permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, const vector<uint>& t, bool b)
     : old_lens(ol),
       new_lens(nl),
       neighborhood_size(n),
       cluster_size(c),
+      times_invalid(t),
       on_boundary(b) {
 
     // only should measure adjacent 8 tiles
-    for(auto v : n) assert(v <= 8u);
-    for(auto v : c) assert(v <= 8u);
+    for(auto v : n) assert(v <= NUM_ADJACENT_TILES);
+    for(auto v : c) assert(v <= NUM_ADJACENT_TILES);
 
     // sort for easy comparison operator later
     std::sort(old_lens.begin(), old_lens.end());
     std::sort(new_lens.begin(), new_lens.end());
     std::sort(neighborhood_size.begin(), neighborhood_size.end());
     std::sort(cluster_size.begin(), cluster_size.end());
+    std::sort(times_invalid.begin(), times_invalid.end());
 }

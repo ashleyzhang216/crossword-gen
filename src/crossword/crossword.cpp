@@ -400,10 +400,10 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
             return 1u + length_in_dir(cur_row + dir.first, cur_col + dir.second, dir);
         };
 
-        uint up    = length_in_dir(static_cast<int>(row) - 1, static_cast<int>(col),     std::make_pair(-1,  0));
-        uint down  = length_in_dir(static_cast<int>(row) + 1, static_cast<int>(col),     std::make_pair( 1,  0));
-        uint left  = length_in_dir(static_cast<int>(row),     static_cast<int>(col) - 1, std::make_pair( 0, -1));
-        uint right = length_in_dir(static_cast<int>(row),     static_cast<int>(col) + 1, std::make_pair( 0,  1));
+        const uint up    = length_in_dir(static_cast<int>(row) - 1, static_cast<int>(col),     std::make_pair(-1,  0));
+        const uint down  = length_in_dir(static_cast<int>(row) + 1, static_cast<int>(col),     std::make_pair( 1,  0));
+        const uint left  = length_in_dir(static_cast<int>(row),     static_cast<int>(col) - 1, std::make_pair( 0, -1));
+        const uint right = length_in_dir(static_cast<int>(row),     static_cast<int>(col) + 1, std::make_pair( 0,  1));
 
         cout << "root=(" << row << ", " << col << "), up=" << up << ", down=" << down << ", left=" << left << ", right=" << right << ", min=" << reqs.min_new_word_len << endl; // DEBUG
 
@@ -434,10 +434,54 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
         return true;
     };
 
+    /**
+     * @brief get initial and input values for adjacent tiles
+     */
+    auto explore_adjacent = [this](uint row, uint col, vector<uint>& neighborhood_size, vector<uint>& cluster_size, vector<uint>& times_invalid, vector<bool>& on_boundary) -> void {
+        const bool boundary_up    = row > 0;
+        const bool boundary_down  = row + 1u < rows();
+        const bool boundary_left  = col > 0;
+        const bool boundary_right = col + 1u < cols();
+        
+        uint num_in_bounds = 0u;
+        uint neighborhood = 0u;
+        uint cluster = 0u;
+        auto update_search = [this, &num_in_bounds, &neighborhood, &cluster](uint row, uint col) {
+            const char input   = read_input_at  (row, col);
+            const char initial = read_initial_at(row, col);
+
+            if(input == BLACK) ++neighborhood;
+            if(input != BLACK && initial == BLACK) ++cluster;
+            ++num_in_bounds;
+        };
+
+        if(boundary_up   ) update_search(row - 1u, col);
+        if(boundary_down ) update_search(row + 1u, col);
+        if(boundary_left ) update_search(row, col - 1u);
+        if(boundary_right) update_search(row, col + 1u);
+
+        if(boundary_up   && boundary_left ) update_search(row - 1u, col - 1u);
+        if(boundary_up   && boundary_right) update_search(row - 1u, col + 1u);
+        if(boundary_down && boundary_left ) update_search(row + 1u, col - 1u);
+        if(boundary_down && boundary_right) update_search(row + 1u, col + 1u);
+
+        neighborhood_size.push_back(neighborhood);
+        cluster_size.push_back(cluster);
+        times_invalid.push_back(invalid_freq[row][col]);
+        on_boundary.push_back(num_in_bounds == permutation_score::NUM_ADJACENT_TILES);
+    };
+
     // for calls to intersection_info() later
     vector<uint> old_lens;
     vector<uint> new_lens;
 
+    // for calls to explore_adjacent() later
+    vector<uint> neighborhood_size;
+    vector<uint> cluster_size;
+    vector<uint> times_invalid;
+    vector<bool> boundary;
+
+    // controls whether or not funcs are run again for mirrored tile
     bool added_symmetrical_black = false;
 
     // set black, then test for violations of grid restrictions
@@ -481,9 +525,23 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
 
     cout << "ok" << endl << endl; // DEBUG
 
-    // TODO: do something with the data from calling intersection_info(), populate some real score struct
+    // get scoring info
+    explore_adjacent(row, col, neighborhood_size, cluster_size, times_invalid, boundary);
+    assert(neighborhood_size.size() == 1u);
+    assert(cluster_size.size()      == 1u);
+    assert(times_invalid.size()     == 1ul);
+    assert(boundary.size()          == 1ul);
+    if(added_symmetrical_black) {
+        explore_adjacent(rows() - row - 1, cols() - col - 1, neighborhood_size, cluster_size, times_invalid, boundary);
+        assert(neighborhood_size.size() >= 2 * 1u);
+        assert(cluster_size.size()      >= 2 * 1u);
+        assert(times_invalid.size()     == 2 * 1ul);
+        assert(boundary.size()          == 2 * 1ul);
+        assert(boundary[0] == boundary[1]);
+    }
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
+    (void)permutation_score(std::move(old_lens), std::move(new_lens), std::move(neighborhood_size), std::move(cluster_size), std::move(times_invalid), boundary[0]);
     return true;
 }
 
