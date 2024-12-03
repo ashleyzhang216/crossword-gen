@@ -85,6 +85,7 @@ namespace crossword_ns {
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_initial_at(uint row, uint col) const;
+            char read_input_at(uint row, uint col) const;
 
             // returns clone of puzzle, i.e. copy of grid without progress
             crossword clone() const;

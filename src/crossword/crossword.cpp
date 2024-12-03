@@ -176,6 +176,18 @@ char crossword::read_initial_at(uint row, uint col) const {
 }
 
 /**
+ * reads input char value from a single tile
+ * @param row target row
+ * @param col target column
+*/
+char crossword::read_input_at(uint row, uint col) const {
+    assert(row < rows());
+    assert(col < cols());
+
+    return puzzle[row][col].input_val;
+}
+
+/**
  * @brief assign a word to this grid
  * @param assignment rval assignment params struct
 */
