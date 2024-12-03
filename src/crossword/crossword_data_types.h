@@ -28,6 +28,10 @@ namespace crossword_data_types_ns {
         // current type. cannot switch between BLACK and FILLED/EMPTY through writing/erasing words 
         cw_tile_type type;
 
+        // input value on grid construction from contents, cannot change
+        // TODO: labeled this as const and deal with associated struct copying issues
+        char input_val;
+
         // when changed to modify grid, must reset values of across/down and recalculate type
         char initial_val;
 
@@ -36,7 +40,11 @@ namespace crossword_data_types_ns {
         optional<char> across;
         optional<char> down;
 
-        cw_tile(cw_tile_type t, char v) : type(t), initial_val(v), across(std::nullopt), down(std::nullopt) {}
+        // construct with input value
+        cw_tile(char c);
+
+        // set black, without changing input_val
+        void set_black();
     };
 
     // direction a word can be placed in a crossword

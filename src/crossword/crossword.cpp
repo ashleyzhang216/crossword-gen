@@ -20,7 +20,7 @@ crossword::crossword(const string& name, uint length, uint height, permutation_r
     : common_parent(name, VERBOSITY),
       length(length),
       height(height),
-      puzzle(height, vector<cw_tile>(length, cw_tile(TILE_EMPTY, WILDCARD))),
+      puzzle(height, vector<cw_tile>(length, cw_tile(WILDCARD))),
       invalid_freq(height, vector<uint>(length, 0u)),
       num_fillable_tiles(length * height),
       reqs(reqs) {
@@ -69,7 +69,7 @@ crossword::crossword(const string& name, uint length, uint height, string conten
             cw_tile_type type = char_to_tile_type(cur);
 
             if(type != TILE_EMPTY) {
-                puzzle[i][j] = cw_tile(type, cur);
+                puzzle[i][j] = cw_tile(cur);
             }
             if(type == TILE_BLACK) {
                 num_fillable_tiles--;
@@ -429,12 +429,12 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     bool added_symmetrical_black = false;
 
     // set black, then test for violations of grid restrictions
-    puzzle[row][col] = cw_tile(TILE_BLACK, BLACK);
+    puzzle[row][col].set_black();
     num_fillable_tiles--;
 
     // add second black tile if symmetric
     if(reqs.symmetric && puzzle[rows() - row - 1][cols() - col - 1].type != TILE_BLACK) {
-        puzzle[rows() - row - 1][cols() - col - 1] = cw_tile(TILE_BLACK, BLACK);
+        puzzle[rows() - row - 1][cols() - col - 1].set_black();
         num_fillable_tiles--;
         added_symmetrical_black = true;
     }

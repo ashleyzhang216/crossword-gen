@@ -20,3 +20,29 @@ cw_tile_type crossword_data_types_ns::char_to_tile_type(const char& c) {
     if(c == BLACK) return TILE_BLACK;
     return TILE_FILLED;
 }
+
+/**
+ * @brief constructor for cw_tile, using input value from contents
+ */
+cw_tile::cw_tile(char c) 
+    : type(char_to_tile_type(c)),
+      input_val(c),
+      initial_val(c),
+      across(std::nullopt),
+      down(std::nullopt) {
+    // do nothing else
+}
+
+/**
+ * @brief set this fillable tile to black, without changing the input val
+ */
+void cw_tile::set_black() {
+    assert(type != TILE_BLACK);
+
+    initial_val = BLACK;
+    type = char_to_tile_type(initial_val);
+    assert(type == TILE_BLACK);
+
+    across.reset();
+    down.reset();
+}
