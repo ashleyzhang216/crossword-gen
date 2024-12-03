@@ -467,11 +467,11 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     }
     explored_grids.insert(std::move(serialized));
 
+    cout << "ok" << endl << endl; // DEBUG
+
     // TODO: do something with the data from calling intersection_info(), populate some real score struct
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
-
-    cout << "ok" << endl << endl; // DEBUG
     return true;
 }
 

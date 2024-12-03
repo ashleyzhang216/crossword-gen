@@ -87,13 +87,25 @@ namespace crossword_data_types_ns {
         }
     };
 
-    // struct permutation_score {
-    //     // length of words it split up
-    //     // new word lens
+    // evaluation criteria for permutation
+    // criteria based on solvability and basic grid construction tips
+    // fields listed in order of absolute priority
+    struct permutation_score {
+        // length of words split up, larger and more values is better
+        vector<uint> old_lens;
 
-    //     // touching boundary
-    //     // next to other black tile
-    // };
+        // length of new words generated, larger and more values is better
+        vector<uint> new_lens;
+
+        // number of the adjacent 8 tiles initially set as black, lower is better
+        uint neighborhood_size;
+
+        // number of the adjacent 8 tiles set to black in a parent permutation, higher i better
+        uint cluster_size;
+
+        // touching boundary of puzzle
+        bool on_boundary;
+    };
 
 } // crossword_data_types_ns
 
