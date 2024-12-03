@@ -100,27 +100,44 @@ namespace crossword_data_types_ns {
         // length of new words generated, larger and more values is better
         vector<uint> new_lens;
 
-        // number of the adjacent 8 tiles set as black in input, lower is better
+        // number of the adjacent 8 tiles set as black in input, more and lower values are better
         // one entry for each black tile added
         vector<uint> neighborhood_size;
 
-        // number of the adjacent 8 tiles set to black in a parent permutation, higher i better
+        // number of the adjacent 8 tiles set to black in a parent permutation, more and higher values are better
         // one entry for each black tile added
         vector<uint> cluster_size;
 
-        // value from crossword::invalid_freq for the new black tile(s)
+        // value from crossword::invalid_freq for the new black tile(s), more and higher values are better
         vector<uint> times_invalid;
 
-        // touching boundary of puzzle
+        // touching boundary of puzzle, false is better
         // one value is ok, if multiple black tiles added, they must be symmetric, so this value must be same for both
         bool on_boundary;
+
+        // {row, col} of first, non-mirrored black tile
+        // only to maintain deterministic searching
+        pair<uint, uint> loc;
 
         // maximum number of neighbors
         static constexpr uint NUM_ADJACENT_TILES = 8u;
 
         // value constructor
-        permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, const vector<uint>& t, bool b);
+        permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, const vector<uint>& t, bool b, const pair<uint, uint>& loc);
+
+        // comparison to sort permutations based on how 'good' they are
+        bool operator<(const permutation_score& other) const;
+
+        // friend operator, calls member function implementation
+        friend bool operator<(const permutation_score& lhs, const permutation_score& rhs);
+
+        // friend operator for printing out
+        friend ostream& operator<<(ostream& os, const permutation_score& s);
     };
+
+    // friend declarations
+    bool operator<(const permutation_score& lhs, const permutation_score& rhs);
+    ostream& operator<<(ostream& os, const permutation_score& s);
 
 } // crossword_data_types_ns
 

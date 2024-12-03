@@ -279,7 +279,7 @@ crossword crossword::clone() const {
  * @param explored_grids ref to set of grids already being explored, to avoid duplicates
 */
 vector<crossword> crossword::permutations(unordered_set<string>& explored_grids) const {
-    vector<crossword> res;
+    vector<pair<crossword, permutation_score> > candidates;
     
     for(uint row = 0; row < rows(); row++) {
         for(uint col = 0; col < cols(); col++) {
@@ -288,15 +288,30 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
                 optional<permutation_score> result = next.permute(row, col, explored_grids);
 
                 if(result.has_value()) {
-                    res.push_back(std::move(next));
+                    candidates.push_back(std::make_pair(std::move(next), std::move(result.value())));
                 }
-
-                // TODO: use entry in invalid_freq and run other functions to record score for this permutation
             }
         }
     }
 
-    // TODO: sort permutations by score
+    // sort by decreasing score 
+    auto compare = [](const pair<crossword, permutation_score>& lhs, const pair<crossword, permutation_score>& rhs) {
+        return lhs.second.operator<(rhs.second);
+    };
+    std::sort(candidates.begin(), candidates.end(), compare);
+    std::reverse(candidates.begin(), candidates.end());
+
+    // print out all candidates and their scores for debug
+    for(const auto& c : candidates) {
+        cout << "candidate: " << c.first.serialize_initial() << endl; // DEBUG
+        cout << "score: " << c.second << endl << endl; // DEBUG
+    }
+
+    // unpack to separate crosswords from their scores, caller doesn't need to know that info
+    vector<crossword> res;
+    for(auto& c : candidates) {
+        res.push_back(std::move(c.first));
+    }
     return res;
 }
 
@@ -469,7 +484,7 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
         neighborhood_size.push_back(neighborhood);
         cluster_size.push_back(cluster);
         times_invalid.push_back(invalid_freq[row][col]);
-        on_boundary.push_back(num_in_bounds == permutation_score::NUM_ADJACENT_TILES);
+        on_boundary.push_back(num_in_bounds != permutation_score::NUM_ADJACENT_TILES);
     };
 
     // for calls to intersection_info() later
@@ -548,7 +563,8 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
         std::move(neighborhood_size),
         std::move(cluster_size),
         std::move(times_invalid),
-        boundary[0]
+        boundary[0],
+        std::make_pair(row, col)
     ));
 }
 
