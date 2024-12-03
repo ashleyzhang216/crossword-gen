@@ -83,16 +83,11 @@ namespace crossword_data_types_ns {
         uint min_new_word_len;
 
         // default value
-        permutation_reqs() : symmetric(true), connected(true), min_new_word_len(MIN_WORD_LEN) {}
+        permutation_reqs();
 
         // value constructor
         // TODO: use this to allow user to input non-default reqs via CLI
-        permutation_reqs(bool s, bool c, uint l)
-            : symmetric(s),
-              connected(c),
-              min_new_word_len(l) {
-            // do nothing
-        }
+        permutation_reqs(bool s, bool c, uint l);
     };
 
     // evaluation criteria for permutation
@@ -113,6 +108,9 @@ namespace crossword_data_types_ns {
 
         // touching boundary of puzzle
         bool on_boundary;
+
+        // value constructor
+        permutation_score(const vector<uint>& old_lens, const vector<uint>& new_lens, uint n, uint c, bool b);
     };
 
 } // crossword_data_types_ns
