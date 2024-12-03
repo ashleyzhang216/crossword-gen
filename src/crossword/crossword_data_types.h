@@ -101,16 +101,19 @@ namespace crossword_data_types_ns {
         vector<uint> new_lens;
 
         // number of the adjacent 8 tiles initially set as black, lower is better
-        uint neighborhood_size;
+        // one entry for each black tile added
+        vector<uint> neighborhood_size;
 
         // number of the adjacent 8 tiles set to black in a parent permutation, higher i better
-        uint cluster_size;
+        // one entry for each black tile added
+        vector<uint> cluster_size;
 
         // touching boundary of puzzle
+        // one value is ok, if multiple black tiles added, they must be symmetric, so this value must be same for both
         bool on_boundary;
 
         // value constructor
-        permutation_score(const vector<uint>& old_lens, const vector<uint>& new_lens, uint n, uint c, bool b);
+        permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, bool b);
     };
 
 } // crossword_data_types_ns

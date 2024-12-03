@@ -74,19 +74,26 @@ permutation_reqs::permutation_reqs(bool s, bool c, uint l)
 /**
  * @brief constructor for permutation_score with data from crossword::permute()
  *
- * @param old_lens value for old_lens
- * @param new_lens value for new_lens
+ * @param ol value for old_lens
+ * @param nl value for new_lens
  * @param n value for neighborhood_size
  * @param c value for cluster_size
  * @param b value for on_boundary
  */
-permutation_score::permutation_score(const vector<uint>& old_lens, const vector<uint>& new_lens, uint n, uint c, bool b)
-    : old_lens(old_lens),
-      new_lens(new_lens),
+permutation_score::permutation_score(const vector<uint>& ol, const vector<uint>& nl, const vector<uint>& n, const vector<uint>& c, bool b)
+    : old_lens(ol),
+      new_lens(nl),
       neighborhood_size(n),
       cluster_size(c),
       on_boundary(b) {
+
     // only should measure adjacent 8 tiles
-    assert(n <= 8u);
-    assert(c <= 8u);
+    for(auto v : n) assert(v <= 8u);
+    for(auto v : c) assert(v <= 8u);
+
+    // sort for easy comparison operator later
+    std::sort(old_lens.begin(), old_lens.end());
+    std::sort(new_lens.begin(), new_lens.end());
+    std::sort(neighborhood_size.begin(), neighborhood_size.end());
+    std::sort(cluster_size.begin(), cluster_size.end());
 }
