@@ -364,6 +364,7 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
         if(!root.has_value()) {
             return false;
         }
+        cout << "num_accessible_tiles=" << num_accessible_tiles(root.value()) << ", expected=" << num_fillable_tiles << endl; // DEBUG
         return num_accessible_tiles(root.value()) == num_fillable_tiles;
     };
 
@@ -379,17 +380,20 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     auto intersection_info = [this](uint row, uint col, vector<uint>& old_lens, vector<uint>& new_lens) -> bool {
         // finds number of fillable tiles in some direction
         std::function<uint(int, int, const pair<int, int>&)> length_in_dir;
-        length_in_dir = [this, &length_in_dir](int row, int col, const pair<int, int>& dir) -> uint {
-            if(row < 0 || row >= static_cast<int>(rows())) return 0u;
-            if(col < 0 || col >= static_cast<int>(cols())) return 0u;
+        length_in_dir = [this, &length_in_dir](int cur_row, int cur_col, const pair<int, int>& dir) -> uint {
+            if(cur_row < 0 || cur_row >= static_cast<int>(rows())) return 0u;
+            if(cur_col < 0 || cur_col >= static_cast<int>(cols())) return 0u;
+            if(puzzle[static_cast<size_t>(cur_row)][static_cast<size_t>(cur_col)].type == TILE_BLACK) return 0u;
 
-            return 1u + length_in_dir(row + dir.first, col + dir.second, dir);
+            return 1u + length_in_dir(cur_row + dir.first, cur_col + dir.second, dir);
         };
 
-        uint up    = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair(-1,  0)) - 1u;
-        uint down  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 1,  0)) - 1u;
-        uint left  = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0, -1)) - 1u;
-        uint right = length_in_dir(static_cast<int>(row), static_cast<int>(col), std::make_pair( 0,  1)) - 1u;
+        uint up    = length_in_dir(static_cast<int>(row) - 1, static_cast<int>(col),     std::make_pair(-1,  0));
+        uint down  = length_in_dir(static_cast<int>(row) + 1, static_cast<int>(col),     std::make_pair( 1,  0));
+        uint left  = length_in_dir(static_cast<int>(row),     static_cast<int>(col) - 1, std::make_pair( 0, -1));
+        uint right = length_in_dir(static_cast<int>(row),     static_cast<int>(col) + 1, std::make_pair( 0,  1));
+
+        cout << "root=(" << row << ", " << col << "), up=" << up << ", down=" << down << ", left=" << left << ", right=" << right << ", min=" << reqs.min_new_word_len << endl; // DEBUG
 
         // check if reqs.min_new_word_len violated
         if(
@@ -435,24 +439,30 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
         added_symmetrical_black = true;
     }
 
+    cout << "considering: " << serialize_initial() << endl; // DEBUG
+
     // validate word lengths of intersection for this black tile
     if(!intersection_info(row, col, old_lens, new_lens)) {
+        cout << "fail intersections for this" << endl << endl; // DEBUG
         return false;
     }
 
     // validate word lengths of intersection for mirrored black tile
     if(added_symmetrical_black && !intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
+        cout << "fail intersections for mirror" << endl << endl; // DEBUG
         return false;
     }
 
     // enforce connectedness
     if(reqs.connected && !connected()) {
+        cout << "not connected" << endl << endl; // DEBUG
         return false;
     }
 
     // make sure this isn't a duplicate grid
     string serialized = serialize_initial();
     if(explored_grids.count(serialized)) {
+        cout << "duplicate" << endl << endl; // DEBUG
         return false;
     }
     explored_grids.insert(std::move(serialized));
@@ -460,6 +470,8 @@ bool crossword::permute(uint row, uint col, unordered_set<string>& explored_grid
     // TODO: do something with the data from calling intersection_info(), populate some real score struct
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));
+
+    cout << "ok" << endl << endl; // DEBUG
     return true;
 }
 

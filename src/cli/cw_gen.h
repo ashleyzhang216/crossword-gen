@@ -48,10 +48,28 @@ namespace cw_gen_ns {
             void build();
 
             // attempt to solve crossword puzzle, return true iff successful
-            bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES) && csp->solved(); }
+            bool solve() { 
+                assert(csp != nullptr); 
+
+                unordered_set<string> grids;
+                vector<cw_csp> perms = csp->permutations(grids);
+                for(auto& p : perms) {
+                    if(p.solve(BACKTRACKING, MIN_REMAINING_VALUES) && p.solved()) {
+                        cout << "permutation: " << p.result() << endl;
+                    }
+                }
+
+                return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES) && csp->solved();
+            }
 
             // return result after running solve()
-            string result() { assert(csp->solved()); return csp->result(); }
+            string result() {
+                assert(csp->solved());
+
+                
+
+                return csp->result();
+            }
 
             // generate profile file, this object cannot be meaningfully used thereafter
             void save_profile(string filepath) { csp->save_timetracker_result(filepath); }
