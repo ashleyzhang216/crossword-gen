@@ -144,11 +144,6 @@ cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string n
  * @param r result to add
 */
 void cw_timestamper::add_result(string r) {
-    // if(result.has_value()) {
-    //     result = result.value() + r;
-    // } else {
-    //     result = r;
-    // }
     result = result.value_or("") + r;
 }
 
@@ -156,10 +151,5 @@ void cw_timestamper::add_result(string r) {
  * @brief destructor for cw_timestamper, executes end_timestep() call for its timestep
 */
 cw_timestamper::~cw_timestamper() {
-    // if(result.has_value()) {
-    //     tracker.end_timestep(id, result.value());
-    // } else {
-    //     tracker.end_timestep(id);
-    // }
     tracker.end_timestep(id, result);
 }
