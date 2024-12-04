@@ -7,13 +7,14 @@
 #ifndef CW_TREE_H
 #define CW_TREE_H
 
-#include "cw_tree_data_types.h"
 #include "../common/common_parent.h"
-#include "../crossword/crossword.h"
+#include "../common/common_data_types.h"
+#include "../cw_csp/cw_csp.h"
+#include "../utils/cw_utils.h"
 
-using namespace cw_tree_data_types_ns;
 using namespace common_parent_ns;
-using namespace crossword_ns;
+using namespace common_data_types_ns;
+using namespace cw_csp_ns;
 
 namespace cw_tree_ns {
     /**

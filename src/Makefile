@@ -45,7 +45,6 @@ OFILES = \
 		cw_csp_data_types.o \
 		\
 		cw_tree.o \
-		cw_tree_data_types.o \
 		\
 		cw_timetracker.o \
 		cw_timetracker_data_types.o \
@@ -68,7 +67,6 @@ HFILES = \
 		$(SRC_DIR)/$(CWCSP_DIR)/cw_csp_data_types.h \
 		\
 		$(SRC_DIR)/$(CWTREE_DIR)/cw_tree.h \
-		$(SRC_DIR)/$(CWTREE_DIR)/cw_tree_data_types.h \
 		\
 		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker.h \
 		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker_data_types.h \
