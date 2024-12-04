@@ -299,7 +299,7 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
         return lhs.second.operator<(rhs.second);
     };
     std::sort(candidates.begin(), candidates.end(), compare);
-    std::reverse(candidates.begin(), candidates.end());
+    std::reverse(candidates.begin(), candidates.end()); // TODO: implement std::greater<permutation_score> to avoid doing this
 
     // print out all candidates and their scores for debug
     for(const auto& c : candidates) {
@@ -392,7 +392,6 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
         if(!root.has_value()) {
             return false;
         }
-        cout << "num_accessible_tiles=" << num_accessible_tiles(root.value()) << ", expected=" << num_fillable_tiles << endl; // DEBUG
         return num_accessible_tiles(root.value()) == num_fillable_tiles;
     };
 
@@ -420,8 +419,6 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
         const uint down  = length_in_dir(static_cast<int>(row) + 1, static_cast<int>(col),     std::make_pair( 1,  0));
         const uint left  = length_in_dir(static_cast<int>(row),     static_cast<int>(col) - 1, std::make_pair( 0, -1));
         const uint right = length_in_dir(static_cast<int>(row),     static_cast<int>(col) + 1, std::make_pair( 0,  1));
-
-        cout << "root=(" << row << ", " << col << "), up=" << up << ", down=" << down << ", left=" << left << ", right=" << right << ", min=" << reqs.min_new_word_len << endl; // DEBUG
 
         // check if reqs.min_new_word_len violated
         if(
@@ -511,35 +508,27 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
         added_symmetrical_black = true;
     }
 
-    cout << "considering: " << serialize_initial() << endl; // DEBUG
-
     // validate word lengths of intersection for this black tile
     if(!intersection_info(row, col, old_lens, new_lens)) {
-        cout << "fail intersections for this" << endl << endl; // DEBUG
         return std::nullopt;
     }
 
     // validate word lengths of intersection for mirrored black tile
     if(added_symmetrical_black && !intersection_info(rows() - row - 1, cols() - col - 1, old_lens, new_lens)) {
-        cout << "fail intersections for mirror" << endl << endl; // DEBUG
         return std::nullopt;
     }
 
     // enforce connectedness
     if(reqs.connected && !connected()) {
-        cout << "not connected" << endl << endl; // DEBUG
         return std::nullopt;
     }
 
     // make sure this isn't a duplicate grid
     string serialized = serialize_initial();
     if(explored_grids.count(serialized)) {
-        cout << "duplicate" << endl << endl; // DEBUG
         return std::nullopt;
     }
     explored_grids.insert(std::move(serialized));
-
-    cout << "ok" << endl << endl; // DEBUG
 
     // get scoring info
     explore_adjacent(row, col, neighborhood_size, cluster_size, times_invalid, boundary);
