@@ -41,13 +41,9 @@ namespace cw_csp_test_driver_ns {
 
             // csp solving w/ backtracking test
             bool test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print);
-            
-            // destructor
-            ~cw_csp_test_driver() { delete dut; }
 
         private:
-            // TODO: change to use unique_ptr
-            cw_csp* dut = nullptr;
+            unique_ptr<cw_csp> dut;
     }; // cw_csp_test_driver
 
     // helper for constructing ground truth constraint dependencies

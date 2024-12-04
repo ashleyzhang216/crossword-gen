@@ -20,13 +20,13 @@ namespace crossword_ns {
     class crossword : public common_parent {
         public:
             // base constructor
-            crossword(const string& name, uint length, uint height);
+            crossword(const string& name, uint length, uint height, permutation_reqs reqs = permutation_reqs());
 
             // constructor with declaration of puzzle contents in vector form
-            crossword(const string& name, uint length, uint height, vector<vector<char> > contents);
+            crossword(const string& name, uint length, uint height, vector<vector<char> > contents, permutation_reqs reqs = permutation_reqs());
 
             // constructor with declaration of puzzle contents in string form
-            crossword(const string& name, uint length, uint height, string contents);
+            crossword(const string& name, uint length, uint height, string contents, permutation_reqs reqs = permutation_reqs());
 
             // get dimensions
             uint rows() const { return height; }
@@ -42,16 +42,21 @@ namespace crossword_ns {
             // report tiles whose intersection(s) caused csp to become invalid
             void report_invalidating_tiles(vector<pair<uint, uint> >&& tiles);
 
+            // undo all word writes
+            void reset();
+
+            // returns all permutations of puzzle, i.e. copies of grid with additional black tile and without progress
+            vector<crossword> permutations(unordered_set<string>& explored_grids) const;
+
             // printing puzzle progress and original out
             string serialize_result()  const;
             string serialize_initial() const;
 
-            // undo all word writes
-            void reset();
+            // movable
+            crossword(crossword&& other) noexcept = default;
+            crossword& operator=(crossword&& other) noexcept = default;
 
-            // returns permutation of puzzle, i.e. copy of grid with additional black tile and without progress
-            // TODO: add params to this function to control things like symmetry
-            crossword get_permutation() const;
+            ~crossword() = default;
 
         protected:
             // dimensions of crossword puzzle
@@ -73,13 +78,24 @@ namespace crossword_ns {
             // number of non-black tiles
             uint num_fillable_tiles;
 
+            // requirements for permutations
+            permutation_reqs reqs;
+
             // access/modify puzzle for internal use only
             void write_at(char c, uint row, uint col, word_direction dir);
             void erase_at(char expected_c, uint row, uint col, word_direction dir);
             char read_initial_at(uint row, uint col) const;
+            char read_input_at(uint row, uint col) const;
 
-            // varies grid by converting at least one fillable tile to a black tile
-            void permute();
+            // returns clone of puzzle, i.e. copy of grid without progress
+            crossword clone() const;
+
+            // try to set a tile to black
+            optional<permutation_score> permute(uint row, uint col, unordered_set<string>& explored_grids);
+
+            // copy protected
+            crossword(const crossword& other) = default;
+            crossword& operator=(const crossword& other) = default;
     }; // crossword
 } // crossword_ns
 

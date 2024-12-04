@@ -32,9 +32,13 @@ bool cw_csp_test_driver::test_constructor_empty(
     const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
     const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
 ) {
+    stringstream cw_name;
     stringstream dut_name;
+    cw_name  << name << " test_constructor_empty(): " << length << ", " << height << " cw";
     dut_name << name << " test_constructor_empty(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, filepath, false, false);
+
+    crossword cw(cw_name.str(), length, height);
+    dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
     bool result = true;
     unordered_set<unique_ptr<cw_variable> >   result_variables   = dut->get_variables();
@@ -77,9 +81,13 @@ bool cw_csp_test_driver::test_constructor_contents(
     const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
     const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
 ) {
+    stringstream cw_name;
     stringstream dut_name;
+    cw_name  << name << " test_constructor_contents(): " << length << ", " << height << " cw";
     dut_name << name << " test_constructor_contents(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
+
+    crossword cw(cw_name.str(), length, height, contents);
+    dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
     bool result = true;
     unordered_set<unique_ptr<cw_variable> >   result_variables   = dut->get_variables();
@@ -115,9 +123,13 @@ bool cw_csp_test_driver::test_constructor_contents(
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result) {
+    stringstream cw_name;
     stringstream dut_name;
+    cw_name  << name << " test_ac3_validity(): " << length << ", " << height << " cw";
     dut_name << name << " test_ac3_validity(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
+
+    crossword cw(cw_name.str(), length, height, contents);
+    dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
     bool result = true;
     unordered_set<unique_ptr<cw_variable> > original_variables = dut->get_variables();
@@ -157,9 +169,13 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, const unordered_set<unique_ptr<cw_variable> >& expected_variables) {
+    stringstream cw_name;
     stringstream dut_name;
+    cw_name  << name << " test_ac3(): " << length << ", " << height << " cw";
     dut_name << name << " test_ac3(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
+
+    crossword cw(cw_name.str(), length, height, contents);
+    dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
     bool result = true;
     unordered_set<unique_ptr<cw_variable> > original_variables = dut->get_variables();
@@ -213,9 +229,13 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print) {
+    stringstream cw_name;
     stringstream dut_name;
+    cw_name  << name << " test_backtracking_validity(): " << length << ", " << height << " cw";
     dut_name << name << " test_backtracking_validity(): " << length << ", " << height;
-    dut = new cw_csp(dut_name.str(), length, height, contents, filepath, false, false);
+
+    crossword cw(cw_name.str(), length, height, contents);
+    dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
     bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
     if(result && expected_result && do_print) {

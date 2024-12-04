@@ -89,6 +89,9 @@ namespace word_domain_ns {
             word_domain(word_domain&& other) noexcept;
             word_domain& operator=(word_domain&& other) noexcept;
 
+            // default ok
+            ~word_domain() = default;
+
             // specialize std::swap for copy/move assignment
             void swap(word_domain& other) noexcept;
 

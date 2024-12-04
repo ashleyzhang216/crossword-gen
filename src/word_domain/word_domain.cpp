@@ -753,13 +753,13 @@ size_t word_domain::update_lai_subsets(const size_t leaf) {
 /**
  * @brief copy for word_domain
 */
-word_domain::word_domain(const word_domain& other) 
+word_domain::word_domain(const word_domain& other)
     : common_parent(other.name, other.verbosity),
       filepath_opt(other.filepath_opt),
       nodes(other.nodes.clone()),
       word_map(other.word_map),
       unassigned_domain_size(other.unassigned_domain_size),
-      letters_at_indices(other.letters_at_indices ? 
+      letters_at_indices(other.letters_at_indices ?
         make_unique<letter_idx_table<letters_table_entry> >(*other.letters_at_indices) : nullptr),
       ac3_pruned_assigned_val(other.ac3_pruned_assigned_val),
       assigned(other.assigned),
@@ -778,7 +778,7 @@ word_domain& word_domain::operator=(const word_domain& other) {
 /**
  * @brief move for word_domain
 */
-word_domain::word_domain(word_domain&& other) noexcept 
+word_domain::word_domain(word_domain&& other) noexcept
     : common_parent(other.name, other.verbosity),
       filepath_opt(std::move(other.filepath_opt)),
       nodes(std::move(other.nodes)),

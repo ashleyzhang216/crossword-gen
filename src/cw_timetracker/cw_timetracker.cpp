@@ -34,9 +34,8 @@ cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_tim
  * 
  * @param id the expected id of this timestep
  * @param r optional message for why/how this timestep ended
- * @throws assertion_failure_exception iff id does not match
 */
-void cw_timestep::resolve(uint expected_id, string r) {
+void cw_timestep::resolve(uint expected_id, const optional<string>& r) {
     assert(id == expected_id);
     assert(!resolved());
     assert(children.empty() || children.back()->resolved());
@@ -88,9 +87,8 @@ uint cw_timetracker::start_timestep(ts_type_t type, string name) {
  * 
  * @param id the id the timestep expected to be resolved
  * @param result optional message for why/how this timestep ended
- * @throws assertion_failure_exception iff id does not match
 */
-void cw_timetracker::end_timestep(uint id, string result) {
+void cw_timetracker::end_timestep(uint id, const optional<string>& result) {
     if(enabled) {
         assert(cur);
         cur->resolve(id, result);
@@ -100,14 +98,13 @@ void cw_timetracker::end_timestep(uint id, string result) {
 
 /**
  * @brief saves the results in a JSON file at the specified path
- * @throws assertion_failure_exception iff not all timesteps are resolved
 */
 void cw_timetracker::save_results(string filepath) {
     if(enabled) {
         assert(root);
         assert(root == cur);
         assert(!root->resolved());
-        end_timestep(0);
+        end_timestep(0, std::nullopt);
 
         json j = root;
         std::ofstream file(filepath);
@@ -120,11 +117,11 @@ void cw_timetracker::save_results(string filepath) {
 void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
     assert(step->end.has_value());
     j = json{
-        {"type", ts_type_name_map.at(step->type)}, 
+        {"type", step->type}, 
         {"name", step->name}, 
         {"duration_us", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
         {"children", step->children},
-        {"result", step->result.has_value() ? step->result.value() : ""},
+        {"result", step->result.value_or("")},
     };
 }
 
@@ -147,20 +144,12 @@ cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string n
  * @param r result to add
 */
 void cw_timestamper::add_result(string r) {
-    if(result.has_value()) {
-        result = result.value() + r;
-    } else {
-        result = r;
-    }
+    result = result.value_or("") + r;
 }
 
 /**
  * @brief destructor for cw_timestamper, executes end_timestep() call for its timestep
 */
 cw_timestamper::~cw_timestamper() {
-    if(result.has_value()) {
-        tracker.end_timestep(id, result.value());
-    } else {
-        tracker.end_timestep(id);
-    }
+    tracker.end_timestep(id, result);
 }

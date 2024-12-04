@@ -9,38 +9,21 @@
 using namespace cw_csp_ns;
 
 /**
- * @brief constructor for constraint satisfaction problem w/o puzzle contents
+ * @brief constructor for constraint satisfaction problem with or without puzzle contents
  * 
- * @param length the length of puzzle to be created
- * @param height the height of puzzle to be created
+ * @param name name of this object
+ * @param grid rvalue crossword grid to solve and assume ownership of, can have or not have contents
  * @param filepath relative filepath to dictionary of words file
  * @param print_progress_bar displays progress bar iff true
  * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(string name, uint length, uint height, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name, VERBOSITY), 
-          tracker("cw_csp", use_timetracker), 
-          cw(name + " cw", length, height), 
-          total_domain(name + " total_domain", filepath, print_progress_bar), 
-          print_progress_bar(print_progress_bar) {
-    initialize_csp();
-}
-
-/**
- * @brief constructor for constraint satisfaction problem with puzzle contents
- * 
- * @param length the length of puzzle to be created
- * @param height the height of puzzle to be created
- * @param contents the contents to populate puzzle with
- * @param filepath relative filepath to dictionary of words file
- * @param print_progress_bar displays progress bar iff true
- * @param use_timetracker enables cw_timetracker iff true
-*/
-cw_csp::cw_csp(string name, uint length, uint height, string contents, string filepath, bool print_progress_bar, bool use_timetracker) 
-        : common_parent(name, VERBOSITY), 
-          tracker("cw_csp", use_timetracker), 
-          cw(name + " cw", length, height, contents), 
-          total_domain(name + " total_domain", filepath, print_progress_bar), 
+cw_csp::cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker) 
+        : common_parent(name, VERBOSITY),
+          tracker("cw_csp", use_timetracker),
+          filepath(filepath),
+          use_timetracker(use_timetracker),
+          cw(std::move(grid)),
+          total_domain(name + " total_domain", filepath, print_progress_bar),
           print_progress_bar(print_progress_bar) {
     initialize_csp();
 }
@@ -228,7 +211,6 @@ void cw_csp::initialize_csp() {
 
     // iterate across each variable to populate var_intersect_table
     // lhs for horizontal variables, rhs for vertical
-    // for(unique_ptr<cw_variable>& var_ptr : variables) {
     for(size_t i = 0; i < variables.size(); ++i) {
         if(variables[i]->dir == ACROSS) {
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
@@ -416,6 +398,9 @@ bool cw_csp::ac3() {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
                 utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
+
+                // report violating tiles that caused this to become invalid to the crossword grid
+                cw.report_invalidating_tiles(constraints[constr_id]->intersection_tiles(variables));
 
                 // undo pruning
                 undo_ac3();
@@ -658,4 +643,20 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
     stamper.add_result("fail, exhausted domain");
     return false;
+}
+
+/**
+ * @brief get all permutations of this csp with a permutated crossword grid
+ *
+ * @param explored_grids ref to set of grids already being explored, to avoid duplicates
+*/
+vector<cw_csp> cw_csp::permutations(unordered_set<string>& explored_grids) const {
+    vector<crossword> p = cw.permutations(explored_grids);
+    vector<cw_csp> res;
+
+    for(size_t i = 0; i < p.size(); ++i) {
+        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), filepath, print_progress_bar, use_timetracker));
+    }
+
+    return res;
 }
