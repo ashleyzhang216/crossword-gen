@@ -11,7 +11,6 @@
 #include "../common/common_data_types.h"
 #include "../utils/cw_utils.h"
 #include "../crossword/crossword.h"
-// #include "../cw_csp/cw_csp.h"
 #include "../cw_tree/cw_tree.h"
 #include "cw_gen_data_types.h"
 #include "../lib/src/cxxopts.hpp"
@@ -19,7 +18,6 @@
 using namespace common_parent_ns;
 using namespace common_data_types_ns;
 using namespace crossword_ns;
-// using namespace cw_csp_ns;
 using namespace cw_tree_ns;
 using namespace cw_gen_data_types_ns;
 
@@ -47,20 +45,8 @@ namespace cw_gen_ns {
             // util function for squashing param options into a single string
             static string squash_options(const vector<string>& options);
 
-            // build crossword constraint satisfaction problem
-            // void build();
-
             // attempt to solve with given parameters
             vector<string> solve();
-
-            // // attempt to solve crossword puzzle, return true iff successful
-            // bool solve() { assert(csp != nullptr); return csp->solve(BACKTRACKING, MIN_REMAINING_VALUES) && csp->solved(); }
-
-            // // return result after running solve()
-            // string result() { assert(csp->solved()); return csp->result(); }
-
-            // generate profile file, this object cannot be meaningfully used thereafter
-            // void save_profile(string filepath) { csp->save_timetracker_result(filepath); }
 
         private:
             // tree of CSPs to solve

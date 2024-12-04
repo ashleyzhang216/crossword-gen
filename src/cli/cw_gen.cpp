@@ -34,14 +34,6 @@ string cw_gen::squash_options(const vector<string>& options) {
 }
 
 /**
- * @brief build cw_csp after all params set
-*/
-// void cw_gen::build() {
-//     crossword cw = crossword("puzzle cw", length, height, contents.value_or(string(num_tiles, WILDCARD)));
-//     tree = make_unique<cw_tree>("cw_tree", std::move(cw), dict_path.at(dict), display_progress_bar, profile_header.has_value());
-// }
-
-/**
  * @brief attempt to solve with given parameters
  *
  * @return up to 1 solution per requested solution, if these do not match, search space was exhausted
@@ -198,15 +190,6 @@ int main(int argc, char** argv) {
         cout << "Error: insufficient number of crosswords generated for the given parameters. " 
              << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;
     }
-
-    // cwgen->build();
-    // if(cwgen->solve()) {
-    //     cout << "Found: " << cwgen->result() << endl;
-    // } else {
-    //     cout << "Error: no valid crossword generated for the given parameters. " 
-    //          << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;
-    //     exit(1);
-    // }
 
     return 0;
 }
