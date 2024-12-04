@@ -301,12 +301,6 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
     std::sort(candidates.begin(), candidates.end(), compare);
     std::reverse(candidates.begin(), candidates.end()); // TODO: implement std::greater<permutation_score> to avoid doing this
 
-    // print out all candidates and their scores for debug
-    for(const auto& c : candidates) {
-        cout << "candidate: " << c.first.serialize_initial() << endl; // DEBUG
-        cout << "score: " << c.second << endl << endl; // DEBUG
-    }
-
     // unpack to separate crosswords from their scores, caller doesn't need to know that info
     vector<crossword> res;
     for(auto& c : candidates) {
