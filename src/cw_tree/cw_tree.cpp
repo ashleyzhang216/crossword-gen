@@ -15,14 +15,14 @@ using namespace cw_tree_ns;
  * @param grid rvalue user input crossword grid to solve, assume ownership of, and generate csp permutations to solve with
  * @param filepath relative filepath to dictionary of words file
  * @param print_progress_bar csp displays progress bar iff true
- * @param use_timetracker csp enables cw_timetracker iff true
+ * @param profile_header csp enables cw_timetracker iff has a value
  */
-cw_tree::cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker)
+cw_tree::cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& profile_header)
     : common_parent(name, VERBOSITY),
       init_grid(std::move(grid)),
       filepath(filepath),
       print_progress_bar(print_progress_bar),
-      use_timetracker(use_timetracker) {
+      profile_header(profile_header) {
     // do nothing else
 }
 
@@ -35,11 +35,12 @@ vector<string> cw_tree::solve(size_t num_solutions) {
     assert(num_solutions > 0);
     vector<string> result;
     unordered_set<string> explored_grids;
+    size_t num_explored = 0ul;
 
     // init current layer with depth=0, i.e. csp on initial grid
     vector<cw_csp> cur_layer;
     size_t cur_idx = 0ul;
-    cur_layer.push_back(cw_csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, use_timetracker));
+    cur_layer.push_back(cw_csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, profile_header.has_value()));
 
     // find solutions until no more needed or no more children nodes to explore
     // this prioritizes permutations with fewer additional black tiles
@@ -50,6 +51,11 @@ vector<string> cw_tree::solve(size_t num_solutions) {
                 assert(cur_layer.at(cur_idx).solved());
                 result.push_back(cur_layer.at(cur_idx).result());
                 --num_solutions;
+            }
+
+            // save profile result
+            if(profile_header.has_value()) {
+                cur_layer.at(cur_idx).save_timetracker_result(profile_header.value() + std::to_string(num_explored++) + ".json");
             }
 
             ++cur_idx;

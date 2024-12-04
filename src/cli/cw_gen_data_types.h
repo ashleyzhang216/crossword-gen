@@ -32,6 +32,17 @@ namespace cw_gen_data_types_ns {
         {"all",   "src/data/data_all.json"},
     };
 
+    // // search parameters
+    // struct cw_gen_params {
+    //     uint length;
+    //     uint height;
+    //     string dict;
+    //     optional<string> contents;
+    //     bool progress_bar;
+    //     bool profile;
+    //     size_t num_solutions;
+    // };
+
     // preset examples
     struct cw_example_t {
         uint length;
