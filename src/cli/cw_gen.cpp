@@ -21,7 +21,7 @@ cw_gen::cw_gen(string name) : common_parent(name, VERBOSITY) {
  * @param options vector of options to squash
  * @returns str representation of options
 */
-string cw_gen::squash_options(vector<string> options) {
+string cw_gen::squash_options(const vector<string>& options) {
     stringstream opts_ss;
 
     for(uint i = 0; i < options.size(); i++) {
@@ -34,19 +34,22 @@ string cw_gen::squash_options(vector<string> options) {
 }
 
 /**
- * @brief build cw_csp after all params set
-*/
-void cw_gen::build() {
-    crossword cw = has_grid_contents ? crossword("puzzle cw", length, height, contents) : crossword("puzzle cw", length, height);
-    csp = make_unique<cw_csp>("puzzle", std::move(cw), dict_path[dict], display_progress_bar, enable_timetracker);
+ * @brief attempt to solve with given parameters
+ *
+ * @return up to 1 solution per requested solution, if these do not match, search space was exhausted
+ */
+vector<string> cw_gen::solve() {
+    crossword cw = crossword("puzzle cw", length, height, contents.value_or(string(num_tiles(), WILDCARD)));
+    tree = make_unique<cw_tree>("cw_tree", std::move(cw), dict_path.at(dict), display_progress_bar, profile_header);
+
+    return tree->solve(num_solutions);
 }
 
 /**
  * @brief main function using command line interface w/ cxxopts to generate crosswords
 */
 int main(int argc, char** argv) {
-    
-    unique_ptr<cw_gen> cwgen = make_unique<cw_gen>("cwgen");
+    cw_gen cwgen = cw_gen("cwgen");
     cxxopts::Options options("cw_gen", "Crossword puzzle generation tool given word list and blank grid to fill in");
 
     // key: param name, value: set of allowed param values
@@ -63,10 +66,11 @@ int main(int argc, char** argv) {
     examples_desc << "Example crossword puzzles (overrides size/contents/dict): " << cw_gen::squash_options(param_vals["example"]);
 
     options.add_options()
-        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<int>>()->default_value("4,4"))
+        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("4,4"))
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
         ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("xlarge"))
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
+        ("n,num",       "Number of grid permutations to find puzzles on",                        cxxopts::value<size_t>()->default_value("1"))
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
         ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
         ("P,profile",   "Name of JSON profile file to generate if provided",                     cxxopts::value<string>())
@@ -92,15 +96,15 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
-        cwgen->set_dimensions(examples_map[example].length, examples_map[example].height);
-        cwgen->set_dict(examples_map[example].dict);
-        cwgen->set_contents(examples_map[example].contents);
+        cwgen.set_dimensions(examples_map[example].length, examples_map[example].height);
+        cwgen.set_dict(examples_map[example].dict);
+        cwgen.set_contents(examples_map[example].contents);
     } else {
         // non-example, use user-specified size/dict/contents
 
         // ############### size ###############
 
-        vector<int> dimensions = result["size"].as<vector<int>>();
+        vector<uint> dimensions = result["size"].as<vector<uint>>();
         if(dimensions.size() != 2) {
             cout << "Error: got unknown number of size dimensions (" << dimensions.size() << "), should be 2" << endl;
             exit(1);
@@ -112,7 +116,7 @@ int main(int argc, char** argv) {
             cout << "Error: 1x1 crossword contains no valid words, word min len = " << MIN_WORD_LEN << endl;
             exit(1);
         }
-        cwgen->set_dimensions((uint)dimensions[0], (uint)dimensions[1]);
+        cwgen.set_dimensions(dimensions[0], dimensions[1]);
 
         // ############### dictionary ###############
 
@@ -121,14 +125,14 @@ int main(int argc, char** argv) {
             cout << "Error: got invalid dictionary option " << dict << ", allowed: " << cw_gen::squash_options(param_vals["dict"]) << endl;
             exit(1);
         }
-        cwgen->set_dict(dict);
+        cwgen.set_dict(dict);
 
         // ############### contents ###############
 
         if(result.count("contents")) {
             string contents = result["contents"].as<string>();
-            if(contents.size() != cwgen->num_tiles()) {
-                cout << "Error: got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen->num_tiles() << endl;
+            if(contents.size() != cwgen.num_tiles()) {
+                cout << "Error: got illegal contents length (" << contents.size() << ") given dimensions, should be: " << cwgen.num_tiles() << endl;
                 exit(1);
             }
             for(char c : contents) {
@@ -137,9 +141,18 @@ int main(int argc, char** argv) {
                     exit(1);
                 }
             }
-            cwgen->set_contents(contents);
+            cwgen.set_contents(contents);
         }
     }
+
+    // ############### solutions ###############
+
+    size_t num_solutions = result["num"].as<size_t>();
+    if(num_solutions == 0) {
+        cout << "Error: got illegal number of grid to search: " << num_solutions << ", must be nonzero" << endl;
+        exit(1);
+    }
+    cwgen.set_num_solutions(num_solutions);
 
     // ############### verbosity ###############
 
@@ -153,7 +166,7 @@ int main(int argc, char** argv) {
     // ############### progress bar ###############
 
     if(result.count("progress")) {
-        cwgen->enable_progress_bar();
+        cwgen.enable_progress_bar();
     }
 
     // ############### cw_timetracker ###############
@@ -164,24 +177,18 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
-        cwgen->enable_profile();
+        cwgen.enable_profile(result["profile"].as<string>());
     }
 
-    // ############### cw_csp solving ###############
+    // ############### solving ###############
 
-    cwgen->build();
-    if(cwgen->solve()) {
-        cout << "Found: " << cwgen->result() << endl;
-    } else {
-        cout << "Error: no valid crossword generated for the given parameters. " 
+    vector<string> solutions = cwgen.solve();
+    for(const string& s : solutions) {
+        cout << "Found: " << s << endl;
+    }
+    if(solutions.size() != result["num"].as<size_t>()) {
+        cout << "Error: insufficient number of crosswords generated for the given parameters. " 
              << "Try an example, or use different dimensions, grid contents, or dictionary" << endl;
-        exit(1);
-    }
-
-    // ############### cw_timetracker results ###############
-
-    if(result.count("profile")) {
-        cwgen->save_profile(result["profile"].as<string>() + ".json");
     }
 
     return 0;
