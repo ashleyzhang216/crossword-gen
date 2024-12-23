@@ -80,7 +80,7 @@ void cw_csp::initialize_csp() {
     // local vars for finding horizontal & vertical cw_variable
     bool traversing_word; // currently iterating through variable
     stringstream word_pattern; // pattern formed by word so far
-    uint cur_var_row, cur_var_col, cur_var_len; // valid iff traversing_word
+    uint cur_var_row = 0ul, cur_var_col, cur_var_len = 0ul; // valid iff traversing_word
 
     utils.log(DEBUG, "cw_csp searching for vertical variables");
 
