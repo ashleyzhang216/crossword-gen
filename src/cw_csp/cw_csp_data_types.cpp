@@ -615,16 +615,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         return array<letter_bitset_t, CYCLE_LEN>();
     };
 
-    // /**
-    //  * @brief update nodes known to be in a cycle
-    //  * @pre nodes are in a new cycle iff reachable in reachable_forward AND reachable_reverse
-    // */
-    // auto update_cycle_nodes = [&letter_in_cycle](array<letter_bitset_t, CYCLE_LEN>& reachable_forward, array<letter_bitset_t, CYCLE_LEN>& reachable_reverse) -> void {
-    //     for(size_t i = 0; i < CYCLE_LEN; ++i) {
-    //         letter_in_cycle[i] |= (reachable_forward[i] & reachable_reverse[i]);
-    //     }
-    // };
-
     // populate letter_in_cycle
     for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
         // layer from which cycles are searched
@@ -642,59 +632,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
             }
         }
     }
-
-    // // populate letter_in_cycle
-    // for(size_t i = 0; i < CYCLE_LEN; ++i) {
-    //     for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-    //         // explore only if node exists and not already part of cycle
-    //         if(letter_nodes[i][j] && !letter_in_cycle[i][j]) {
-    //             // search the graph to find all nodes reachable from this node in CYCLE_LEN-1 steps
-    //             // also do the same for traversing the graph in reverse order
-    //             // the AND of these yields nodes in any cycle, which does not necessarily include this node
-    //             // if a cycle containing this node exists, every layer will have at least one bit set
-    //             // if no cycle exist containing this node exists, that might not be true. it could be all zero, 
-    //             // or have some bits set corresponding to other cycles in any number of layers
-    //             array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(i, j);
-    //             array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(i, j);
-                
-    //             // DEBUG
-    //             #ifdef DEBUG_CYCLES
-    //             #ifdef PRINT_CYCLE_DEBUG
-    //             cout << "results from index: " << i << ", letter: " << static_cast<char>(j + 'a') << endl;
-
-    //             // DEBUG
-    //             cout << "reachable_forward:" << endl;
-    //             for(size_t k = 0; k < CYCLE_LEN; ++k) {
-    //                 cout << "    " << "layer " << k << " has reached letters: ";
-    //                 for(size_t l = 0; l < NUM_ENGLISH_LETTERS; ++l) {
-    //                     if(reachable_forward[k][l]) {
-    //                         cout << static_cast<char>(l + 'a') << ", ";
-    //                     }
-    //                 }
-    //                 cout << endl;
-    //             }
-    //             cout << endl;
-
-    //             // DEBUG
-    //             cout << "reachable_reverse:" << endl;
-    //             for(size_t k = 0; k < CYCLE_LEN; ++k) {
-    //                 cout << "    " << "layer " << k << " has reached letters: ";
-    //                 for(size_t l = 0; l < NUM_ENGLISH_LETTERS; ++l) {
-    //                     if(reachable_reverse[k][l]) {
-    //                         cout << static_cast<char>(l + 'a') << ", ";
-    //                     }
-    //                 }
-    //                 cout << endl;
-    //             }
-    //             cout << endl;
-    //             #endif
-    //             #endif
-
-    //             // OR cycle results together with nodes already in a cycle
-    //             update_cycle_nodes(reachable_forward, reachable_reverse);
-    //         }
-    //     }
-    // }
 
     // DEBUG
     #ifdef DEBUG_CYCLES
