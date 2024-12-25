@@ -228,14 +228,6 @@ unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
     letter_bitset_t rhs_letters = vars[rhs]->domain.get_all_letters_at_index(rhs_index);
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
         if(lhs_letters[i] && !rhs_letters[i]) {
-            // DEBUG
-            #ifdef DEBUG_CYCLES
-            #ifdef PRINT_CYCLE_DEBUG
-            cout << "ARC removing letter " << static_cast<char>(i + 'a') << " from: " << endl;
-            cout << *vars[lhs] << endl;
-            #endif
-            #endif
-
             // cannot satisfy constraint for this letter
             assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
             result.insert(lhs);
@@ -453,8 +445,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     // letter_in_cycle[i][j] set && letter_nodes[i][j] set ==> letter j between variables var_cycle[i] and var_cycle[(i+1) % N] is part of a cycle
     array<letter_bitset_t, CYCLE_LEN> letter_in_cycle;
 
-    #define DEBUG_CYCLES
-
     // populate letter_nodes
     for(size_t i = 0; i < CYCLE_LEN; ++i) {
         const size_t curr_idx = i;
@@ -486,29 +476,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
             }
         }
     }
-
-    // DEBUG
-    #ifdef DEBUG_CYCLES
-    #ifdef PRINT_CYCLE_DEBUG
-    cout << "letter edges: " << endl;
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
-        cout << "layer: " << i << endl;
-        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-            if(letter_nodes[i][j]) {
-                cout << "    " << "letter " << static_cast<char>(j + 'a') << " has edges to: ";
-                for(size_t k = 0; k < NUM_ENGLISH_LETTERS; ++k) {
-                    if(letter_edges[i][j][k]) {
-                        cout << static_cast<char>(k + 'a') << ", ";
-                    }
-                }
-                cout << endl;
-            }
-        }
-        cout << endl;
-    }
-    cout << endl;
-    #endif
-    #endif
 
     /**
      * @brief find all nodes part of any CYCLE_LEN cycle that contains a specific node
@@ -633,23 +600,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         }
     }
 
-    // DEBUG
-    #ifdef DEBUG_CYCLES
-    #ifdef PRINT_CYCLE_DEBUG
-    cout << "letter in cycle: " << endl;
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
-        cout << "    " << "layer " << i << " has reached letters: ";
-        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-            if(letter_in_cycle[i][j]) {
-                cout << static_cast<char>(j + 'a') << ", ";
-            }
-        }
-        cout << endl;
-    }
-    cout << endl;
-    #endif
-    #endif
-
     // remove letters from domains if node not part of a cycle
     unordered_set<size_t> modified;
     for(size_t i = 0; i < CYCLE_LEN; ++i) {
@@ -659,16 +609,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 const size_t lhs_idx = i;
                 const size_t rhs_idx = (i + 1) % CYCLE_LEN;
 
-                // DEBUG
-                #ifdef DEBUG_CYCLES
-                #ifdef PRINT_CYCLE_DEBUG
-                cout << "CYCLE removing letter " << static_cast<char>(j + 'a') << " from: " << endl;
-                cout << "lhs: " << lhs_idx << " @ index " << intersections[i].first  << endl << *vars[var_cycle[lhs_idx]] << endl;
-                cout << "rhs: " << rhs_idx << " @ index " << intersections[i].second << endl << *vars[var_cycle[rhs_idx]] << endl;
-                cout << endl;
-                #endif
-                #endif
-
                 vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
                 vars[var_cycle[rhs_idx]]->domain.remove_matching_words(intersections[i].second, static_cast<char>(j + 'a'));
 
@@ -677,51 +617,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
             }
         }
     }
-
-    #ifdef DEBUG_CYCLES
-    auto verify_in_cycle = [&](size_t idx, size_t letter) -> bool {
-        letter_bitset_t curr = letter_bitset_t(1 << letter);
-
-        for(size_t step = 0; step < CYCLE_LEN; ++step) {
-            const size_t curr_idx = (idx + step) % CYCLE_LEN;
-            const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
-
-            letter_bitset_t next_layer;
-            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-                if(curr[j]) {
-                    // OR to add to nodes we can reach in next layer from our current nodes in current layer
-                    next_layer |= letter_edges[curr_idx][j];
-                }
-            }
-
-            // only if nodes in next layer exist
-            next_layer &= letter_nodes[next_idx];
-
-            curr = next_layer;
-        }
-
-        return (curr & letter_bitset_t(1 << letter)).any();
-    };
-
-    bool invalid = false;
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
-        invalid |= vars[var_cycle[i]]->domain.size() == 0;
-    }
-
-    if(!invalid) {
-        for(size_t i = 0; i < CYCLE_LEN; ++i) {
-            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-                if(letter_nodes[i][j]) {
-                    if(letter_in_cycle[i][j]) {
-                        assert(verify_in_cycle(i, j));
-                    } else {
-                        assert(!verify_in_cycle(i, j));
-                    }
-                }
-            }
-        }
-    }
-    #endif
 
     return modified;
 }
