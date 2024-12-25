@@ -228,6 +228,12 @@ unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
     letter_bitset_t rhs_letters = vars[rhs]->domain.get_all_letters_at_index(rhs_index);
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
         if(lhs_letters[i] && !rhs_letters[i]) {
+            // DEBUG
+            #ifdef DEBUG_CYCLES
+            cout << "ARC removing letter " << static_cast<char>(i + 'a') << " from: " << endl;
+            cout << *vars[lhs] << endl;
+            #endif
+
             // cannot satisfy constraint for this letter
             assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
             result.insert(lhs);
@@ -477,6 +483,27 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         }
     }
 
+    // DEBUG
+    #ifdef DEBUG_CYCLES
+    cout << "letter edges: " << endl;
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        cout << "layer: " << i << endl;
+        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            if(letter_nodes[i][j]) {
+                cout << "    " << "letter " << static_cast<char>(j + 'a') << " has edges to: ";
+                for(size_t k = 0; k < NUM_ENGLISH_LETTERS; ++k) {
+                    if(letter_edges[i][j][k]) {
+                        cout << static_cast<char>(k + 'a') << ", ";
+                    }
+                }
+                cout << endl;
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+    #endif
+
     /**
      * @brief finds all nodes reachable using forward edges from this node in [1, CYCLE_LEN] steps
     */
@@ -557,12 +584,58 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 // or have some bits set corresponding to other cycles in any number of layers
                 array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(i, j);
                 array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(i, j);
+                
+                // DEBUG
+                #ifdef DEBUG_CYCLES
+                cout << "results from index: " << i << ", letter: " << static_cast<char>(j + 'a') << endl;
+
+                // DEBUG
+                cout << "reachable_forward:" << endl;
+                for(size_t k = 0; k < CYCLE_LEN; ++k) {
+                    cout << "    " << "layer " << k << " has reached letters: ";
+                    for(size_t l = 0; l < NUM_ENGLISH_LETTERS; ++l) {
+                        if(reachable_forward[k][l]) {
+                            cout << static_cast<char>(l + 'a') << ", ";
+                        }
+                    }
+                    cout << endl;
+                }
+                cout << endl;
+
+                // DEBUG
+                cout << "reachable_reverse:" << endl;
+                for(size_t k = 0; k < CYCLE_LEN; ++k) {
+                    cout << "    " << "layer " << k << " has reached letters: ";
+                    for(size_t l = 0; l < NUM_ENGLISH_LETTERS; ++l) {
+                        if(reachable_reverse[k][l]) {
+                            cout << static_cast<char>(l + 'a') << ", ";
+                        }
+                    }
+                    cout << endl;
+                }
+                cout << endl;
+                #endif
 
                 // OR cycle results together with nodes already in a cycle
                 update_cycle_nodes(reachable_forward, reachable_reverse);
             }
         }
     }
+
+    // DEBUG
+    #ifdef DEBUG_CYCLES
+    cout << "letter in cycle: " << endl;
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        cout << "    " << "layer " << i << " has reached letters: ";
+        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+            if(letter_in_cycle[i][j]) {
+                cout << static_cast<char>(j + 'a') << ", ";
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+    #endif
 
     // remove letters from domains if node not part of a cycle
     unordered_set<size_t> modified;
@@ -573,11 +646,59 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 const size_t lhs_idx = i;
                 const size_t rhs_idx = (i + 1) % CYCLE_LEN;
 
+                // DEBUG
+                #ifdef DEBUG_CYCLES
+                cout << "CYCLE removing letter " << static_cast<char>(j + 'a') << " from: " << endl;
+                cout << "lhs: " << lhs_idx << " @ index " << intersections[i].first  << endl << *vars[var_cycle[lhs_idx]] << endl;
+                cout << "rhs: " << rhs_idx << " @ index " << intersections[i].second << endl << *vars[var_cycle[rhs_idx]] << endl;
+                cout << endl;
+                #endif
+
                 vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
                 vars[var_cycle[rhs_idx]]->domain.remove_matching_words(intersections[i].second, static_cast<char>(j + 'a'));
 
                 modified.insert(var_cycle[lhs_idx]);
                 modified.insert(var_cycle[rhs_idx]);
+            }
+        }
+    }
+
+    auto verify_in_cycle = [&](size_t idx, size_t letter) -> bool {
+        
+        letter_bitset_t curr = letter_bitset_t(1 << letter);
+
+        for(size_t step = 0; step < CYCLE_LEN; ++step) {
+            const size_t curr_idx = (idx + step) % CYCLE_LEN;
+            const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
+
+            letter_bitset_t next_layer;
+            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                if(curr[j]) {
+                    // OR to add to nodes we can reach in next layer from our current nodes in current layer
+                    next_layer |= letter_edges[curr_idx][j];
+                }
+            }
+
+            // only if nodes in next layer exist
+            next_layer &= letter_nodes[next_idx];
+
+            curr = next_layer;
+        }
+
+        return (curr & letter_bitset_t(1 << letter)).any();
+    };
+
+    bool invalid = false;
+    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        invalid |= vars[var_cycle[i]]->domain.size() == 0;
+    }
+
+    if(!invalid) {
+        for(size_t i = 0; i < CYCLE_LEN; ++i) {
+            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                if(letter_in_cycle[i][j]) {
+                    assert(verify_in_cycle(i, j));
+                }
             }
         }
     }
