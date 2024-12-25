@@ -230,8 +230,10 @@ unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
         if(lhs_letters[i] && !rhs_letters[i]) {
             // DEBUG
             #ifdef DEBUG_CYCLES
+            #ifdef PRINT_CYCLE_DEBUG
             cout << "ARC removing letter " << static_cast<char>(i + 'a') << " from: " << endl;
             cout << *vars[lhs] << endl;
+            #endif
             #endif
 
             // cannot satisfy constraint for this letter
@@ -451,6 +453,8 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     // letter_in_cycle[i][j] set && letter_nodes[i][j] set ==> letter j between variables var_cycle[i] and var_cycle[(i+1) % N] is part of a cycle
     array<letter_bitset_t, CYCLE_LEN> letter_in_cycle;
 
+    #define DEBUG_CYCLES
+
     // populate letter_nodes
     for(size_t i = 0; i < CYCLE_LEN; ++i) {
         const size_t curr_idx = i;
@@ -485,6 +489,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
     // DEBUG
     #ifdef DEBUG_CYCLES
+    #ifdef PRINT_CYCLE_DEBUG
     cout << "letter edges: " << endl;
     for(size_t i = 0; i < CYCLE_LEN; ++i) {
         cout << "layer: " << i << endl;
@@ -502,6 +507,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         cout << endl;
     }
     cout << endl;
+    #endif
     #endif
 
     /**
@@ -587,6 +593,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 
                 // DEBUG
                 #ifdef DEBUG_CYCLES
+                #ifdef PRINT_CYCLE_DEBUG
                 cout << "results from index: " << i << ", letter: " << static_cast<char>(j + 'a') << endl;
 
                 // DEBUG
@@ -615,6 +622,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 }
                 cout << endl;
                 #endif
+                #endif
 
                 // OR cycle results together with nodes already in a cycle
                 update_cycle_nodes(reachable_forward, reachable_reverse);
@@ -624,6 +632,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
     // DEBUG
     #ifdef DEBUG_CYCLES
+    #ifdef PRINT_CYCLE_DEBUG
     cout << "letter in cycle: " << endl;
     for(size_t i = 0; i < CYCLE_LEN; ++i) {
         cout << "    " << "layer " << i << " has reached letters: ";
@@ -635,6 +644,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         cout << endl;
     }
     cout << endl;
+    #endif
     #endif
 
     // remove letters from domains if node not part of a cycle
@@ -648,10 +658,12 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
                 // DEBUG
                 #ifdef DEBUG_CYCLES
+                #ifdef PRINT_CYCLE_DEBUG
                 cout << "CYCLE removing letter " << static_cast<char>(j + 'a') << " from: " << endl;
                 cout << "lhs: " << lhs_idx << " @ index " << intersections[i].first  << endl << *vars[var_cycle[lhs_idx]] << endl;
                 cout << "rhs: " << rhs_idx << " @ index " << intersections[i].second << endl << *vars[var_cycle[rhs_idx]] << endl;
                 cout << endl;
+                #endif
                 #endif
 
                 vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
@@ -663,8 +675,8 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         }
     }
 
+    #ifdef DEBUG_CYCLES
     auto verify_in_cycle = [&](size_t idx, size_t letter) -> bool {
-        
         letter_bitset_t curr = letter_bitset_t(1 << letter);
 
         for(size_t step = 0; step < CYCLE_LEN; ++step) {
@@ -702,6 +714,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
             }
         }
     }
+    #endif
 
     return modified;
 }
