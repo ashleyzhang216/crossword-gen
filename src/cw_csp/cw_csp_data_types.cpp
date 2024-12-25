@@ -478,88 +478,124 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     }
 
     /**
-     * @brief finds all nodes reachable using forward edges from this node in [1, CYCLE_LEN] steps
-    */
-    auto traverse_forward = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
-        array<letter_bitset_t, CYCLE_LEN> reachable;
-        letter_bitset_t curr = letter_bitset_t(1 << letter);
+     * @brief find all nodes part of any CYCLE_LEN cycle that contains a specific node
+     * @param idx index of the cycle origin node
+     * @param letter letter of the cycle origin node 
+     * 
+     * @return bitmap representing all nodes in a CYCLE_LEN cycle that contains the node specified by idx/letter
+     */
+    auto get_nodes_of_cycles_containing = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+        /**
+         * @brief finds all nodes reachable using forward edges from this node in CYCLE_LEN-1 steps
+        */
+        auto traverse_forward = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+            array<letter_bitset_t, CYCLE_LEN> reachable;
+            letter_bitset_t curr = letter_bitset_t(1 << letter);
+            reachable[idx] = curr; // define current node as reachable
 
-        for(size_t step = 0; step < CYCLE_LEN; ++step) {
-            const size_t curr_idx = (idx + step) % CYCLE_LEN;
-            const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
+            // only allow N-1 steps to avoid marking nodes in current layer
+            for(size_t step = 0; step < CYCLE_LEN - 1; ++step) {
+                const size_t curr_idx = (idx + step) % CYCLE_LEN;
+                const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
 
-            letter_bitset_t next_layer;
-            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-                if(curr[j]) {
-                    // OR to add to nodes we can reach in next layer from our current nodes in current layer
-                    next_layer |= letter_edges[curr_idx][j];
+                letter_bitset_t next_layer;
+                for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                    if(curr[j]) {
+                        // OR to add to nodes we can reach in next layer from our current nodes in current layer
+                        next_layer |= letter_edges[curr_idx][j];
+                    }
                 }
+
+                // only if nodes in next layer exist
+                next_layer &= letter_nodes[next_idx];
+
+                // store result, then recurse
+                reachable[next_idx] = next_layer;
+                curr = next_layer;
             }
 
-            // only if nodes in next layer exist
-            next_layer &= letter_nodes[next_idx];
+            return reachable;
+        };
 
-            // store result, then recurse
-            reachable[next_idx] = next_layer;
-            curr = next_layer;
-        }
+        /**
+         * @brief finds all nodes reachable using reverse edges from this node in CYCLE_LEN-1 steps
+        */
+        auto traverse_reverse = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+            array<letter_bitset_t, CYCLE_LEN> reachable;
+            letter_bitset_t curr = letter_bitset_t(1 << letter);
+            reachable[idx] = curr; // define current node as reachable
 
-        return reachable;
-    };
+            // only allow N-1 steps to avoid marking nodes in current layer
+            for(size_t step = 0; step < CYCLE_LEN - 1; ++step) {
+                const size_t next_idx = (CYCLE_LEN + idx - step - 1) % CYCLE_LEN;
 
-    /**
-     * @brief finds all nodes reachable using reverse edges from this node in [1, CYCLE_LEN] steps
-    */
-    auto traverse_reverse = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+                letter_bitset_t next_layer;
+                for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+                    // set true iff next node has edge to a reachable node in current layer
+                    next_layer[j] = (letter_edges[next_idx][j] & curr).any();
+                }
+
+                // only if nodes in next layer exist
+                next_layer &= letter_nodes[next_idx];
+
+                // store result, then recurse
+                reachable[next_idx] = next_layer;
+                curr = next_layer;
+            }
+
+            return reachable;
+        };
+        
+        array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(idx, letter);
+        array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(idx, letter);
+
+        // all nodes reachable in both directions
+        // on the layer of idx, we must have that only have the root letter node is reachable
+        // all other layers must all be empty or all be nonempty
+        // if they are all nonempty, then all nodes in reachable are part of a CYCLE_LEN cycle containing the target node
         array<letter_bitset_t, CYCLE_LEN> reachable;
-        letter_bitset_t curr = letter_bitset_t(1 << letter);
 
-        for(size_t step = 0; step < CYCLE_LEN; ++step) {
-            const size_t next_idx = (CYCLE_LEN + idx - step - 1) % CYCLE_LEN;
-
-            letter_bitset_t next_layer;
-            for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-                // set true iff next node has edge to a reachable node in current layer
-                next_layer[j] = (letter_edges[next_idx][j] & curr).any();
-            }
-
-            // only if nodes in next layer exist
-            next_layer &= letter_nodes[next_idx];
-
-            // store result, then recurse
-            reachable[next_idx] = next_layer;
-            curr = next_layer;
-        }
-
-        return reachable;
-    };
-
-    /**
-     * @brief update nodes known to be in a cycle
-     * @pre nodes are in a new cycle iff reachable in reachable_forward AND reachable_reverse
-    */
-    auto update_cycle_nodes = [&letter_in_cycle](array<letter_bitset_t, CYCLE_LEN>& reachable_forward, array<letter_bitset_t, CYCLE_LEN>& reachable_reverse) -> void {
+        // populate reachable
         for(size_t i = 0; i < CYCLE_LEN; ++i) {
-            letter_in_cycle[i] |= (reachable_forward[i] & reachable_reverse[i]);
+            // search the graph to find all nodes reachable from this node in CYCLE_LEN-1 steps
+            // also do the same for traversing the graph in reverse order
+            // AND these to yield nodes reachable in both directions
+            reachable[i] = (reachable_forward[i] & reachable_reverse[i]);
+
+            // double check that no node that doesn't exist is marked as reachable
+            letter_bitset_t no_node = ~letter_nodes[i];
+            assert(!(reachable[i] & no_node).any());
         }
+
+        // check that all non root layers of reachable are all either reachable or unreachable together
+        bool cycles_exist = reachable[(idx + 1) % CYCLE_LEN].any();
+        for(size_t i = 2; i < CYCLE_LEN; ++i) {
+            assert(cycles_exist == reachable[(idx + i) % CYCLE_LEN].any());
+        }
+
+        // if cycles exist, then all nodes in reachable are part of a CYCLE_LEN cycle containing then target node
+        if(cycles_exist) {
+            return reachable;
+        }
+
+        // all relevant reachable layers are empty, thus no cycles containing the target node exist
+        return array<letter_bitset_t, CYCLE_LEN>();
     };
 
     // populate letter_in_cycle
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
-        for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
-            // explore only if node exists and not already part of cycle
-            if(letter_nodes[i][j] && !letter_in_cycle[i][j]) {
-                // search the graph to find all nodes reachable from this node in [1, CYCLE_LEN] steps
-                // also do the same for traversing the graph in reverse order
-                // the AND of these yields nodes in any cycle, which does not necessarily include this node
-                // if a cycle containing this node exists, every layer will have at least one bit set
-                // if no cycle exist containing this node exists, that might not be true. it could be all zero, 
-                // or have some bits set corresponding to other cycles in any number of layers
-                array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(i, j);
-                array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(i, j);
+    for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
+        // layer from which cycles are searched
+        // this arbitrary and can be anywhere in [0, CYCLE_LEN-1] without affecting the result
+        constexpr size_t root_layer = 0ul;
 
-                // OR cycle results together with nodes already in a cycle
-                update_cycle_nodes(reachable_forward, reachable_reverse);
+        // explore node for j on root layer only if node exists
+        if(letter_nodes[root_layer][j]) {
+            // get nodes in cycles with exact length CYCLE_LEN that contain node j on first layer
+            array<letter_bitset_t, CYCLE_LEN> nodes_in_cycle = get_nodes_of_cycles_containing(root_layer, j);
+            
+            // add to letter_in_cycle which contains all cycle nodes
+            for(size_t i = 0; i < CYCLE_LEN; ++i) {
+                letter_in_cycle[i] |= nodes_in_cycle[i];
             }
         }
     }

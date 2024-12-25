@@ -632,10 +632,11 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 /**
  * simple AC-3 test for cw_csp for valid/invalid checking
 */
-TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
+TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[ac3_validity],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_check");
     const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
     const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const string dict_cycle_invalid0 = "cw_csp/data/dict_cycle_invalid0.txt";
 
     // ############### invalid crosswords ###############
 
@@ -662,6 +663,14 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
                          << WCD << WCD << WCD << WCD 
                          << WCD << WCD << WCD << WCD;
     REQUIRE(dut->test_ac3_validity(4, 3, contents_4_3_invalid.str(), dict_simple_path, false));
+
+    // requires cycle constraints do detect invalidity
+    stringstream contents_cycle_invalid0;
+    contents_cycle_invalid0 << WCD << WCD << WCD << 'a'
+                            << WCD << BLK << WCD << BLK
+                            << WCD << WCD << WCD << 'c'
+                            << 'd' << BLK << 'b' << BLK;
+    REQUIRE(dut->test_ac3_validity(4, 4, contents_cycle_invalid0.str(), dict_cycle_invalid0, false));
 
     // ############### valid crosswords ###############
 
@@ -701,7 +710,7 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[quick]") {
 /**
  * simple AC-3 test for cw_csp for constraint duplicate word prevention
 */
-TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[duplicates],[quick]") {
+TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[ac3_validity],[duplicates],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_constraint_duplicates");
     const string dict_single_word = "cw_csp/data/dict_single_word.txt";
     const string dict_simple_path = "cw_csp/data/dict_simple.txt";
@@ -973,7 +982,7 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
 }
 
 /**
- * simple backtracking solving test for cw_csp for valid/invalid checking
+ * large backtracking solving tests for cw_csp for valid/invalid checking
 */
 TEST_CASE("cw_csp backtracking_valid_check_complex", "[cw_csp],[backtracking]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check_complex");
