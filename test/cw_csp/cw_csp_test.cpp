@@ -640,29 +640,29 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[ac3_validity],[quick]") {
 
     // ############### invalid crosswords ###############
 
-    // // invalid 6x7 crossword with complex intersections & mix of wildcards and letters
-    // stringstream contents_6_7_complex_invalid;
-    // contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << WCD << 'p' 
-    //                              << 't' << WCD << WCD << 'e' << BLK << WCD 
-    //                              << WCD << BLK << BLK << WCD << WCD << WCD 
-    //                              << WCD << WCD << BLK << BLK << WCD << 'e' 
-    //                              << BLK << WCD << 'a' << WCD << 'o' << BLK 
-    //                              << WCD << 'a' << 't' << BLK << 'b' << 'a' 
-    //                              << WCD << 'n' << WCD << WCD << BLK << 'n';
-    // REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_invalid.str(), dict_simple_path, false));
+    // invalid 6x7 crossword with complex intersections & mix of wildcards and letters
+    stringstream contents_6_7_complex_invalid;
+    contents_6_7_complex_invalid << WCD << BLK << BLK << WCD << WCD << 'p' 
+                                 << 't' << WCD << WCD << 'e' << BLK << WCD 
+                                 << WCD << BLK << BLK << WCD << WCD << WCD 
+                                 << WCD << WCD << BLK << BLK << WCD << 'e' 
+                                 << BLK << WCD << 'a' << WCD << 'o' << BLK 
+                                 << WCD << 'a' << 't' << BLK << 'b' << 'a' 
+                                 << WCD << 'n' << WCD << WCD << BLK << 'n';
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_invalid.str(), dict_simple_path, false));
 
-    // // simple invalid 2x2 crossword
-    // stringstream contents_2_2_invalid;
-    // contents_2_2_invalid << WCD << BLK 
-    //                      << WCD << 't';
-    // REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_invalid.str(), dict_barebones_path, false));
+    // simple invalid 2x2 crossword
+    stringstream contents_2_2_invalid;
+    contents_2_2_invalid << WCD << BLK 
+                         << WCD << 't';
+    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_invalid.str(), dict_barebones_path, false));
 
-    // // initially invalid 4x3 crossword
-    // stringstream contents_4_3_invalid;
-    // contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
-    //                      << WCD << WCD << WCD << WCD 
-    //                      << WCD << WCD << WCD << WCD;
-    // REQUIRE(dut->test_ac3_validity(4, 3, contents_4_3_invalid.str(), dict_simple_path, false));
+    // initially invalid 4x3 crossword
+    stringstream contents_4_3_invalid;
+    contents_4_3_invalid << 'x' << 'y' << WCD << 'z'
+                         << WCD << WCD << WCD << WCD 
+                         << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(4, 3, contents_4_3_invalid.str(), dict_simple_path, false));
 
     // requires cycle constraints do detect invalidity
     stringstream contents_cycle_invalid0;
@@ -675,36 +675,36 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[ac3_validity],[quick]") {
     // ############### valid crosswords ###############
 
     // simple valid 2x2 crossword
-    // stringstream contents_2_2_valid;
-    // contents_2_2_valid << WCD << BLK 
-    //                    << WCD << WCD;
-    // REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_valid.str(), dict_barebones_path, true));
+    stringstream contents_2_2_valid;
+    contents_2_2_valid << WCD << BLK 
+                       << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(2, 2, contents_2_2_valid.str(), dict_barebones_path, true));
 
-    // // simple valid blank 3x3 crossword
-    // stringstream contents_3_3_blank_valid;
-    // contents_3_3_blank_valid << WCD << BLK << WCD 
-    //                          << WCD << WCD << WCD 
-    //                          << WCD << BLK << WCD;
-    // REQUIRE(dut->test_ac3_validity(3, 3, contents_3_3_blank_valid.str(), dict_simple_path, true));
+    // simple valid blank 3x3 crossword
+    stringstream contents_3_3_blank_valid;
+    contents_3_3_blank_valid << WCD << BLK << WCD 
+                             << WCD << WCD << WCD 
+                             << WCD << BLK << WCD;
+    REQUIRE(dut->test_ac3_validity(3, 3, contents_3_3_blank_valid.str(), dict_simple_path, true));
 
-    // // simple valid blank 4x4 crossword
-    // stringstream contents_4_4_blank_valid;
-    // contents_4_4_blank_valid << WCD << WCD << WCD << WCD 
-    //                          << WCD << BLK << BLK << WCD 
-    //                          << WCD << BLK << BLK << WCD 
-    //                          << WCD << WCD << WCD << WCD;
-    // REQUIRE(dut->test_ac3_validity(4, 4, contents_4_4_blank_valid.str(), dict_simple_path, true));
+    // simple valid blank 4x4 crossword
+    stringstream contents_4_4_blank_valid;
+    contents_4_4_blank_valid << WCD << WCD << WCD << WCD 
+                             << WCD << BLK << BLK << WCD 
+                             << WCD << BLK << BLK << WCD 
+                             << WCD << WCD << WCD << WCD;
+    REQUIRE(dut->test_ac3_validity(4, 4, contents_4_4_blank_valid.str(), dict_simple_path, true));
 
-    // // valid 6x7 crossword with complex intersections & mix of wildcards and letters
-    // stringstream contents_6_7_complex_valid;
-    // contents_6_7_complex_valid << WCD << BLK << BLK << WCD << BLK << 'p' 
-    //                            << 't' << WCD << WCD << 'e' << BLK << BLK 
-    //                            << WCD << BLK << BLK << WCD << WCD << WCD 
-    //                            << WCD << BLK << WCD << BLK << WCD << BLK 
-    //                            << BLK << BLK << WCD << BLK << 'o' << BLK 
-    //                            << WCD << 'a' << 't' << BLK << WCD << BLK 
-    //                            << BLK << 'n' << BLK << BLK << BLK << BLK;
-    // REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
+    // valid 6x7 crossword with complex intersections & mix of wildcards and letters
+    stringstream contents_6_7_complex_valid;
+    contents_6_7_complex_valid << WCD << BLK << BLK << WCD << BLK << 'p' 
+                               << 't' << WCD << WCD << 'e' << BLK << BLK 
+                               << WCD << BLK << BLK << WCD << WCD << WCD 
+                               << WCD << BLK << WCD << BLK << WCD << BLK 
+                               << BLK << BLK << WCD << BLK << 'o' << BLK 
+                               << WCD << 'a' << 't' << BLK << WCD << BLK 
+                               << BLK << 'n' << BLK << BLK << BLK << BLK;
+    REQUIRE(dut->test_ac3_validity(6, 7, contents_6_7_complex_valid.str(), dict_simple_path, true));
 }
 
 /**
