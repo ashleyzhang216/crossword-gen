@@ -52,7 +52,7 @@ void cw_timestep::resolve(uint expected_id, const optional<string>& r) {
  * @param init_name name for root level timestep
  * @param enabled behaviors hold for this object iff enabled is true, otherwise all calls are ignored
 */
-cw_timetracker::cw_timetracker(string init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0) {
+cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0) {
     if(enabled) {
         root = make_shared<cw_timestep>(TS_CSP_TOTAL, init_name, next_id, nullptr);
         cur = root;
@@ -99,14 +99,14 @@ void cw_timetracker::end_timestep(uint id, const optional<string>& result) {
 /**
  * @brief saves the results in a JSON file at the specified path
 */
-void cw_timetracker::save_results(string filepath) {
+void cw_timetracker::save_results(const string& filepath) {
     if(enabled) {
         assert(root);
         assert(root == cur);
         assert(!root->resolved());
         end_timestep(0, std::nullopt);
 
-        json j = root;
+        ordered_json j = root;
         std::ofstream file(filepath);
         file << std::setw(4) << j << endl;
     }
@@ -114,15 +114,13 @@ void cw_timetracker::save_results(string filepath) {
 
 // ############### json conversion ###############
 
-void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
+void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step) {
     assert(step->end.has_value());
-    j = json{
-        {"type", step->type}, 
-        {"name", step->name}, 
-        {"duration_us", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
-        {"children", step->children},
-        {"result", step->result.value_or("")},
-    };
+    j["type"] = step->type;
+    j["name"] = step->name;
+    j["result"] = step->result.value_or("");
+    j["duration_us"] = std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count();
+    j["children"] = step->children;
 }
 
 // ############### cw_timestamper ###############

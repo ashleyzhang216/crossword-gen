@@ -66,10 +66,10 @@ namespace cw_timetracker_ns {
             void end_timestep(uint id, const optional<string>& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(string filepath);
+            void save_results(const string& filepath);
 
             // basic constructor, initializes root timestep
-            cw_timetracker(string init_name, bool enabled);        
+            cw_timetracker(const string& init_name, bool enabled);
 
         private:
             // whether this object should do anything at all
@@ -86,7 +86,7 @@ namespace cw_timetracker_ns {
     }; // cw_timetracker
 
     // conversion from cw_timestep to json
-    void to_json(json& j, const shared_ptr<cw_timestep>& step); 
+    void to_json(ordered_json& j, const shared_ptr<cw_timestep>& step);
 
     /**
      * @brief manages calls to a cw_timetracker object during a single timestep

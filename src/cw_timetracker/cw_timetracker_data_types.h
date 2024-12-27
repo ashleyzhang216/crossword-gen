@@ -13,7 +13,9 @@
 
 using namespace common_data_types_ns;
 
-using json = nlohmann::json;
+// need to use ordered_json to have children as the last key for each timestep
+// otherwise, output json files become very tricky to debug
+using ordered_json = nlohmann::ordered_json;
 
 namespace cw_timetracker_data_types_ns {
     /**
