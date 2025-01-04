@@ -21,10 +21,10 @@ namespace cw_timetracker_ns {
     */
     struct cw_timestep {
         // basic constructor, starts timestep measurement
-        cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev);
+        cw_timestep(ts_type_t type, string name, size_t id, const shared_ptr<cw_timestep>& prev);
 
         // ends timestep measurement
-        void resolve(uint expected_id, const optional<string>& r);
+        void resolve(size_t expected_id, const optional<string>& r);
 
         // returns true iff timestep has been resolved
         bool resolved() { return end.has_value(); }
@@ -36,7 +36,7 @@ namespace cw_timetracker_ns {
         string name;
 
         // id of this timestep, for invariant validation
-        uint id;
+        size_t id;
 
         // parent step that this step is nested in and is a subset of, or this step is the root step if null
         weak_ptr<cw_timestep> prev;
@@ -48,7 +48,7 @@ namespace cw_timetracker_ns {
         vector<shared_ptr<cw_timestep> > children;
 
         // timestamp right after this step ended, if finished
-        optional<time_point<high_resolution_clock>> end; 
+        optional<time_point<high_resolution_clock> > end;
 
         // context as to how or why this timestep ended
         optional<string> result;
@@ -60,10 +60,10 @@ namespace cw_timetracker_ns {
     class cw_timetracker : public common_parent {
         public:
             // start new timestep
-            uint start_timestep(ts_type_t type, string name);
+            size_t start_timestep(ts_type_t type, string name);
             
             // end previous timestep
-            void end_timestep(uint id, const optional<string>& result);
+            void end_timestep(size_t id, const optional<string>& result);
 
             // write results into JSON file and resolves root timestep
             void save_results(const string& filepath);
@@ -76,7 +76,7 @@ namespace cw_timetracker_ns {
             bool enabled;
 
             // next id to assign, for invariant checking
-            uint next_id;
+            size_t next_id;
 
             // root of whole execution tree
             shared_ptr<cw_timestep> root;
@@ -116,7 +116,7 @@ namespace cw_timetracker_ns {
             cw_timetracker& tracker;
 
             // id of timestep this object manages
-            uint id;
+            size_t id;
 
             // optional result string to attach to timestep upon completion
             optional<string> result;
