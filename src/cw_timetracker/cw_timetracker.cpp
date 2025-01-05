@@ -137,12 +137,12 @@ cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string n
 }
 
 /**
- * @brief add result label to this stamp, appending if a label already exists
+ * @brief set result label to this stamp, overwriting if a label already exists
  *
  * @param r result to add
 */
-void cw_timestamper::add_result(string r) {
-    result = result.value_or("") + r;
+void cw_timestamper::set_result(const string& r) {
+    result = r;
 }
 
 /**

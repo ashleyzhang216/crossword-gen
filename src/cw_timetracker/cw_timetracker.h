@@ -97,8 +97,9 @@ namespace cw_timetracker_ns {
             // constructor to initialize new timestep
             cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name);
 
-            // add result string to attach to timestep upon completion
-            void add_result(string r);
+            // set result string to attach to timestep upon completion
+            // overrides previous result, if set
+            void set_result(const string& r);
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();
