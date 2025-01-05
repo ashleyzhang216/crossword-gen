@@ -18,7 +18,7 @@ using namespace cw_timetracker_ns;
  * @param id the id of this timestep for invariant checking
  * @param prev ptr to parent step that this step is nested in and is a subset of, or this step is the root step if null
 */
-cw_timestep::cw_timestep(ts_type_t type, string name, size_t id, const shared_ptr<cw_timestep>& prev) 
+cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev) 
     : type(type),
       name(name),
       id(id),
@@ -67,7 +67,7 @@ cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_p
  * @param name the name or description of the new timestep
  * @returns id of timestep, which is needed upon timestep resolution for invariant checking 
 */
-size_t cw_timetracker::start_timestep(ts_type_t type, string name) {
+size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
     if(enabled) {
         assert(cur);
         assert(!cur->resolved());
@@ -132,7 +132,7 @@ void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& 
  * @param type the type to assign to the cw_timestep this object manages
  * @param name the name to assigned to the cw_timestep this object manages
 */
-cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name) : tracker(tracker), id(tracker.start_timestep(type, name)) {
+cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name) : tracker(tracker), id(tracker.start_timestep(type, name)) {
     // do nothing, other initializations are enough
 }
 

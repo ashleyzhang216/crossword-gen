@@ -21,7 +21,7 @@ namespace cw_timetracker_ns {
     */
     struct cw_timestep {
         // basic constructor, starts timestep measurement
-        cw_timestep(ts_type_t type, string name, size_t id, const shared_ptr<cw_timestep>& prev);
+        cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev);
 
         // ends timestep measurement
         void resolve(size_t expected_id, const optional<string>& r);
@@ -60,7 +60,7 @@ namespace cw_timetracker_ns {
     class cw_timetracker : public common_parent {
         public:
             // start new timestep
-            size_t start_timestep(ts_type_t type, string name);
+            size_t start_timestep(ts_type_t type, const string& name);
             
             // end previous timestep
             void end_timestep(size_t id, const optional<string>& result);
@@ -95,7 +95,7 @@ namespace cw_timetracker_ns {
     class cw_timestamper {
         public:
             // constructor to initialize new timestep
-            cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name);
+            cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name);
 
             // set result string to attach to timestep upon completion
             // overrides previous result, if set
