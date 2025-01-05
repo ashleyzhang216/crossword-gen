@@ -18,13 +18,13 @@ using namespace cw_timetracker_ns;
  * @param id the id of this timestep for invariant checking
  * @param prev ptr to parent step that this step is nested in and is a subset of, or this step is the root step if null
 */
-cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_timestep> prev) 
-    : type(type), 
-      name(name), 
-      id(id), 
-      prev(prev), 
-      start(high_resolution_clock::now()), 
-      end(std::nullopt), 
+cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev) 
+    : type(type),
+      name(name),
+      id(id),
+      prev(prev),
+      start(high_resolution_clock::now()),
+      end(std::nullopt),
       result(std::nullopt) {
     // do nothing, initializer list is enough
 }
@@ -35,7 +35,7 @@ cw_timestep::cw_timestep(ts_type_t type, string name, uint id, shared_ptr<cw_tim
  * @param id the expected id of this timestep
  * @param r optional message for why/how this timestep ended
 */
-void cw_timestep::resolve(uint expected_id, const optional<string>& r) {
+void cw_timestep::resolve(size_t expected_id, const optional<string>& r) {
     assert(id == expected_id);
     assert(!resolved());
     assert(children.empty() || children.back()->resolved());
@@ -52,11 +52,11 @@ void cw_timestep::resolve(uint expected_id, const optional<string>& r) {
  * @param init_name name for root level timestep
  * @param enabled behaviors hold for this object iff enabled is true, otherwise all calls are ignored
 */
-cw_timetracker::cw_timetracker(string init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0) {
+cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0ul) {
     if(enabled) {
         root = make_shared<cw_timestep>(TS_CSP_TOTAL, init_name, next_id, nullptr);
         cur = root;
-        next_id++;
+        ++next_id;
     }
 }
 
@@ -67,7 +67,7 @@ cw_timetracker::cw_timetracker(string init_name, bool enabled) : common_parent((
  * @param name the name or description of the new timestep
  * @returns id of timestep, which is needed upon timestep resolution for invariant checking 
 */
-uint cw_timetracker::start_timestep(ts_type_t type, string name) {
+size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
     if(enabled) {
         assert(cur);
         assert(!cur->resolved());
@@ -88,7 +88,7 @@ uint cw_timetracker::start_timestep(ts_type_t type, string name) {
  * @param id the id the timestep expected to be resolved
  * @param result optional message for why/how this timestep ended
 */
-void cw_timetracker::end_timestep(uint id, const optional<string>& result) {
+void cw_timetracker::end_timestep(size_t id, const optional<string>& result) {
     if(enabled) {
         assert(cur);
         cur->resolve(id, result);
@@ -99,30 +99,28 @@ void cw_timetracker::end_timestep(uint id, const optional<string>& result) {
 /**
  * @brief saves the results in a JSON file at the specified path
 */
-void cw_timetracker::save_results(string filepath) {
+void cw_timetracker::save_results(const string& filepath) {
     if(enabled) {
         assert(root);
         assert(root == cur);
         assert(!root->resolved());
-        end_timestep(0, std::nullopt);
+        end_timestep(0ul, std::nullopt);
 
-        json j = root;
+        ordered_json j = root;
         std::ofstream file(filepath);
-        file << std::setw(4) << j << endl;
+        file << std::setw(2) << j << endl;
     }
 }
 
 // ############### json conversion ###############
 
-void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
+void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step) {
     assert(step->end.has_value());
-    j = json{
-        {"type", step->type}, 
-        {"name", step->name}, 
-        {"duration_us", std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count()},
-        {"children", step->children},
-        {"result", step->result.value_or("")},
-    };
+    j["type"] = step->type;
+    j["name"] = step->name;
+    j["result"] = step->result.value_or("");
+    j["duration_us"] = std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count();
+    j["children"] = step->children;
 }
 
 // ############### cw_timestamper ###############
@@ -134,17 +132,17 @@ void cw_timetracker_ns::to_json(json& j, const shared_ptr<cw_timestep>& step) {
  * @param type the type to assign to the cw_timestep this object manages
  * @param name the name to assigned to the cw_timestep this object manages
 */
-cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, string name) : tracker(tracker), id(tracker.start_timestep(type, name)) {
+cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name) : tracker(tracker), id(tracker.start_timestep(type, name)) {
     // do nothing, other initializations are enough
 }
 
 /**
- * @brief add result label to this stamp, appending if a label already exists
+ * @brief set result label to this stamp, overwriting if a label already exists
  *
  * @param r result to add
 */
-void cw_timestamper::add_result(string r) {
-    result = result.value_or("") + r;
+void cw_timestamper::set_result(const string& r) {
+    result = r;
 }
 
 /**

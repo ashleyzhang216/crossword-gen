@@ -13,7 +13,11 @@
 
 using namespace common_data_types_ns;
 
-using json = nlohmann::json;
+// need to use ordered_json to have children as the last key for each timestep
+// otherwise, output json files become very tricky to debug
+using ordered_json = nlohmann::ordered_json;
+
+// #define TIMETRACKER_TRACK_AC3
 
 namespace cw_timetracker_data_types_ns {
     /**
@@ -24,12 +28,13 @@ namespace cw_timetracker_data_types_ns {
         TS_CSP_TOTAL,             // all execution in cw_csp
         TS_CSP_INITIALIZE,        // cw_csp.initialize_csp()
         TS_CSP_SOLVE,             // cw_csp.solve()
-        TS_CSP_SOLVED,            // cw_csp.solved()
-        TS_CSP_AC3,               // cw_csp.ac3()
-        TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
         TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
         TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
-        TS_CSP_GATHER_DOMAIN,     // get_cur_domain() call and sort in in cw_csp.solve_backtracking()
+
+        #ifdef TIMETRACKER_TRACK_AC3
+        TS_CSP_AC3,               // cw_csp.ac3()
+        TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
+        #endif // TIMETRACKER_TRACK_AC3
     };
 
     // mapping from timestep type to display name
@@ -37,12 +42,13 @@ namespace cw_timetracker_data_types_ns {
         {TS_CSP_TOTAL,             "Total"},
         {TS_CSP_INITIALIZE,        "Initialize"},
         {TS_CSP_SOLVE,             "Solve"},
-        {TS_CSP_SOLVED,            "Solved"},
-        {TS_CSP_AC3,               "AC3"},
-        {TS_CSP_UNDO_AC3,          "Undo AC3"},
         {TS_CSP_BACKTRACK_STEP,    "Solve Backtracking"},
         {TS_CSP_TRY_ASSIGN,        "Try Assign"},
-        {TS_CSP_GATHER_DOMAIN,     "Gather Domain"}
+
+        #ifdef TIMETRACKER_TRACK_AC3
+        {TS_CSP_AC3,               "AC3"},
+        {TS_CSP_UNDO_AC3,          "Undo AC3"},
+        #endif // TIMETRACKER_TRACK_AC3
     })
 }; // cw_timetracker_data_types_ns
 
