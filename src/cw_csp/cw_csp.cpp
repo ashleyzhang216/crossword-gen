@@ -361,7 +361,9 @@ void cw_csp::initialize_csp() {
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
 bool cw_csp::ac3() {
+    #ifdef TIMETRACKER_TRACK_AC3
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
+    #endif // TIMETRACKER_TRACK_AC3
 
     utils.log(DEBUG, "starting AC-3 algorithm");
 
@@ -404,7 +406,9 @@ bool cw_csp::ac3() {
 
                 // undo pruning
                 undo_ac3();
+                #ifdef TIMETRACKER_TRACK_AC3
                 stamper.add_result("fail");
+                #endif // TIMETRACKER_TRACK_AC3
                 return false;
             }
 
@@ -421,7 +425,9 @@ bool cw_csp::ac3() {
     }
 
     // running AC-3 to completion does not make CSP invalid
+    #ifdef TIMETRACKER_TRACK_AC3
     stamper.add_result("pass");
+    #endif // TIMETRACKER_TRACK_AC3
     return true;
 }
 
@@ -429,7 +435,9 @@ bool cw_csp::ac3() {
  * @brief undo domain pruning from previous call of AC-3 algorithm
 */
 void cw_csp::undo_ac3() {
+    #ifdef TIMETRACKER_TRACK_AC3
     cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
+    #endif // TIMETRACKER_TRACK_AC3
 
     for(unique_ptr<cw_variable>& var : variables) {
         var->domain.undo_prev_ac3_call();
@@ -442,27 +450,30 @@ void cw_csp::undo_ac3() {
  * @return true iff CSP is solved
 */
 bool cw_csp::solved() const {
-    cw_timestamper stamper(tracker, TS_CSP_SOLVED, "");
-
     unordered_set<word_t> used_words;
 
     // check that all vars have one remaining domain value & satisfied
     for(const unique_ptr<cw_variable>& var : variables) {
         // check that all vars satisifed w/ one domain value
-        if(var->domain.size() != 1) { stamper.add_result("no"); return false; }
-        if(!var->domain.is_assigned()) { stamper.add_result("no"); return false; }
+        if(var->domain.size() != 1 || !var->domain.is_assigned()) {
+            return false;
+        }
 
         // check that domain value is unique
-        if(used_words.count(var->domain.get_cur_domain().at(0)) > 0) { stamper.add_result("no"); return false; }
-        used_words.insert(var->domain.get_cur_domain().at(0));
+        word_t domain_val = var->domain.get_cur_domain().at(0);
+        if(used_words.count(domain_val) > 0) {
+            return false;
+        }
+        used_words.insert(domain_val);
     }
 
     // check that all constraints satisfied
     for(const unique_ptr<cw_constraint>& constr : constraints) {
-        if(!constr->satisfied(variables)) { stamper.add_result("no"); return false; }
+        if(!constr->satisfied(variables)) {
+            return false;
+        }
     }
 
-    stamper.add_result("yes");
     return true;
 }
 
@@ -568,19 +579,15 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
     
     // get domain of next variable as list of candidates to try to assign
-    vector<word_t> domain_copy;
-    {  
-        cw_timestamper gather_stamper(tracker, TS_CSP_GATHER_DOMAIN, "");
-        
-        // search all possible values, sorted by word score, tiebroken by frequency
-        domain_copy = variables[next_var]->domain.get_cur_domain();
-        auto compare = [](const word_t& lhs, const word_t& rhs) {
-            if(lhs.score != rhs.score) return lhs.score > rhs.score;
-            if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
-            return lhs.word > rhs.word;
-        };
-        sort(domain_copy.begin(), domain_copy.end(), compare);
-    }
+    vector<word_t> domain_copy{variables[next_var]->domain.get_cur_domain()};
+
+    // sort candidates by word score, tiebroken by frequency
+    auto compare = [](const word_t& lhs, const word_t& rhs) {
+        if(lhs.score != rhs.score) return lhs.score > rhs.score;
+        if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
+        return lhs.word > rhs.word;
+    };
+    sort(domain_copy.begin(), domain_copy.end(), compare);
 
     // only initialize if this is top level solve_backtracking() call in prod
     unique_ptr<progress_bar> bar = nullptr;
