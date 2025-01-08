@@ -358,8 +358,6 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
     : cw_constraint(id),
       cycle_len(arcs.size()) {
 
-    // cw_assert(arcs.size() == CYCLE_LEN); // TODO: DEBUG
-
     // for checking invariant
     unordered_set<size_t> visited;
 
@@ -423,17 +421,14 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
     // letter_nodes[i] represents nodes between var_cycle[i] and var_cycle[(i+1) % N]
     // letter_nodes[i][j] set ==> letter j can be placed between variables var_cycle[i] and var_cycle[(i+1) % N]
-    // array<letter_bitset_t, CYCLE_LEN> letter_nodes; // TODO: DEBUG
     vector<letter_bitset_t> letter_nodes(cycle_len);
 
     // letter_edges[i] represents edges between nodes in letter_nodes[i] and letter_nodes[(i+1) % N]
     // letter_edges[i][j][k] set ==> edges exists from letter j node in var_cycle[i], and letter k node in var_cycle[(i+1) % N]
-    // array<array<letter_bitset_t, NUM_ENGLISH_LETTERS>, CYCLE_LEN> letter_edges; // TODO: DEBUG
     vector<array<letter_bitset_t, NUM_ENGLISH_LETTERS> > letter_edges(cycle_len);
 
     // letter_in_cycle[i] represents letters placed between variables var_cycle[i] and var_cycle[(i+1) % N] that are part of a cycle
     // letter_in_cycle[i][j] set && letter_nodes[i][j] set ==> letter j between variables var_cycle[i] and var_cycle[(i+1) % N] is part of a cycle
-    // array<letter_bitset_t, CYCLE_LEN> letter_in_cycle; // TODO: DEBUG
     vector<letter_bitset_t> letter_in_cycle(cycle_len);
 
     // populate letter_nodes
@@ -480,7 +475,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
          * @brief finds all nodes reachable using forward edges from this node in cycle_len-1 steps
         */
         auto traverse_forward = [this, &letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> vector<letter_bitset_t> {
-            // array<letter_bitset_t, CYCLE_LEN> reachable; // TODO: DEBUG
             vector<letter_bitset_t> reachable(cycle_len);
             letter_bitset_t curr = letter_bitset_t(1 << letter);
             reachable[idx] = curr; // define current node as reachable
@@ -513,7 +507,6 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
          * @brief finds all nodes reachable using reverse edges from this node in cycle_len-1 steps
         */
         auto traverse_reverse = [this, &letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> vector<letter_bitset_t> {
-            // array<letter_bitset_t, CYCLE_LEN> reachable; // TODO: DEBUG
             vector<letter_bitset_t> reachable(cycle_len);
             letter_bitset_t curr = letter_bitset_t(1 << letter);
             reachable[idx] = curr; // define current node as reachable
