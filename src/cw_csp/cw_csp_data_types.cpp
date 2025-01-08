@@ -297,16 +297,21 @@ vector<pair<uint, uint> > cw_arc::intersection_tiles(const id_obj_manager<cw_var
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
-    cw_assert(var_cycle.size() == CYCLE_LEN);
-    cw_assert(other.var_cycle.size() == CYCLE_LEN);
-    cw_assert(intersections.size() == CYCLE_LEN);
-    cw_assert(other.intersections.size() == CYCLE_LEN);
+    // different length cycle
+    if(cycle_len != other.cycle_len) {
+        return false;
+    }
+
+    cw_assert(var_cycle.size() == cycle_len);
+    cw_assert(other.var_cycle.size() == cycle_len);
+    cw_assert(intersections.size() == cycle_len);
+    cw_assert(other.intersections.size() == cycle_len);
 
     // all elements line up
     auto exact_match = [this, &other](size_t shift, bool reverse_dir) -> bool {
-        for(size_t i = 0; i < CYCLE_LEN; ++i) {
+        for(size_t i = 0; i < cycle_len; ++i) {
             const size_t i0 = i;
-            const size_t i1 = reverse_dir ? (CYCLE_LEN - i + shift) % CYCLE_LEN : (i + shift) % CYCLE_LEN;
+            const size_t i1 = reverse_dir ? (cycle_len - i + shift) % cycle_len : (i + shift) % cycle_len;
 
             if(intersections[i0] != other.intersections[i1]) return false;
         }
@@ -315,7 +320,7 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
     };
 
     // return true if one cycle can be rotated so all elements match up
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         if(exact_match(i, false) || exact_match(i, true)) return true;
     }
 
@@ -327,13 +332,13 @@ bool cw_cycle::equals(const cw_constraint& other_constr) const {
 */
 void cw_cycle::serialize(ostream& os) const {
     os << "vars{";
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         os << var_cycle[i] << ",";
     }
     os << "}, ";
 
     os << "intersections{";
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         os << '(' << intersections[i].first << ", " << intersections[i].second << "),";
     }
     os << '}';
@@ -349,8 +354,11 @@ void cw_cycle::serialize(ostream& os) const {
  * @param constrs ref to id_obj_manager holding cw_arc to construct this cw_cycle from
  * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from, in reverse order
 */
-cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
-    cw_assert(arcs.size() == CYCLE_LEN);
+cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs)
+    : cw_constraint(id),
+      cycle_len(arcs.size()) {
+
+    // cw_assert(arcs.size() == CYCLE_LEN); // TODO: DEBUG
 
     // for checking invariant
     unordered_set<size_t> visited;
@@ -378,8 +386,8 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
     }
 
-    cw_assert(var_cycle.size() == CYCLE_LEN);
-    cw_assert(intersections.size() == CYCLE_LEN);
+    cw_assert(var_cycle.size() == cycle_len);
+    cw_assert(intersections.size() == cycle_len);
 }
 
 /**
@@ -393,10 +401,11 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
 */
 cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair<uint, uint> >& intersections)
     : cw_constraint(id),
+      cycle_len(var_cycle.size()),
       var_cycle(var_cycle),
       intersections(intersections) {
-    cw_assert(var_cycle.size() == CYCLE_LEN); // complete cycle
-    cw_assert(intersections.size() == CYCLE_LEN); // one intersection per step between vars
+    cw_assert(var_cycle.size() == cycle_len); // complete cycle
+    cw_assert(intersections.size() == cycle_len); // one intersection per step between vars
     cw_assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }
 
@@ -414,20 +423,23 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
     // letter_nodes[i] represents nodes between var_cycle[i] and var_cycle[(i+1) % N]
     // letter_nodes[i][j] set ==> letter j can be placed between variables var_cycle[i] and var_cycle[(i+1) % N]
-    array<letter_bitset_t, CYCLE_LEN> letter_nodes;
+    // array<letter_bitset_t, CYCLE_LEN> letter_nodes; // TODO: DEBUG
+    vector<letter_bitset_t> letter_nodes(cycle_len);
 
     // letter_edges[i] represents edges between nodes in letter_nodes[i] and letter_nodes[(i+1) % N]
     // letter_edges[i][j][k] set ==> edges exists from letter j node in var_cycle[i], and letter k node in var_cycle[(i+1) % N]
-    array<array<letter_bitset_t, NUM_ENGLISH_LETTERS>, CYCLE_LEN> letter_edges;
+    // array<array<letter_bitset_t, NUM_ENGLISH_LETTERS>, CYCLE_LEN> letter_edges; // TODO: DEBUG
+    vector<array<letter_bitset_t, NUM_ENGLISH_LETTERS> > letter_edges(cycle_len);
 
     // letter_in_cycle[i] represents letters placed between variables var_cycle[i] and var_cycle[(i+1) % N] that are part of a cycle
     // letter_in_cycle[i][j] set && letter_nodes[i][j] set ==> letter j between variables var_cycle[i] and var_cycle[(i+1) % N] is part of a cycle
-    array<letter_bitset_t, CYCLE_LEN> letter_in_cycle;
+    // array<letter_bitset_t, CYCLE_LEN> letter_in_cycle; // TODO: DEBUG
+    vector<letter_bitset_t> letter_in_cycle(cycle_len);
 
     // populate letter_nodes
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         const size_t curr_idx = i;
-        const size_t next_idx = (i + 1) % CYCLE_LEN;
+        const size_t next_idx = (i + 1) % cycle_len;
 
         const letter_bitset_t curr_letters = vars[var_cycle[curr_idx]]->domain.get_all_letters_at_index(intersections[i].first);
         const letter_bitset_t next_letters = vars[var_cycle[next_idx]]->domain.get_all_letters_at_index(intersections[i].second);
@@ -437,9 +449,9 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     }
     
     // populate letter_edges
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         const size_t curr_idx = i;
-        const size_t next_idx = (i + 1) % CYCLE_LEN;
+        const size_t next_idx = (i + 1) % cycle_len;
 
         // for all nodes in curr_idx layer
         for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
@@ -457,25 +469,26 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     }
 
     /**
-     * @brief find all nodes part of any CYCLE_LEN cycle that contains a specific node
+     * @brief find all nodes part of any cycle_len cycle that contains a specific node
      * @param idx index of the cycle origin node
      * @param letter letter of the cycle origin node 
      * 
-     * @return bitmap representing all nodes in a CYCLE_LEN cycle that contains the node specified by idx/letter
+     * @return bitmap vector of length cycle_len representing all nodes in a cycle_len cycle that contains the node specified by idx/letter
      */
-    auto get_nodes_of_cycles_containing = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
+    auto get_nodes_of_cycles_containing = [this, &letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> vector<letter_bitset_t> {
         /**
-         * @brief finds all nodes reachable using forward edges from this node in CYCLE_LEN-1 steps
+         * @brief finds all nodes reachable using forward edges from this node in cycle_len-1 steps
         */
-        auto traverse_forward = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
-            array<letter_bitset_t, CYCLE_LEN> reachable;
+        auto traverse_forward = [this, &letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> vector<letter_bitset_t> {
+            // array<letter_bitset_t, CYCLE_LEN> reachable; // TODO: DEBUG
+            vector<letter_bitset_t> reachable(cycle_len);
             letter_bitset_t curr = letter_bitset_t(1 << letter);
             reachable[idx] = curr; // define current node as reachable
 
             // only allow N-1 steps to avoid marking nodes in current layer
-            for(size_t step = 0; step < CYCLE_LEN - 1; ++step) {
-                const size_t curr_idx = (idx + step) % CYCLE_LEN;
-                const size_t next_idx = (idx + step + 1) % CYCLE_LEN;
+            for(size_t step = 0; step < cycle_len - 1; ++step) {
+                const size_t curr_idx = (idx + step) % cycle_len;
+                const size_t next_idx = (idx + step + 1) % cycle_len;
 
                 letter_bitset_t next_layer;
                 for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
@@ -497,16 +510,17 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         };
 
         /**
-         * @brief finds all nodes reachable using reverse edges from this node in CYCLE_LEN-1 steps
+         * @brief finds all nodes reachable using reverse edges from this node in cycle_len-1 steps
         */
-        auto traverse_reverse = [&letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> array<letter_bitset_t, CYCLE_LEN> {
-            array<letter_bitset_t, CYCLE_LEN> reachable;
+        auto traverse_reverse = [this, &letter_nodes, &letter_edges](const size_t idx, const size_t letter) -> vector<letter_bitset_t> {
+            // array<letter_bitset_t, CYCLE_LEN> reachable; // TODO: DEBUG
+            vector<letter_bitset_t> reachable(cycle_len);
             letter_bitset_t curr = letter_bitset_t(1 << letter);
             reachable[idx] = curr; // define current node as reachable
 
             // only allow N-1 steps to avoid marking nodes in current layer
-            for(size_t step = 0; step < CYCLE_LEN - 1; ++step) {
-                const size_t next_idx = (CYCLE_LEN + idx - step - 1) % CYCLE_LEN;
+            for(size_t step = 0; step < cycle_len - 1; ++step) {
+                const size_t next_idx = (cycle_len + idx - step - 1) % cycle_len;
 
                 letter_bitset_t next_layer;
                 for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
@@ -525,18 +539,21 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
             return reachable;
         };
         
-        array<letter_bitset_t, CYCLE_LEN> reachable_forward = traverse_forward(idx, letter);
-        array<letter_bitset_t, CYCLE_LEN> reachable_reverse = traverse_reverse(idx, letter);
+        vector<letter_bitset_t> reachable_forward = traverse_forward(idx, letter);
+        vector<letter_bitset_t> reachable_reverse = traverse_reverse(idx, letter);
+
+        assert(reachable_forward.size() == cycle_len);
+        assert(reachable_reverse.size() == cycle_len);
 
         // all nodes reachable in both directions
         // on the layer of idx, we must have that only have the root letter node is reachable
         // all other layers must all be empty or all be nonempty
-        // if they are all nonempty, then all nodes in reachable are part of a CYCLE_LEN cycle containing the target node
-        array<letter_bitset_t, CYCLE_LEN> reachable;
+        // if they are all nonempty, then all nodes in reachable are part of a cycle_len cycle containing the target node
+        vector<letter_bitset_t> reachable(cycle_len);
 
         // populate reachable
-        for(size_t i = 0; i < CYCLE_LEN; ++i) {
-            // search the graph to find all nodes reachable from this node in CYCLE_LEN-1 steps
+        for(size_t i = 0; i < cycle_len; ++i) {
+            // search the graph to find all nodes reachable from this node in cycle_len-1 steps
             // also do the same for traversing the graph in reverse order
             // AND these to yield nodes reachable in both directions
             reachable[i] = (reachable_forward[i] & reachable_reverse[i]);
@@ -547,33 +564,34 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         }
 
         // check that all non root layers of reachable are all either reachable or unreachable together
-        bool cycles_exist = reachable[(idx + 1) % CYCLE_LEN].any();
-        for(size_t i = 2; i < CYCLE_LEN; ++i) {
-            cw_assert(cycles_exist == reachable[(idx + i) % CYCLE_LEN].any());
+        bool cycles_exist = reachable[(idx + 1) % cycle_len].any();
+        for(size_t i = 2; i < cycle_len; ++i) {
+            cw_assert(cycles_exist == reachable[(idx + i) % cycle_len].any());
         }
 
-        // if cycles exist, then all nodes in reachable are part of a CYCLE_LEN cycle containing then target node
+        // if cycles exist, then all nodes in reachable are part of a cycle_len cycle containing then target node
         if(cycles_exist) {
             return reachable;
         }
 
         // all relevant reachable layers are empty, thus no cycles containing the target node exist
-        return array<letter_bitset_t, CYCLE_LEN>();
+        return vector<letter_bitset_t>(cycle_len);
     };
 
     // populate letter_in_cycle
     for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
         // layer from which cycles are searched
-        // this arbitrary and can be anywhere in [0, CYCLE_LEN-1] without affecting the result
+        // this arbitrary and can be anywhere in [0, cycle_len-1] without affecting the result
         constexpr size_t root_layer = 0ul;
 
         // explore node for j on root layer only if node exists
         if(letter_nodes[root_layer][j]) {
             // get nodes in cycles with exact length CYCLE_LEN that contain node j on first layer
-            array<letter_bitset_t, CYCLE_LEN> nodes_in_cycle = get_nodes_of_cycles_containing(root_layer, j);
+            vector<letter_bitset_t> nodes_in_cycle = get_nodes_of_cycles_containing(root_layer, j);
+            assert(nodes_in_cycle.size() == cycle_len);
             
             // add to letter_in_cycle which contains all cycle nodes
-            for(size_t i = 0; i < CYCLE_LEN; ++i) {
+            for(size_t i = 0; i < cycle_len; ++i) {
                 letter_in_cycle[i] |= nodes_in_cycle[i];
             }
         }
@@ -581,12 +599,12 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
     // remove letters from domains if node not part of a cycle
     unordered_set<size_t> modified;
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
             // remove if node exists AND not part of a cycle
             if(letter_nodes[i][j] && !letter_in_cycle[i][j]) {
                 const size_t lhs_idx = i;
-                const size_t rhs_idx = (i + 1) % CYCLE_LEN;
+                const size_t rhs_idx = (i + 1) % cycle_len;
 
                 vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
                 vars[var_cycle[rhs_idx]]->domain.remove_matching_words(intersections[i].second, static_cast<char>(j + 'a'));
@@ -607,13 +625,13 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
  * @return true iff constraint is satisfied
 */
 bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         if(vars[var_cycle[i]                  ]->domain.size() != 1) return false;
-        if(vars[var_cycle[(i + 1) % CYCLE_LEN]]->domain.size() != 1) return false;
+        if(vars[var_cycle[(i + 1) % cycle_len]]->domain.size() != 1) return false;
 
         // invalid assignments are undone, so this should always be true
         const string lhs_word = vars[var_cycle[i]                  ]->domain.get_cur_domain().at(0).word;
-        const string rhs_word = vars[var_cycle[(i + 1) % CYCLE_LEN]]->domain.get_cur_domain().at(0).word;
+        const string rhs_word = vars[var_cycle[(i + 1) % cycle_len]]->domain.get_cur_domain().at(0).word;
         cw_assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
         cw_assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
     }
@@ -666,9 +684,9 @@ vector<pair<uint, uint> > cw_cycle::intersection_indices() const {
 vector<pair<uint, uint> > cw_cycle::intersection_tiles(const id_obj_manager<cw_variable>& vars) const {
     vector<pair<uint, uint> > res;
 
-    for(size_t i = 0; i < CYCLE_LEN; ++i) {
+    for(size_t i = 0; i < cycle_len; ++i) {
         const size_t lhs = var_cycle[i];
-        const size_t rhs = var_cycle[(i + 1) % CYCLE_LEN];
+        const size_t rhs = var_cycle[(i + 1) % cycle_len];
 
         pair<uint, uint> lhs_tile = std::make_pair(
             vars[lhs]->origin_row + (vars[lhs]->dir == DOWN   ? intersections[i].first : 0u),

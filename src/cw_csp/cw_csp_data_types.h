@@ -173,13 +173,16 @@ namespace cw_csp_data_types_ns {
     // adjacent lhs and rhs variables in different adjacent arcs are the same
     struct cw_cycle : public cw_constraint {
         // for performance reasons, cycle length is restricted
-        static constexpr size_t CYCLE_LEN = 4;
+        // static constexpr size_t CYCLE_LEN = 4;
+
+        // the length of var_cycle and intersections
+        size_t cycle_len;
 
         // first element is implied to be repeated to complete a cycle
-        // must have exact length of CYCLE_LEN=4
+        // must have exact length of cycle_len
         vector<size_t> var_cycle;
 
-        // must have same len of vars, i.e. CYCLE_LEN=4, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
+        // must have same len of vars, i.e. cycle_len, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
         vector<pair<uint, uint> > intersections;
 
         // construct using existing arcs 
