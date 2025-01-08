@@ -172,6 +172,10 @@ namespace cw_csp_data_types_ns {
     // the last arc rhs variable is the lhs variable in the first arc
     // adjacent lhs and rhs variables in different adjacent arcs are the same
     struct cw_cycle : public cw_constraint {
+        // for performance reasons, these are restricted
+        static constexpr size_t MIN_CYCLE_LEN = 4ul;
+        static constexpr size_t MAX_CYCLE_LEN = 8ul;
+
         // the length of var_cycle and intersections
         size_t cycle_len;
 

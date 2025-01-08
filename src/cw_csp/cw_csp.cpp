@@ -282,7 +282,7 @@ void cw_csp::initialize_csp() {
     find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
         cw_assert(prev.size());
         cw_assert(visited.size());
-        cw_assert(visited.size() <= 4);
+        cw_assert(visited.size() <= cw_cycle::MAX_CYCLE_LEN);
 
         // this casting is dirty but guaranteed to work since constraints must only contain cw_arc
         const cw_constraint * const first_constr = constraints[prev[0              ]].get();
@@ -305,8 +305,10 @@ void cw_csp::initialize_csp() {
                 prev.push_back(dep);
                 visited.insert(next_var);
 
-                if(visited.size() == 4) {
-                    if(next_var == first_var) {
+                // check if formed simple cycle
+                if(next_var == first_var) {
+                    // this should always be true for MIN_CYCLE_LEN=4
+                    if(visited.size() >= cw_cycle::MIN_CYCLE_LEN) {
                         // rotated/symmetrical cycles considered the same
                         if(!unique_cycles.count(visited)) {
                             unique_cycles.insert(visited);
@@ -315,9 +317,28 @@ void cw_csp::initialize_csp() {
                             ));
                         }
                     }
-                } else {
+
+                    // do not continue recursive search, since it wouldn't be a simple cycle anymore
+
+                } else if(visited.size() < cw_cycle::MAX_CYCLE_LEN) {
+                    // disallow search to continue if too long
                     find_cycles(prev, visited);
                 }
+
+                // TODO: remove this old implementation
+                // if(visited.size() == 4) {
+                //     if(next_var == first_var) {
+                //         // rotated/symmetrical cycles considered the same
+                //         if(!unique_cycles.count(visited)) {
+                //             unique_cycles.insert(visited);
+                //             constraints.push_back(make_unique<cw_cycle>(
+                //                 constraints.size(), constraints, prev
+                //             ));
+                //         }
+                //     }
+                // } else {
+                //     find_cycles(prev, visited);
+                // }
 
                 cw_assert(prev.back() == dep);
                 cw_assert(visited.count(next_var));
