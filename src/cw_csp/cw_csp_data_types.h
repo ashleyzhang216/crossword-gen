@@ -174,7 +174,7 @@ namespace cw_csp_data_types_ns {
     struct cw_cycle : public cw_constraint {
         // for performance reasons, these are restricted
         static constexpr size_t MIN_CYCLE_LEN = 4ul;
-        static constexpr size_t MAX_CYCLE_LEN = 8ul;
+        static constexpr size_t MAX_CYCLE_LEN = 6ul;
 
         // the length of var_cycle and intersections
         size_t cycle_len;

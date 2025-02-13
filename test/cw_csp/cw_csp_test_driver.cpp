@@ -55,6 +55,23 @@ bool cw_csp_test_driver::test_constructor_empty(
         expected_var_domains.insert(std::make_pair(var->clone(), unordered_set<word_t>(domain_vec.begin(), domain_vec.end())));
     }
 
+    // DEBUG:
+    if(!check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, false))) {
+        cout << "expected: " << endl;
+        for(const auto& ptr : expected_constraints) {
+            if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
+                cout << *ptr << endl;
+            }
+        }
+
+        cout << "actual: " << endl;
+        for(const auto& ptr : result_constraints) {
+            if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
+                cout << *ptr << endl;
+            }
+        }
+    }
+
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, true));
     result &= check_condition(dut_name.str() + " dependencies", map_to_set_contents_equal(result_constr_dependencies, expected_constr_dependencies, true));    
