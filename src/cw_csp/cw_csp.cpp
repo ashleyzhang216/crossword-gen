@@ -278,8 +278,9 @@ void cw_csp::initialize_csp() {
      * @param visited set of previously visited vars in current cycle prototype
     */
     set<set<size_t> > unique_cycles;
+    vector<vector<size_t> > past_cycles; // TODO: DEBUG
     std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
-    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
+    find_cycles = [this, &find_cycles, &unique_cycles, &past_cycles](vector<size_t>& prev, set<size_t>& visited) {
         cw_assert(prev.size());
         cw_assert(visited.size());
         cw_assert(visited.size() <= cw_cycle::MAX_CYCLE_LEN);
@@ -309,8 +310,66 @@ void cw_csp::initialize_csp() {
                 if(next_var == first_var) {
                     // this should always be true for MIN_CYCLE_LEN=4
                     if(visited.size() >= cw_cycle::MIN_CYCLE_LEN) {
-                        // rotated/symmetrical cycles considered the same
-                        if(!unique_cycles.count(visited)) {
+
+                        // DEBUG: investigating length 6+ cycles
+                        auto rot_vec_unique = [&past_cycles](const vector<size_t>& prev) -> bool {
+                            auto rot_vec_equal = [](const vector<size_t>& lhs, const vector<size_t>& rhs) -> bool {
+                                auto vec_equal = [](const vector<size_t>& lhs, const vector<size_t>& rhs, size_t rhs_idx) -> bool {
+                                    if(lhs.size() != rhs.size()) {
+                                        return false;
+                                    }
+                                    
+                                    for(size_t i = 0; i < lhs.size(); ++i) {
+                                        if(lhs.at(i) != rhs.at((i + rhs_idx) % rhs.size())) {
+                                            return false;
+                                        }
+                                    }
+
+                                    return true;
+                                };
+
+                                if(lhs.size() != rhs.size()) {
+                                    return false;
+                                }
+
+
+                                for(size_t i = 0; i < rhs.size(); ++i) {
+                                    if(vec_equal(lhs, rhs, i)) {
+                                        return true;
+                                    }
+                                }
+
+                                vector<size_t> rhs_rev{rhs};
+                                std::reverse(rhs_rev.begin(), rhs_rev.end());
+
+                                for(size_t i = 0; i < rhs_rev.size(); ++i) {
+                                    if(vec_equal(lhs, rhs_rev, i)) {
+                                        return true;
+                                    }
+                                }
+
+                                return false;
+                            };
+
+                            for(size_t i = 0; i < past_cycles.size(); ++i) {
+                                if(rot_vec_equal(past_cycles.at(i), prev)) {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        };
+
+                        // // rotated/symmetrical cycles considered the same
+                        // if(!unique_cycles.count(visited)) {
+                        //     unique_cycles.insert(visited);
+                        //     constraints.push_back(make_unique<cw_cycle>(
+                        //         constraints.size(), constraints, prev
+                        //     ));
+                        // }
+
+                        // TODO: DEBUG
+                        if(rot_vec_unique(prev)) {
                             unique_cycles.insert(visited);
                             constraints.push_back(make_unique<cw_cycle>(
                                 constraints.size(), constraints, prev
