@@ -15,7 +15,7 @@ using namespace common_data_types_ns;
 #include "cw_containers.hpp"
 #include "cw_logging.hpp"
 
-using namespace cw;
+using namespace cw; // TODO: temp
 
 /**
  * @brief template function to compare contents of hashsets for testing, T must have << operator defined
