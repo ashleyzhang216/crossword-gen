@@ -11,6 +11,13 @@
 
 using namespace common_data_types_ns;
 
+/**
+ * @brief all utils expected in crossword namespace
+ */
+namespace cw {
+    class cw_utils;
+}
+
 // verbosity levels
 enum verbosity_t {
     FATAL   = 0,
@@ -38,8 +45,8 @@ struct assertion_failure_exception : public exception {
         std::string message;
 };
 
-#undef assert
-#define assert(...) do {                                                         \
+#undef cw_assert
+#define cw_assert(...) do {                                                         \
     if (!(__VA_ARGS__)) [[unlikely]] {                                           \
         std::stringstream ss;                                                    \
         ss << "\nAssertion failed\n"                                             \
@@ -48,8 +55,8 @@ struct assertion_failure_exception : public exception {
     }                                                                            \
 } while(0)
 
-#undef assert_m
-#define assert_m(cond, ...) do {                                                                             \
+#undef cw_assert_m
+#define cw_assert_m(cond, ...) do {                                                                             \
     if (!(cond)) [[unlikely]] {                                                                              \
         std::stringstream ss;                                                                                \
         ss << "\nAssertion failed\n"                                                                         \
@@ -61,7 +68,7 @@ struct assertion_failure_exception : public exception {
 /**
  * @brief object to handle message logging, and other functionalities in the future
 */
-class cw_utils {
+class cw::cw_utils {
     public:
         // base constructor
         cw_utils(const string_view& name, const verbosity_t& max_verbosity);
@@ -181,17 +188,17 @@ class cw_utils {
             }
         }
 
-}; // class cw_utils
+}; // class cw::cw_utils
 
 /**
- * @brief object to manage a progress bar lifetime and printing with cw_utils
+ * @brief object to manage a progress bar lifetime and printing with cw::cw_utils
  * @cite https://codereview.stackexchange.com/a/186537
 */
 class progress_bar {
     public:
         // base constructor
         template <typename... Types>
-        progress_bar(cw_utils& utils, uint denominator, double granularity, const Types&... args) 
+        progress_bar(cw::cw_utils& utils, uint denominator, double granularity, const Types&... args)
                 : utils(utils), 
                   numerator(0), 
                   progress_ratio(0.0), 
@@ -207,7 +214,7 @@ class progress_bar {
         ~progress_bar();
 
     private:
-        cw_utils& utils;
+        cw::cw_utils& utils;
         uint numerator;
         double progress_ratio; // [0.0, 1.0]
         const uint denominator;
@@ -253,7 +260,7 @@ class id_obj_manager {
                 vec = vector<unique_ptr<T> >();
             }
 
-            assert(vec.value().size() == ptr->id);
+            cw_assert(vec.value().size() == ptr->id);
             vec.value().push_back(std::move(ptr));
         }
 
@@ -265,8 +272,8 @@ class id_obj_manager {
 
         // access vector element
         unique_ptr<T>& operator[](size_t n) {
-            assert(vec.has_value());
-            assert(vec.value()[n]->id == n);
+            cw_assert(vec.has_value());
+            cw_assert(vec.value()[n]->id == n);
             return vec.value()[n];
         }
         const unique_ptr<T>& operator[](size_t n) const {
@@ -328,7 +335,7 @@ class id_obj_manager {
             }
         }
         id_obj_manager& operator=(id_obj_manager&& other) {
-            assert(!vec.has_value()); // cannot hold existing objects
+            cw_assert(!vec.has_value()); // cannot hold existing objects
             if(other.vec.has_value()) {
                 init(std::move(other.vec.value()));
             }
@@ -344,10 +351,10 @@ class id_obj_manager {
 
         // initialize with data
         void init(vector<unique_ptr<T> >&& data) {
-            assert(!vec.has_value());
+            cw_assert(!vec.has_value());
             vec = std::move(data);
             for(size_t i = 0; i < size(); ++i) {
-                assert(vec.value()[i]->id == i);
+                cw_assert(vec.value()[i]->id == i);
             }
         }
 };
@@ -368,7 +375,7 @@ vector<unique_ptr<T> > id_obj_manager<T>::empty_vec = {};
 template <typename T> 
 inline bool set_contents_equal(const unordered_set<T>& lhs, const unordered_set<T>& rhs, bool debug_prints) {
 
-    cw_utils utils("set_contents_equal()", VERBOSITY);
+    cw::cw_utils utils("set_contents_equal()", VERBOSITY);
     bool result = true;
 
     if(lhs.size() != rhs.size()) {
@@ -411,7 +418,7 @@ inline bool set_contents_equal(const unordered_set<T>& lhs, const unordered_set<
 template <typename K, typename V>
 inline bool map_to_set_contents_equal(const unordered_map<K, unordered_set<V> >& lhs, const unordered_map<K, unordered_set<V> >& rhs, bool debug_prints) {
     
-    cw_utils utils("map_to_set_contents_equal()", VERBOSITY);
+    cw::cw_utils utils("map_to_set_contents_equal()", VERBOSITY);
     bool result = true;
 
     if(lhs.size() != rhs.size()) {

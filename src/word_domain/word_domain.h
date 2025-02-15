@@ -7,9 +7,13 @@
 #ifndef WORD_DOMAIN_H
 #define WORD_DOMAIN_H
 
+#include "../common/common_data_types.h"
+#include "../utils/cw_utils.h"
 #include "word_domain_data_types.h"
 #include "../common/common_parent.h"
 
+using namespace common_data_types_ns;
+using namespace cw;
 using namespace word_domain_data_types_ns;
 using namespace common_parent_ns;
 

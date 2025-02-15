@@ -24,8 +24,8 @@ crossword::crossword(const string& name, uint length, uint height, permutation_r
       invalid_freq(height, vector<uint>(length, 0u)),
       num_fillable_tiles(length * height),
       reqs(reqs) {
-    assert(length > 0);
-    assert(height > 0);
+    cw_assert(length > 0);
+    cw_assert(height > 0);
 }
 
 /**
@@ -60,7 +60,7 @@ crossword::crossword(const string& name, uint length, uint height, vector<vector
  * @param reqs optional non-default permutation requirements
 */
 crossword::crossword(const string& name, uint length, uint height, string contents, permutation_reqs reqs) : crossword(name, length, height, reqs) {
-    assert(contents.size() == length * height);
+    cw_assert(contents.size() == length * height);
 
     // update non-wildcard puzzle contents, other constructor inits puzzle to all wildcards
     for(uint i = 0; i < height; i++) {
@@ -86,15 +86,15 @@ crossword::crossword(const string& name, uint length, uint height, string conten
  * @param dir direction of word associated with this write
 */
 void crossword::write_at(char c, uint row, uint col, word_direction dir) {
-    assert(row < rows());
-    assert(col < cols());
-    assert(c >= 'a' && c <= 'z');
+    cw_assert(row < rows());
+    cw_assert(col < cols());
+    cw_assert(c >= 'a' && c <= 'z');
 
     optional<char>& this_opt = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down);
 
-    assert(puzzle[row][col].type != TILE_BLACK);
-    assert(!this_opt.has_value());
-    assert(puzzle[row][col].initial_val == c || puzzle[row][col].initial_val == WILDCARD);
+    cw_assert(puzzle[row][col].type != TILE_BLACK);
+    cw_assert(!this_opt.has_value());
+    cw_assert(puzzle[row][col].initial_val == c || puzzle[row][col].initial_val == WILDCARD);
 
     puzzle[row][col].type = TILE_FILLED;
     this_opt = std::make_optional<char>(c);
@@ -108,17 +108,17 @@ void crossword::write_at(char c, uint row, uint col, word_direction dir) {
  * @param dir direction of word associated with this erase
 */
 void crossword::erase_at(char expected_c, uint row, uint col, word_direction dir) {
-    assert(row < rows());
-    assert(col < cols());
-    assert(expected_c >= 'a' && expected_c <= 'z');
+    cw_assert(row < rows());
+    cw_assert(col < cols());
+    cw_assert(expected_c >= 'a' && expected_c <= 'z');
 
     optional<char>&       this_opt  = (dir == ACROSS ? puzzle[row][col].across : puzzle[row][col].down  );
     const optional<char>& other_opt = (dir == ACROSS ? puzzle[row][col].down   : puzzle[row][col].across);
 
-    assert(puzzle[row][col].type == TILE_FILLED);
-    assert(this_opt.has_value());
-    assert(this_opt.value() == expected_c);
-    assert(puzzle[row][col].initial_val == expected_c || puzzle[row][col].initial_val == WILDCARD);
+    cw_assert(puzzle[row][col].type == TILE_FILLED);
+    cw_assert(this_opt.has_value());
+    cw_assert(this_opt.value() == expected_c);
+    cw_assert(puzzle[row][col].initial_val == expected_c || puzzle[row][col].initial_val == WILDCARD);
 
     this_opt.reset();
     if(!other_opt.has_value()) {
@@ -132,8 +132,8 @@ void crossword::erase_at(char expected_c, uint row, uint col, word_direction dir
  * @param col target column
 */
 char crossword::read_at(uint row, uint col) const {
-    assert(row < rows());
-    assert(col < cols());
+    cw_assert(row < rows());
+    cw_assert(col < cols());
 
     if(puzzle[row][col].type == TILE_BLACK) {
         return BLACK;
@@ -148,16 +148,16 @@ char crossword::read_at(uint row, uint col) const {
 
         const bool has_across = puzzle[row][col].across.has_value();
         const bool has_down   = puzzle[row][col].down  .has_value();
-        assert(has_across || has_down);
+        cw_assert(has_across || has_down);
 
         // enforce equality if written in both directions
         if(has_across) {
             const char across_val = puzzle[row][col].across.value();
-            assert(across_val == puzzle[row][col].down.value_or(across_val));
+            cw_assert(across_val == puzzle[row][col].down.value_or(across_val));
             return across_val;
         } else {
             const char down_val = puzzle[row][col].down.value();
-            assert(down_val == puzzle[row][col].across.value_or(down_val));
+            cw_assert(down_val == puzzle[row][col].across.value_or(down_val));
             return down_val;
         }
     }
@@ -169,8 +169,8 @@ char crossword::read_at(uint row, uint col) const {
  * @param col target column
 */
 char crossword::read_initial_at(uint row, uint col) const {
-    assert(row < rows());
-    assert(col < cols());
+    cw_assert(row < rows());
+    cw_assert(col < cols());
 
     return puzzle[row][col].initial_val;
 }
@@ -181,8 +181,8 @@ char crossword::read_initial_at(uint row, uint col) const {
  * @param col target column
 */
 char crossword::read_input_at(uint row, uint col) const {
-    assert(row < rows());
-    assert(col < cols());
+    cw_assert(row < rows());
+    cw_assert(col < cols());
 
     return puzzle[row][col].input_val;
 }
@@ -215,7 +215,7 @@ void crossword::write(word_assignment&& assignment) {
  * @return word removed from grid, purely for defensive programming
 */
 string crossword::undo_prev_write() {
-    assert(!prev_written_words.empty());
+    cw_assert(!prev_written_words.empty());
 
     word_assignment assignment = prev_written_words.top();
     prev_written_words.pop();
@@ -258,8 +258,8 @@ void crossword::reset() {
     for(uint row = 0; row < rows(); row++) {
         for(uint col = 0; col < cols(); col++) {
             // for defensive programming
-            assert(!puzzle[row][col].across.has_value());
-            assert(!puzzle[row][col].down.has_value());
+            cw_assert(!puzzle[row][col].across.has_value());
+            cw_assert(!puzzle[row][col].down.has_value());
         }
     }
 }
@@ -318,10 +318,10 @@ vector<crossword> crossword::permutations(unordered_set<string>& explored_grids)
  * @return optional with score value for this permutation iff successful, i.e. making this tile black does not violate any grid restrictions
 */
 optional<permutation_score> crossword::permute(uint row, uint col, unordered_set<string>& explored_grids) {
-    assert(prev_written_words.empty());
-    assert(row < rows());
-    assert(col < cols());
-    assert(puzzle[row][col].type != TILE_BLACK);
+    cw_assert(prev_written_words.empty());
+    cw_assert(row < rows());
+    cw_assert(col < cols());
+    cw_assert(puzzle[row][col].type != TILE_BLACK);
 
     /**
      * @brief check if no closed off section
@@ -354,7 +354,7 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
             while(!frontier.empty()) {
                 pair<uint, uint> cur = frontier.top();
                 frontier.pop();
-                assert(visited[cur.first][cur.second]);
+                cw_assert(visited[cur.first][cur.second]);
                 ++num_visited;
 
                 vector<pair<uint, uint> > candidates;
@@ -526,17 +526,17 @@ optional<permutation_score> crossword::permute(uint row, uint col, unordered_set
 
     // get scoring info
     explore_adjacent(row, col, neighborhood_size, cluster_size, times_invalid, boundary);
-    assert(neighborhood_size.size() == 1u);
-    assert(cluster_size.size()      == 1u);
-    assert(times_invalid.size()     == 1ul);
-    assert(boundary.size()          == 1ul);
+    cw_assert(neighborhood_size.size() == 1u);
+    cw_assert(cluster_size.size()      == 1u);
+    cw_assert(times_invalid.size()     == 1ul);
+    cw_assert(boundary.size()          == 1ul);
     if(added_symmetrical_black) {
         explore_adjacent(rows() - row - 1, cols() - col - 1, neighborhood_size, cluster_size, times_invalid, boundary);
-        assert(neighborhood_size.size() >= 2 * 1u);
-        assert(cluster_size.size()      >= 2 * 1u);
-        assert(times_invalid.size()     == 2 * 1ul);
-        assert(boundary.size()          == 2 * 1ul);
-        assert(boundary[0] == boundary[1]);
+        cw_assert(neighborhood_size.size() >= 2 * 1u);
+        cw_assert(cluster_size.size()      >= 2 * 1u);
+        cw_assert(times_invalid.size()     == 2 * 1ul);
+        cw_assert(boundary.size()          == 2 * 1ul);
+        cw_assert(boundary[0] == boundary[1]);
     }
 
     invalid_freq = vector<vector<uint> >(height, vector<uint>(length, 0u));

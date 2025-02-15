@@ -58,8 +58,8 @@ bool word_domain_test_driver::test_letters_at_indicies_add(
 ) {
     
     bool result = true;
-    assert(words.size() == num_words_ground_truths.size()); 
-    assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
+    cw_assert(words.size() == num_words_ground_truths.size()); 
+    cw_assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
     letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
 
     result &= check_condition("letters_at_indicies initial num_words", letters_at_indicies_entries_equal(initial_num_words, letters_at_indices, true));
@@ -115,8 +115,8 @@ bool word_domain_test_driver::test_letters_at_indicies_remove(
     vector<letter_idx_table<uint> > num_nodes_ground_truths
 ) {
     bool result = true;
-    assert(remove_params.size() == num_words_ground_truths.size()); 
-    assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
+    cw_assert(remove_params.size() == num_words_ground_truths.size()); 
+    cw_assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
 
     for(word_t word : init_words) dut->add_word(word);
     letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
@@ -193,8 +193,8 @@ bool word_domain_test_driver::test_letters_at_indicies_remove_assign(
     vector<letter_idx_table<uint> > num_nodes_ground_truths
 ) {
     bool result = true;
-    assert(remove_params.size() == num_words_ground_truths.size()); 
-    assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
+    cw_assert(remove_params.size() == num_words_ground_truths.size()); 
+    cw_assert(num_nodes_ground_truths.size() == num_words_ground_truths.size()); 
 
     for(word_t word : init_words) dut->add_word(word);
     letter_idx_table<letters_table_entry> letters_at_indices = dut->get_letters_at_indices();
@@ -482,7 +482,7 @@ bool word_domain_test_driver::letters_at_indicies_entries_equal(
  * 
 */
 letter_bitset_t word_domain_test_driver::get_all_letters_at_index(uint index, letter_idx_table<uint>& num_words) {
-    assert_m(index < MAX_WORD_LEN, "index exceeds table dimension");
+    cw_assert_m(index < MAX_WORD_LEN, "index exceeds table dimension");
 
     letter_bitset_t expected;
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; i++) {

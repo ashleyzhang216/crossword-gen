@@ -8,12 +8,13 @@
 #define CW_CSP_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
+#include "../utils/cw_utils.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
 #include "../crossword/crossword_data_types.h"
-#include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
+using namespace cw;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
 using namespace crossword_data_types_ns;

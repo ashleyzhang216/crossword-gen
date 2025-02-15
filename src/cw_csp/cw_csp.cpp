@@ -214,13 +214,13 @@ void cw_csp::initialize_csp() {
     for(size_t i = 0; i < variables.size(); ++i) {
         if(variables[i]->dir == ACROSS) {
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
-                assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == id_obj_manager<cw_variable>::INVALID_ID);
+                cw_assert(var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row][variables[i]->origin_col + letter].lhs_index = letter;
             }
         } else if(variables[i]->dir == DOWN) { 
             for(uint letter = 0; letter < variables[i]->length; ++letter) {
-                assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == id_obj_manager<cw_variable>::INVALID_ID);
+                cw_assert(var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs == id_obj_manager<cw_variable>::INVALID_ID);
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs = variables[i]->id;
                 var_intersect_table[variables[i]->origin_row + letter][variables[i]->origin_col].rhs_index = letter;
             }
@@ -280,15 +280,16 @@ void cw_csp::initialize_csp() {
     set<set<size_t> > unique_cycles;
     std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
     find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
-        assert(prev.size());
-        assert(visited.size());
-        assert(visited.size() <= 4);
+        cw_assert(prev.size());
+        cw_assert(visited.size());
+        cw_assert(visited.size() <= 4);
 
+        // this casting is dirty but guaranteed to work since constraints must only contain cw_arc
         const cw_constraint * const first_constr = constraints[prev[0              ]].get();
         const cw_constraint * const cur_constr   = constraints[prev[prev.size() - 1]].get();
         const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
         const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
-        assert(first_arc && cur_arc);
+        cw_assert(first_arc && cur_arc);
 
         const size_t first_var = first_arc->rhs;
         const size_t cur_var   = cur_arc->lhs;
@@ -296,7 +297,7 @@ void cw_csp::initialize_csp() {
         for(const size_t dep : constr_dependencies.at(cur_var)) {
             const cw_constraint * const next_constr = constraints[dep].get();
             const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
-            assert(next_arc);
+            cw_assert(next_arc);
 
             const size_t next_var = next_arc->lhs;
 
@@ -318,8 +319,8 @@ void cw_csp::initialize_csp() {
                     find_cycles(prev, visited);
                 }
 
-                assert(prev.back() == dep);
-                assert(visited.count(next_var));
+                cw_assert(prev.back() == dep);
+                cw_assert(visited.count(next_var));
                 prev.pop_back();
                 visited.erase(next_var);
             }
@@ -336,7 +337,7 @@ void cw_csp::initialize_csp() {
             for(const size_t dep : constr_dependencies.at(id)) {
                 const cw_constraint * const constr = constraints[dep].get();
                 const cw_arc * const arc = dynamic_cast<const cw_arc* const>(constr);
-                assert(arc);
+                cw_assert(arc);
 
                 vector<size_t> prev = {dep};
                 set<size_t> visited = {arc->lhs};
@@ -391,7 +392,7 @@ bool cw_csp::ac3() {
         // pop top constraint
         constr_id = constraint_queue.front();
         constraint_queue.pop();
-        assert(constraints_in_queue.count(constr_id) > 0);
+        cw_assert(constraints_in_queue.count(constr_id) > 0);
         constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
@@ -481,7 +482,7 @@ bool cw_csp::solved() const {
  * @brief getter for string representation of solved crossword to print
 */
 string cw_csp::result() const {
-    assert(solved());
+    cw_assert(solved());
     return cw.serialize_result();
 }
 
@@ -629,7 +630,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 }
                 
                 // undo adding to crossword asignment
-                assert(cw.undo_prev_write() == word.word);
+                cw_assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
                 word_stamper.set_result("fail: recursive");

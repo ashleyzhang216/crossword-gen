@@ -9,6 +9,7 @@
 
 #include "cw_csp_data_types.h"
 #include "../common/common_parent.h"
+#include "../utils/cw_utils.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
 #include "../cw_timetracker/cw_timetracker_data_types.h"
@@ -18,6 +19,7 @@
 
 using namespace cw_csp_data_types_ns;
 using namespace common_parent_ns;
+using namespace cw;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
 using namespace cw_timetracker_data_types_ns;

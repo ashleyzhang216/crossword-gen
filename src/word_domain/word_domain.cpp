@@ -58,7 +58,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             // open file
             ifstream word_file;
             word_file.open(filepath);
-            assert_m(word_file.is_open(), "could not open txt file " + filepath);
+            cw_assert_m(word_file.is_open(), "could not open txt file " + filepath);
 
             // count total number of lines in file for progress bar
             uint num_lines = 0;
@@ -95,7 +95,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
         } else if(has_suffix(filepath, ".json")) {
             // open word file, parse data
             ifstream word_file(filepath);
-            assert_m(word_file.is_open(), "could not open json file " + filepath);
+            cw_assert_m(word_file.is_open(), "could not open json file " + filepath);
             json j = json::parse(word_file);
             
             // create progress bar, now that denominator (j.size()) is known
@@ -106,7 +106,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             for(const auto& [item, data] : j.items()) {
                 // incoming json is guarenteed to be clean, besides for word length (all lowercase and alphabetical)
                 parsed_word = parse_word(item);
-                assert_m(parsed_word.has_value() && parsed_word.value() == item, ".json file input word not clean: " + item);
+                cw_assert_m(parsed_word.has_value() && parsed_word.value() == item, ".json file input word not clean: " + item);
                 word = item;
 
                 // add word
@@ -146,7 +146,7 @@ word_domain::word_domain(string name, unordered_set<word_t>&& domain)
 
     size_t word_len = 0;
     for(word_t word : domain) {
-        assert_m(word_len == 0 || word_len == word.word.size(), "word_domain set constructor includes words of unequal length");
+        cw_assert_m(word_len == 0 || word_len == word.word.size(), "word_domain set constructor includes words of unequal length");
         word_len = word.word.size();
         add_word(word);
     }
@@ -208,7 +208,7 @@ void word_domain::add_word(word_t w) {
 
             // update word counts in letters_at_indices
             for(uint i = 0; i < w.word.size(); ++i) {
-                assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
+                cw_assert('a' <= w.word.at(i) && w.word.at(i) <= 'z');
                 (*letters_at_indices)[i][static_cast<size_t>(w.word.at(i) - 'a')].num_words++;
             }
 
@@ -221,7 +221,7 @@ void word_domain::add_word(word_t w) {
             */
             std::function<void(const size_t, const string&, uint pos)> add_word_to_trie;
             add_word_to_trie = [this, &add_word_to_trie](const size_t node_idx, const string& word, uint pos) {
-                assert(node_idx < nodes.size());
+                cw_assert(node_idx < nodes.size());
 
                 // all letters added to tree
                 if(pos >= word.size()) {
@@ -229,7 +229,7 @@ void word_domain::add_word(word_t w) {
                     nodes[node_idx]->valid = true;
 
                     // update word counts in lai_subsets
-                    assert(update_lai_subsets<true, false>(node_idx) == word.size());
+                    cw_assert(update_lai_subsets<true, false>(node_idx) == word.size());
                     return;
                 }
 
@@ -325,8 +325,8 @@ unordered_set<word_t> word_domain::find_matches(const string& pattern) const {
  * @returns letters_at_indices[index][letter].num_words
 */
 uint word_domain::num_letters_at_index(uint index, char letter) const {
-    assert(index < MAX_WORD_LEN);
-    assert('a' <= letter && letter <= 'z');
+    cw_assert(index < MAX_WORD_LEN);
+    cw_assert('a' <= letter && letter <= 'z');
     if(assigned) {
         return (assigned_value.has_value() && index < assigned_value.value().word.size() && assigned_value.value().word.at(index) == letter) ? 1u : 0u;
     }
@@ -350,15 +350,15 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
 
     if(assigned) {
         if(assigned_value.has_value()) {
-            assert(required_index < assigned_value.value().word.size());
-            assert(index < assigned_value.value().word.size());
+            cw_assert(required_index < assigned_value.value().word.size());
+            cw_assert(index < assigned_value.value().word.size());
 
             if(assigned_value.value().word.at(required_index) == required_letter) {
                 res |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
             }
         }
     } else {
-        assert(index != required_index);
+        cw_assert(index != required_index);
 
         auto& target = (*letters_at_indices)[required_index][static_cast<size_t>(required_letter - 'a')].lai_subset;
         for(size_t i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
@@ -384,11 +384,11 @@ letter_bitset_t word_domain::has_letters_at_index_with_letter_assigned(uint inde
 size_t word_domain::remove_matching_words(uint index, char letter) {
     // check precondition and invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
-    assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to remove_matching_words()");
+    cw_assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to remove_matching_words()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
 
@@ -417,21 +417,21 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
         */
        std::function<uint(const size_t, uint)> remove_children;
        remove_children = [this, &remove_children](const size_t node_idx, uint index) -> uint {
-            assert((*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.count(node_idx) > 0);
+            cw_assert((*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.count(node_idx) > 0);
             (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_nodes.top().insert(node_idx); // prune, add to ac3 layer
             (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].nodes.erase(node_idx); 
 
             // base case for leaf nodes
             if(nodes[node_idx]->valid) {
                 // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
-                assert(nodes[node_idx]->children.size() == 0);
+                cw_assert(nodes[node_idx]->children.size() == 0);
 
                 // update letters_at_indices word count values
                 (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].num_words--;
                 (*letters_at_indices)[index][static_cast<size_t>(nodes[node_idx]->letter - 'a')].ac3_pruned_words.top() += 1; // prune, add to ac3 layer
 
                 // update lai_subset word count values
-                assert(update_lai_subsets<false, true>(node_idx) == index + 1);
+                cw_assert(update_lai_subsets<false, true>(node_idx) == index + 1);
 
                 // leaf node represents 1 word
                 return 1u;
@@ -504,7 +504,7 @@ size_t word_domain::remove_matching_words(uint index, char letter) {
             if(nodes[node_idx]->parent != id_obj_manager<trie_node>::INVALID_ID) {
                 // downwards removal in trie
                 num_leafs = remove_children(node_idx, index);
-                assert(num_leafs > 0);
+                cw_assert(num_leafs > 0);
                 total_leafs += num_leafs;
 
                 // upwards removal in trie
@@ -529,8 +529,8 @@ void word_domain::start_new_ac3_call() {
     size_t stack_depth = ac3_pruned_assigned_val.size();
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
 
@@ -552,11 +552,11 @@ void word_domain::start_new_ac3_call() {
 size_t word_domain::undo_prev_ac3_call() {
     // check precondition and invariant
     size_t stack_depth = ac3_pruned_assigned_val.size();
-    assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
+    cw_assert_m(stack_depth > 0, "ac3_pruned_assigned_val depth is 0 upon call to undo_prev_ac3_call()");
     for(uint i = 0; i < MAX_WORD_LEN; i++) {
         for(uint j = 0; j < NUM_ENGLISH_LETTERS; j++) {
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
-            assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_nodes.size() == stack_depth, "stack depth invariant violated for ac3_pruned_nodes");
+            cw_assert_m((*letters_at_indices)[i][j].ac3_pruned_words.size() == stack_depth, "stack depth invariant violated for ac3_pruned_words");
         }
     }
     
@@ -576,8 +576,8 @@ size_t word_domain::undo_prev_ac3_call() {
             for(const size_t node_idx : (*letters_at_indices)[i][j].ac3_pruned_nodes.top()) {
                 const size_t parent = nodes[node_idx]->parent;
                 if(parent != id_obj_manager<trie_node>::INVALID_ID) {
-                    assert_m(i == 0 || (*letters_at_indices)[i-1][static_cast<size_t>(nodes[parent]->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
-                    assert_m(nodes[parent]->children.count(nodes[node_idx]->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
+                    cw_assert_m(i == 0 || (*letters_at_indices)[i-1][static_cast<size_t>(nodes[parent]->letter - 'a')].nodes.count(parent) > 0, "parent node not yet restored in undo_prev_ac3_call() call");
+                    cw_assert_m(nodes[parent]->children.count(nodes[node_idx]->letter) == 0, "parent node still contains edge to child in undo_prev_ac3_call() call");
                     nodes[parent]->children.insert({nodes[node_idx]->letter, node_idx});
                 } else {
                     utils.log(ERROR, "parent of node index ", i, ", letter ", j, " deleted early during restoration");
@@ -585,8 +585,8 @@ size_t word_domain::undo_prev_ac3_call() {
 
                 // update lai_subsets word counts
                 if(nodes[node_idx]->valid) {
-                    assert(nodes[node_idx]->children.size() == 0);
-                    assert(update_lai_subsets<true, true>(node_idx) == i + 1);
+                    cw_assert(nodes[node_idx]->children.size() == 0);
+                    cw_assert(update_lai_subsets<true, true>(node_idx) == i + 1);
                 }
             }
             (*letters_at_indices)[i][j].ac3_pruned_nodes.pop();
@@ -596,17 +596,17 @@ size_t word_domain::undo_prev_ac3_call() {
             num_restored_per_index += (*letters_at_indices)[i][j].ac3_pruned_words.top();
             (*letters_at_indices)[i][j].ac3_pruned_words.pop();
         }
-        assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
+        cw_assert_m(i == 0 || num_restored_per_index == 0 || num_restored == num_restored_per_index, "restoring unequal # of words per index in undo_prev_ac3_call() call");
         if(num_restored_per_index != 0) num_restored = num_restored_per_index;
     }
-    if(num_restored > 0) assert_m(!assigned, "assigned upon restoring nonzero values in undo_prev_ac3_call() call");
+    if(num_restored > 0) cw_assert_m(!assigned, "assigned upon restoring nonzero values in undo_prev_ac3_call() call");
     
     // restore assigned value
     optional<word_t> popped_assignment = ac3_pruned_assigned_val.top();
     ac3_pruned_assigned_val.pop();
     if(popped_assignment.has_value()) {
-        assert_m(num_restored == 0, "restoring to letters_at_indices and assigned_value in undo_prev_ac3_call() call");
-        assert_m(assigned, "not assigned upon restoring assigned value in undo_prev_ac3_call() call");
+        cw_assert_m(num_restored == 0, "restoring to letters_at_indices and assigned_value in undo_prev_ac3_call() call");
+        cw_assert_m(assigned, "not assigned upon restoring assigned value in undo_prev_ac3_call() call");
         assigned_value = popped_assignment.value();
         return 1; // return early to bypass updating unassigned_domain_size since it's undefined if assigned
     }
@@ -631,12 +631,12 @@ size_t word_domain::size() const {
  * @returns bitset where true --> corresponding letter appears  at specified index in current domain (taking into account assignment) 
 */
 letter_bitset_t word_domain::get_all_letters_at_index(uint index) const {
-    assert_m(index < MAX_WORD_LEN, "index out of bounds of max word length");
+    cw_assert_m(index < MAX_WORD_LEN, "index out of bounds of max word length");
 
     letter_bitset_t result;
     if(assigned) {
         if(assigned_value.has_value()) {
-            assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
+            cw_assert_m(index < assigned_value.value().word.size(), "index out of bounds in letters_at_index() call");
             
             result |= 1 << static_cast<uint>(assigned_value.value().word.at(index) - 'a');
         }
@@ -675,7 +675,7 @@ vector<word_t> word_domain::get_cur_domain() const {
         // base case for leaf nodes
         if(nodes[node_idx]->valid) {
             // terminates valid word, assumed to be a leaf node since all domain values in cw_variable are equal length
-            assert(nodes[node_idx]->children.size() == 0);
+            cw_assert(nodes[node_idx]->children.size() == 0);
 
             acc.push_back(word_map.at(fragment_with_cur_node));
             return;
@@ -702,10 +702,10 @@ vector<word_t> word_domain::get_cur_domain() const {
 */
 template <bool Add, bool AssumeFixedSizeWords>
 size_t word_domain::update_lai_subsets(const size_t leaf) {
-    assert(leaf != id_obj_manager<trie_node>::INVALID_ID);
-    assert(nodes[leaf]->valid);
+    cw_assert(leaf != id_obj_manager<trie_node>::INVALID_ID);
+    cw_assert(nodes[leaf]->valid);
     if constexpr(AssumeFixedSizeWords) {
-        assert(nodes[leaf]->children.size() == 0);
+        cw_assert(nodes[leaf]->children.size() == 0);
     }
 
     /**
@@ -714,7 +714,7 @@ size_t word_domain::update_lai_subsets(const size_t leaf) {
     std::function<void(vector<size_t>&, const size_t)> get_leaf_path;
     get_leaf_path = [this, &get_leaf_path](vector<size_t>& path, const size_t cur) {
         if(cur != TRIE_ROOT_NODE_IDX) {
-            assert(cur != id_obj_manager<trie_node>::INVALID_ID);
+            cw_assert(cur != id_obj_manager<trie_node>::INVALID_ID);
             get_leaf_path(path, nodes[cur]->parent);
             path.push_back(cur);
         }
@@ -723,7 +723,7 @@ size_t word_domain::update_lai_subsets(const size_t leaf) {
     // get path to leaf node
     vector<size_t> path;
     get_leaf_path(path, leaf);
-    assert(path.size() >= MIN_WORD_LEN && path.size() <= MAX_WORD_LEN);
+    cw_assert(path.size() >= MIN_WORD_LEN && path.size() <= MAX_WORD_LEN);
     
     // update lai_subset for each letter/index pair in path
     for(size_t i = 0; i < path.size(); ++i) {
@@ -741,7 +741,7 @@ size_t word_domain::update_lai_subsets(const size_t leaf) {
             if constexpr(Add) {
                 (*target)[j_idx][j_letter]++;
             } else {
-                assert((*target)[j_idx][j_letter] != 0);
+                cw_assert((*target)[j_idx][j_letter] != 0);
                 (*target)[j_idx][j_letter]--;
             }
         }
@@ -765,7 +765,7 @@ word_domain::word_domain(const word_domain& other)
       assigned(other.assigned),
       assigned_value(other.assigned_value) {
 
-    assert(letters_at_indices);
+    cw_assert(letters_at_indices);
 }
 word_domain& word_domain::operator=(const word_domain& other) {
     if(this != &other) {

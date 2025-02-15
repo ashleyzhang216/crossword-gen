@@ -12,6 +12,7 @@
 
 using namespace crossword_data_types_ns;
 using namespace common_parent_ns;
+using namespace cw;
 
 namespace crossword_ns {
     /**
