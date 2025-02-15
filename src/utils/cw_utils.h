@@ -7,12 +7,6 @@
 #ifndef CW_UTILS_H
 #define CW_UTILS_H
 
-#include "../common/common_data_types.h"
-
-using namespace common_data_types_ns;
-
-// ############### all cw utilities ###############
-
 #include "cw_assert.hpp"
 #include "cw_containers.hpp"
 #include "cw_logging.hpp"

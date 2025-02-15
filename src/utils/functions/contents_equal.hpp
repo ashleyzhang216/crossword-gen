@@ -7,6 +7,11 @@
 #ifndef CW_CONTENTS_EQUAL_HPP
 #define CW_CONTENTS_EQUAL_HPP
 
+#include "../../common/common_data_types.h"
+#include "../cw_logging.hpp"
+
+using namespace common_data_types_ns;
+
 namespace cw {
     /**
      * @brief template function to compare contents of hashsets for testing, T must have << operator defined

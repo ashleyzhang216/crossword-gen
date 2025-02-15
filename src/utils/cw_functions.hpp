@@ -7,7 +7,7 @@
 #ifndef CW_FUNCTIONS_HPP
 #define CW_FUNCTIONS_HPP
 
-#include "functions/contents_equal.hpp"
 #include "functions/construct_unique.hpp"
+#include "functions/contents_equal.hpp"
 
 #endif // CW_FUNCTIONS_HPP

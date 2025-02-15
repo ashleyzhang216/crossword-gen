@@ -7,6 +7,10 @@
 #ifndef CW_CONSTRUCT_UNIQUE_HPP
 #define CW_CONSTRUCT_UNIQUE_HPP
 
+#include "../../common/common_data_types.h"
+
+using namespace common_data_types_ns;
+
 namespace cw {
     /**
      * @cite https://stackoverflow.com/a/73674943
