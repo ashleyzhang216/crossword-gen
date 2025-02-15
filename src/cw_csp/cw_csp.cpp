@@ -478,32 +478,32 @@ bool cw_csp::ac3() {
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
         unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
 
-        // DEBUG, test if different ordering of same vars in cycle are equivalent
-        auto cur_deps = constraints[constr_id]->dependencies();
-        if(cur_deps.size() > cw_cycle::MIN_CYCLE_LEN) {
-            for(size_t id : constraints.ids()) {
-                if(id != constr_id) {
-                    auto next_deps = constraints[id]->dependencies();
-                    if(next_deps.size() > cw_cycle::MIN_CYCLE_LEN) {
-                        if(set_contents_equal(cur_deps, next_deps, false)) {
-                            if(!constraints[constr_id]->equals(*constraints[id])) {
-                                cout << "puppies" << endl;
-                                cout << *constraints[constr_id] << endl;
-                                cout << *constraints[id] << endl;
-                                cout << endl;
-                            } else {
-                                cout << "equal" << endl;
-                                cout << *constraints[constr_id] << endl;
-                                cout << *constraints[id] << endl;
-                                cout << endl;
-                            }
-                            auto next_modified = constraints[id]->prune_domain(variables);
-                            assert(next_modified.size() == 0);
-                        }
-                    }
-                }
-            }
-        }
+        // // DEBUG, test if different ordering of same vars in cycle are equivalent
+        // auto cur_deps = constraints[constr_id]->dependencies();
+        // if(cur_deps.size() > cw_cycle::MIN_CYCLE_LEN) {
+        //     for(size_t id : constraints.ids()) {
+        //         if(id != constr_id) {
+        //             auto next_deps = constraints[id]->dependencies();
+        //             if(next_deps.size() > cw_cycle::MIN_CYCLE_LEN) {
+        //                 if(set_contents_equal(cur_deps, next_deps, false)) {
+        //                     if(!constraints[constr_id]->equals(*constraints[id])) {
+        //                         cout << "puppies" << endl;
+        //                         cout << *constraints[constr_id] << endl;
+        //                         cout << *constraints[id] << endl;
+        //                         cout << endl;
+        //                     } else {
+        //                         cout << "equal" << endl;
+        //                         cout << *constraints[constr_id] << endl;
+        //                         cout << *constraints[id] << endl;
+        //                         cout << endl;
+        //                     }
+        //                     auto next_modified = constraints[id]->prune_domain(variables);
+        //                     assert(next_modified.size() == 0);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
