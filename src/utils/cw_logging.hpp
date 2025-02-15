@@ -229,7 +229,7 @@ namespace cw {
         if(!bar_mx.try_lock()) {
             log(FATAL, "Support for multiple bars requested and is unimplemented");
         }
-        assert(!bar.has_value());
+        cw_assert(!bar.has_value());
         bar.emplace(line_width, msg, symbol_full, symbol_empty);
         request_write_bar(0.0);
     }
@@ -249,7 +249,7 @@ namespace cw {
      * @pre print_mx has been locked for this operation
     */
     inline void cw_utils::write_bar(double fraction) const {
-        assert(bar.has_value());
+        cw_assert(bar.has_value());
         if(fraction < 0) fraction = 0;
         else if(fraction > 1) fraction = 1;
 
@@ -267,8 +267,8 @@ namespace cw {
     */
     inline void cw_utils::end_bar() {
         lock_guard print_lg(print_mx);
-        assert(bar.has_value());
-        assert(!bar_mx.try_lock());
+        cw_assert(bar.has_value());
+        cw_assert(!bar_mx.try_lock());
 
         write_bar(1.0);
         cout << endl;
@@ -289,7 +289,7 @@ namespace cw {
             msg(string(msg) + " ["),
             full_bar(string(bar_width, symbol_full) + string(bar_width, symbol_empty)),
             bar_flusher('\r' + string(line_width, ' ') + '\r') {
-        assert(this->msg.size() < bar_width && msg.find('\n') == msg.npos);
+        cw_assert(this->msg.size() < bar_width && msg.find('\n') == msg.npos);
     }
 
     /**
