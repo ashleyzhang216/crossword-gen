@@ -8,7 +8,7 @@
 #define CW_UTILS_H
 
 #include "../common/common_data_types.h"
-#include "cw_assert.h"
+#include "cw_assert.hpp"
 
 using namespace common_data_types_ns;
 
