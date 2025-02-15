@@ -4,8 +4,8 @@
 // Description: cw custom asserts
 // ==================================================================
 
-#ifndef CW_ASSERT_H
-#define CW_ASSERT_H
+#ifndef CW_ASSERT_HPP
+#define CW_ASSERT_HPP
 
 #include "../common/common_data_types.h"
 
@@ -45,4 +45,4 @@ namespace cw {
     }                                                                                                        \
 } while(0)
 
-#endif // CW_ASSERT_H
+#endif // CW_ASSERT_HPP
