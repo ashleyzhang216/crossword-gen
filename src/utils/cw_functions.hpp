@@ -1,12 +1,13 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   2/15/2025
-// Description: umbrella header for cw custom containers
+// Description: umbrella header for cw functions
 // ==================================================================
 
-#ifndef CW_CONTAINERS_HPP
-#define CW_CONTAINERS_HPP
+#ifndef CW_FUNCTIONS_HPP
+#define CW_FUNCTIONS_HPP
 
-#include "containers/id_obj_manager.hpp"
+#include "functions/contents_equal.hpp"
+#include "functions/construct_unique.hpp"
 
-#endif // CW_CONTAINERS_HPP
+#endif // CW_FUNCTIONS_HPP

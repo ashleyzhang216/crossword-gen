@@ -14,5 +14,3 @@ using namespace cw;
 
 // ############### set_contents_equal() ###############
 
-template bool set_contents_equal<string>(const unordered_set<string>& lhs, const unordered_set<string>& rhs, bool debug_prints);
-template bool set_contents_equal<word_t>(const unordered_set<word_t>& lhs, const unordered_set<word_t>& rhs, bool debug_prints);

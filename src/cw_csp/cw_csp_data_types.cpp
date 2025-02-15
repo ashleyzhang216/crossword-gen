@@ -8,27 +8,6 @@
 
 using namespace cw_csp_data_types_ns;
 
-// ############### set_contents_equal() ###############
-
-template bool set_contents_equal<unique_ptr<cw_variable> >(
-    const unordered_set<unique_ptr<cw_variable> >& lhs, 
-    const unordered_set<unique_ptr<cw_variable> >& rhs, 
-    bool debug_prints
-);
-template bool set_contents_equal<unique_ptr<cw_constraint> >(
-    const unordered_set<unique_ptr<cw_constraint> >& lhs, 
-    const unordered_set<unique_ptr<cw_constraint> >& rhs, 
-    bool debug_prints
-);
-
-// ############### map_to_set_contents_equal() ###############
-
-template bool map_to_set_contents_equal(
-    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& lhs, 
-    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& rhs, 
-    bool debug_prints
-);
-
 // ############### cw_variable ###############
 
 /**
