@@ -7,9 +7,13 @@
 #ifndef WORD_DOMAIN_H
 #define WORD_DOMAIN_H
 
+#include "../common/common_data_types.h"
+#include "../utils/cw_utils.h"
 #include "word_domain_data_types.h"
 #include "../common/common_parent.h"
 
+using namespace common_data_types_ns;
+using namespace cw;
 using namespace word_domain_data_types_ns;
 using namespace common_parent_ns;
 
@@ -76,7 +80,7 @@ namespace word_domain_ns {
             vector<word_t> get_cur_domain() const;
 
             // expose letters_at_indicies for testing
-            letter_idx_table<letters_table_entry> get_letters_at_indices() const { assert(letters_at_indices); return *letters_at_indices; }
+            letter_idx_table<letters_table_entry> get_letters_at_indices() const { cw_assert(letters_at_indices); return *letters_at_indices; }
 
             // expose word_map for testing, undefined if domain assigned
             unordered_map<string, word_t>& get_word_map() { return word_map; }

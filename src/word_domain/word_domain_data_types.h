@@ -8,10 +8,12 @@
 #define WORD_DOMAIN_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
-#include "../lib/src/json.hpp"
 #include "../utils/cw_utils.h"
+#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
+using namespace cw;
+
 using json = nlohmann::json;
 
 namespace word_domain_data_types_ns {

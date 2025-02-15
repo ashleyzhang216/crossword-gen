@@ -11,6 +11,7 @@
 #include "../utils/cw_utils.h"
 
 using namespace common_data_types_ns;
+using namespace cw;
 
 namespace crossword_data_types_ns {
     

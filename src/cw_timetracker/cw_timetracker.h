@@ -8,10 +8,12 @@
 #define CW_TIMETRACKER_H
 
 #include "../common/common_data_types.h"
+#include "../utils/cw_utils.h"
 #include "cw_timetracker_data_types.h"
 #include "../common/common_parent.h"
 
 using namespace common_data_types_ns;
+using namespace cw;
 using namespace cw_timetracker_data_types_ns;
 using namespace common_parent_ns;
 

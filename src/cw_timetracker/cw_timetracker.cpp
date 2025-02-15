@@ -36,9 +36,9 @@ cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const sh
  * @param r optional message for why/how this timestep ended
 */
 void cw_timestep::resolve(size_t expected_id, const optional<string>& r) {
-    assert(id == expected_id);
-    assert(!resolved());
-    assert(children.empty() || children.back()->resolved());
+    cw_assert(id == expected_id);
+    cw_assert(!resolved());
+    cw_assert(children.empty() || children.back()->resolved());
 
     if(r != "") result = r;
     end = high_resolution_clock::now();
@@ -69,9 +69,9 @@ cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_p
 */
 size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
     if(enabled) {
-        assert(cur);
-        assert(!cur->resolved());
-        assert(cur->children.empty() || cur->children.back()->resolved());
+        cw_assert(cur);
+        cw_assert(!cur->resolved());
+        cw_assert(cur->children.empty() || cur->children.back()->resolved());
 
         // add next layer
         cur->children.push_back(make_shared<cw_timestep>(type, name, next_id, cur));
@@ -90,9 +90,9 @@ size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
 */
 void cw_timetracker::end_timestep(size_t id, const optional<string>& result) {
     if(enabled) {
-        assert(cur);
+        cw_assert(cur);
         cur->resolve(id, result);
-        assert(cur == root || (cur = cur->prev.lock()));
+        cw_assert(cur == root || (cur = cur->prev.lock()));
     }
 }
 
@@ -101,9 +101,9 @@ void cw_timetracker::end_timestep(size_t id, const optional<string>& result) {
 */
 void cw_timetracker::save_results(const string& filepath) {
     if(enabled) {
-        assert(root);
-        assert(root == cur);
-        assert(!root->resolved());
+        cw_assert(root);
+        cw_assert(root == cur);
+        cw_assert(!root->resolved());
         end_timestep(0ul, std::nullopt);
 
         ordered_json j = root;
@@ -115,7 +115,7 @@ void cw_timetracker::save_results(const string& filepath) {
 // ############### json conversion ###############
 
 void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step) {
-    assert(step->end.has_value());
+    cw_assert(step->end.has_value());
     j["type"] = step->type;
     j["name"] = step->name;
     j["result"] = step->result.value_or("");

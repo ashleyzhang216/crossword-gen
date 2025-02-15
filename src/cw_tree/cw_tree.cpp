@@ -32,7 +32,7 @@ cw_tree::cw_tree(const string& name, crossword&& grid, const string& filepath, b
  * @param num_solutions maximum number of solutions to return
  */
 vector<string> cw_tree::solve(size_t num_solutions) {
-    assert(num_solutions > 0);
+    cw_assert(num_solutions > 0);
     vector<string> result;
     unordered_set<string> explored_grids;
     size_t num_explored = 0ul;
@@ -48,7 +48,7 @@ vector<string> cw_tree::solve(size_t num_solutions) {
         if(cur_idx < cur_layer.size()) {
             // still have more csps to process in current layer
             if(cur_layer.at(cur_idx).solve(BACKTRACKING, MIN_REMAINING_VALUES)) {
-                assert(cur_layer.at(cur_idx).solved());
+                cw_assert(cur_layer.at(cur_idx).solved());
                 result.push_back(cur_layer.at(cur_idx).result());
                 --num_solutions;
             }

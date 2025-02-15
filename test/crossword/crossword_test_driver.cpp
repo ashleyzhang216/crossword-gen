@@ -75,7 +75,7 @@ bool crossword_test_driver::test_constructor_contents_string(uint length, uint h
  * @return true iff successful
 */
 bool crossword_test_driver::test_modification(uint length, uint height, const string& contents, vector<word_assignment>& assignments, const vector<string>& ground_truth) {
-    assert(assignments.size() == ground_truth.size());
+    cw_assert(assignments.size() == ground_truth.size());
 
     stringstream dut_name;
     dut_name << name << " test_modification(): " << length << ", " << height;
@@ -110,7 +110,7 @@ bool crossword_test_driver::test_modification(uint length, uint height, const st
  * @brief returns new string with a std::endl inserted before every 'length' chars and a space after every char
 */
 string crossword_test_driver_ns::construct_cw_output(const string& ground_truth, uint length) {
-    assert(ground_truth.size() % length == 0);
+    cw_assert(ground_truth.size() % length == 0);
 
     stringstream result;
     for(size_t i = 0; i < ground_truth.size(); i += length) {

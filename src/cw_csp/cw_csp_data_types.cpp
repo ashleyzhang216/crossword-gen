@@ -8,27 +8,6 @@
 
 using namespace cw_csp_data_types_ns;
 
-// ############### set_contents_equal() ###############
-
-template bool set_contents_equal<unique_ptr<cw_variable> >(
-    const unordered_set<unique_ptr<cw_variable> >& lhs, 
-    const unordered_set<unique_ptr<cw_variable> >& rhs, 
-    bool debug_prints
-);
-template bool set_contents_equal<unique_ptr<cw_constraint> >(
-    const unordered_set<unique_ptr<cw_constraint> >& lhs, 
-    const unordered_set<unique_ptr<cw_constraint> >& rhs, 
-    bool debug_prints
-);
-
-// ############### map_to_set_contents_equal() ###############
-
-template bool map_to_set_contents_equal(
-    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& lhs, 
-    const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& rhs, 
-    bool debug_prints
-);
-
 // ############### cw_variable ###############
 
 /**
@@ -169,7 +148,7 @@ ostream& cw_csp_data_types_ns::operator<<(ostream& os, const cw_constraint& var)
 */
 size_t std::hash<unique_ptr<cw_constraint> >::operator()(const unique_ptr<cw_constraint>& constr) const {
     auto intersections = constr->intersection_indices();
-    assert(intersections.size() > 0);
+    cw_assert(intersections.size() > 0);
 
     size_t h = 0ul;
     for(const auto& intersection : intersections) {
@@ -229,7 +208,7 @@ unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
         if(lhs_letters[i] && !rhs_letters[i]) {
             // cannot satisfy constraint for this letter
-            assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
+            cw_assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
             result.insert(lhs);
         }
     }
@@ -250,8 +229,8 @@ bool cw_arc::satisfied(const id_obj_manager<cw_variable>& vars) const {
     // since ac3() undoes invalid assignments, this should always be true
     const string lhs_word = vars[lhs]->domain.get_cur_domain().at(0).word;
     const string rhs_word = vars[rhs]->domain.get_cur_domain().at(0).word;
-    assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
-    assert_m(lhs_word.at(lhs_index) == rhs_word.at(rhs_index), "letter inequality at constraint");
+    cw_assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
+    cw_assert_m(lhs_word.at(lhs_index) == rhs_word.at(rhs_index), "letter inequality at constraint");
 
     return true;
 }
@@ -270,7 +249,7 @@ bool cw_arc::invalid(const id_obj_manager<cw_variable>& vars) const {
  * @brief get ids of variables upon which this constraint is dependent 
 */
 unordered_set<size_t> cw_arc::dependencies() const {
-    assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
+    cw_assert(rhs != id_obj_manager<cw_variable>::INVALID_ID);
     return {rhs};
 }
 
@@ -278,7 +257,7 @@ unordered_set<size_t> cw_arc::dependencies() const {
  * @brief get id of variable upon which other constraints may be dependent
 */
 unordered_set<size_t> cw_arc::dependents() const {
-    assert(lhs != id_obj_manager<cw_variable>::INVALID_ID);
+    cw_assert(lhs != id_obj_manager<cw_variable>::INVALID_ID);
     return {lhs};
 }
 
@@ -305,7 +284,7 @@ vector<pair<uint, uint> > cw_arc::intersection_tiles(const id_obj_manager<cw_var
         vars[rhs]->origin_col + (vars[rhs]->dir == ACROSS ? rhs_index : 0u)
     );
 
-    assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
+    cw_assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
     return {lhs_tile};
 }
 
@@ -318,10 +297,10 @@ vector<pair<uint, uint> > cw_arc::intersection_tiles(const id_obj_manager<cw_var
 bool cw_cycle::equals(const cw_constraint& other_constr) const {
     const cw_cycle& other = static_cast<const cw_cycle&>(other_constr);
 
-    assert(var_cycle.size() == CYCLE_LEN);
-    assert(other.var_cycle.size() == CYCLE_LEN);
-    assert(intersections.size() == CYCLE_LEN);
-    assert(other.intersections.size() == CYCLE_LEN);
+    cw_assert(var_cycle.size() == CYCLE_LEN);
+    cw_assert(other.var_cycle.size() == CYCLE_LEN);
+    cw_assert(intersections.size() == CYCLE_LEN);
+    cw_assert(other.intersections.size() == CYCLE_LEN);
 
     // all elements line up
     auto exact_match = [this, &other](size_t shift, bool reverse_dir) -> bool {
@@ -371,7 +350,7 @@ void cw_cycle::serialize(ostream& os) const {
  * @param arcs nonempty vec of arc indices in constrs to construct this cw_cycle from, in reverse order
 */
 cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, const vector<size_t>& arcs) : cw_constraint(id) {
-    assert(arcs.size() == CYCLE_LEN);
+    cw_assert(arcs.size() == CYCLE_LEN);
 
     // for checking invariant
     unordered_set<size_t> visited;
@@ -388,10 +367,10 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         const cw_constraint * const next_constr = constrs[arcs[next_idx]].get();
         const cw_arc * const curr_arc = dynamic_cast<const cw_arc* const>(curr_constr);
         const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
-        assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
+        cw_assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
 
         // enforce no double-visiting
-        assert(visited.count(curr_arc->lhs) == 0);
+        cw_assert(visited.count(curr_arc->lhs) == 0);
         visited.insert(curr_arc->lhs);
 
         // add to cycle path
@@ -399,8 +378,8 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         intersections.push_back({curr_arc->lhs_index, curr_arc->rhs_index});
     }
 
-    assert(var_cycle.size() == CYCLE_LEN);
-    assert(intersections.size() == CYCLE_LEN);
+    cw_assert(var_cycle.size() == CYCLE_LEN);
+    cw_assert(intersections.size() == CYCLE_LEN);
 }
 
 /**
@@ -416,9 +395,9 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
     : cw_constraint(id),
       var_cycle(var_cycle),
       intersections(intersections) {
-    assert(var_cycle.size() == CYCLE_LEN); // complete cycle
-    assert(intersections.size() == CYCLE_LEN); // one intersection per step between vars
-    assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
+    cw_assert(var_cycle.size() == CYCLE_LEN); // complete cycle
+    cw_assert(intersections.size() == CYCLE_LEN); // one intersection per step between vars
+    cw_assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }
 
 /**
@@ -564,13 +543,13 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
 
             // double check that no node that doesn't exist is marked as reachable
             letter_bitset_t no_node = ~letter_nodes[i];
-            assert(!(reachable[i] & no_node).any());
+            cw_assert(!(reachable[i] & no_node).any());
         }
 
         // check that all non root layers of reachable are all either reachable or unreachable together
         bool cycles_exist = reachable[(idx + 1) % CYCLE_LEN].any();
         for(size_t i = 2; i < CYCLE_LEN; ++i) {
-            assert(cycles_exist == reachable[(idx + i) % CYCLE_LEN].any());
+            cw_assert(cycles_exist == reachable[(idx + i) % CYCLE_LEN].any());
         }
 
         // if cycles exist, then all nodes in reachable are part of a CYCLE_LEN cycle containing then target node
@@ -635,8 +614,8 @@ bool cw_cycle::satisfied(const id_obj_manager<cw_variable>& vars) const {
         // invalid assignments are undone, so this should always be true
         const string lhs_word = vars[var_cycle[i]                  ]->domain.get_cur_domain().at(0).word;
         const string rhs_word = vars[var_cycle[(i + 1) % CYCLE_LEN]]->domain.get_cur_domain().at(0).word;
-        assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
-        assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
+        cw_assert_m(lhs_word != rhs_word, "word equality between constrainted vars");
+        cw_assert_m(lhs_word.at(intersections[i].first) == rhs_word.at(intersections[i].second), "letter inequality at constraint");
     }
 
     return true;
@@ -700,7 +679,7 @@ vector<pair<uint, uint> > cw_cycle::intersection_tiles(const id_obj_manager<cw_v
             vars[rhs]->origin_col + (vars[rhs]->dir == ACROSS ? intersections[i].second : 0u)
         );
 
-        assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
+        cw_assert(lhs_tile.first == rhs_tile.first && lhs_tile.second == rhs_tile.second);
         res.push_back(lhs_tile);
     }
 

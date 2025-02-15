@@ -17,6 +17,7 @@
 
 using namespace common_parent_ns;
 using namespace common_data_types_ns;
+using namespace cw;
 using namespace crossword_ns;
 using namespace cw_tree_ns;
 using namespace cw_gen_data_types_ns;

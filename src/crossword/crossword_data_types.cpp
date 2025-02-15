@@ -15,7 +15,7 @@ using namespace crossword_data_types_ns;
  * @return TILE_EMPTY iff c == WILDCARD, TILE_BLACK iff c == BLACK, TILE_FILLED otherwise
 */
 cw_tile_type crossword_data_types_ns::char_to_tile_type(const char& c) {
-    assert(c == WILDCARD || c == BLACK || (c >= 'a' && c <= 'z'));
+    cw_assert(c == WILDCARD || c == BLACK || (c >= 'a' && c <= 'z'));
     if(c == WILDCARD) return TILE_EMPTY;
     if(c == BLACK) return TILE_BLACK;
     return TILE_FILLED;
@@ -37,11 +37,11 @@ cw_tile::cw_tile(char c)
  * @brief set this fillable tile to black, without changing the input val
  */
 void cw_tile::set_black() {
-    assert(type != TILE_BLACK);
+    cw_assert(type != TILE_BLACK);
 
     initial_val = BLACK;
     type = char_to_tile_type(initial_val);
-    assert(type == TILE_BLACK);
+    cw_assert(type == TILE_BLACK);
 
     across.reset();
     down.reset();
@@ -92,8 +92,8 @@ permutation_score::permutation_score(const vector<uint>& ol, const vector<uint>&
       loc(l) {
 
     // only should measure adjacent 8 tiles
-    for(auto v : n) assert(v <= NUM_ADJACENT_TILES);
-    for(auto v : c) assert(v <= NUM_ADJACENT_TILES);
+    for(auto v : n) cw_assert(v <= NUM_ADJACENT_TILES);
+    for(auto v : c) cw_assert(v <= NUM_ADJACENT_TILES);
 
     // sort for easy comparison operator later
     std::sort(old_lens.begin(), old_lens.end());

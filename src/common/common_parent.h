@@ -10,6 +10,9 @@
 #include "common_data_types.h"
 #include "../utils/cw_utils.h"
 
+using namespace common_data_types_ns;
+using namespace cw;
+
 namespace common_parent_ns {
     /**
      * @brief common class that all classes/test drivers inherit for universal utility access
@@ -23,7 +26,7 @@ namespace common_parent_ns {
             bool check_condition(const string_view& condition_name, bool condition);
 
         protected:
-            cw_utils utils;
+            cw::cw_utils utils;
             string name;
             verbosity_t verbosity;
     };

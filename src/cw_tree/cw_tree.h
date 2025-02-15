@@ -7,13 +7,14 @@
 #ifndef CW_TREE_H
 #define CW_TREE_H
 
-#include "../common/common_parent.h"
 #include "../common/common_data_types.h"
-#include "../cw_csp/cw_csp.h"
 #include "../utils/cw_utils.h"
+#include "../common/common_parent.h"
+#include "../cw_csp/cw_csp.h"
 
-using namespace common_parent_ns;
 using namespace common_data_types_ns;
+using namespace cw;
+using namespace common_parent_ns;
 using namespace cw_csp_ns;
 
 namespace cw_tree_ns {

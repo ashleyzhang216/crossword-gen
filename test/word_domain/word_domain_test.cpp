@@ -483,7 +483,7 @@ TEST_CASE("word_domain adding_removing_assigning-letters_at_indicies", "[word_do
 TEST_CASE("word_domain remove_matching_words-max_length-letters_at_indicies", "[word_domain],[slow]") {
     shared_ptr<word_domain_test_driver> driver = make_shared<word_domain_test_driver>("word_domain_test_driver-remove_matching_words-max_length-letters_at_indicies");
 
-    assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
+    cw_assert_m(MAX_WORD_LEN <= 32, "value of MAX_WORD_LEN exceeds bit width, update test");
 
     // for this test, add every possible max length word composed only of letters a and b
     vector<string> fragments = {""};
@@ -497,7 +497,7 @@ TEST_CASE("word_domain remove_matching_words-max_length-letters_at_indicies", "[
     }
     vector<word_t> init_words;
     for(string word : fragments) init_words.push_back(word_t(word));
-    assert_m(init_words.size() == 1 << MAX_WORD_LEN, "incorrect size of init_words");
+    cw_assert_m(init_words.size() == 1 << MAX_WORD_LEN, "incorrect size of init_words");
 
     driver->add_words(init_words);
 
