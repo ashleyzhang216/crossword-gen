@@ -8,6 +8,7 @@
 #define CW_UTILS_H
 
 #include "../common/common_data_types.h"
+#include "cw_assert.h"
 
 using namespace common_data_types_ns;
 
@@ -27,42 +28,8 @@ extern unordered_map<verbosity_t, string> verbosity_type_to_name;
 extern verbosity_t VERBOSITY;
 
 namespace cw {
-    struct assertion_failure_exception : public exception {
-        public:
-            explicit assertion_failure_exception(const std::string& msg) : message(msg) {}
-
-            const char* what() const noexcept override {
-                return message.c_str();
-            }
-
-        private:
-            std::string message;
-    };
-}
-
-#undef cw_assert
-#define cw_assert(...) do {                                                      \
-    if (!(__VA_ARGS__)) [[unlikely]] {                                           \
-        std::stringstream ss;                                                    \
-        ss << "\nAssertion failed\n"                                             \
-           << "File: " << __FILE__ << ": " << std::dec << __LINE__ << std::endl; \
-        throw cw::assertion_failure_exception(ss.str());                         \
-    }                                                                            \
-} while(0)
-
-#undef cw_assert_m
-#define cw_assert_m(cond, ...) do {                                                                          \
-    if (!(cond)) [[unlikely]] {                                                                              \
-        std::stringstream ss;                                                                                \
-        ss << "\nAssertion failed\n"                                                                         \
-           << "File: " << __FILE__ << ": " << std::dec << __LINE__ << ", Msg: " << __VA_ARGS__ << std::endl; \
-        throw cw::assertion_failure_exception(ss.str());                                                     \
-    }                                                                                                        \
-} while(0)
-
-namespace cw {
     /**
-     * @brief object to handle message logging, and other functionalities in the future
+     * @brief object to handle message logging and progress bars
     */
     class cw_utils {
         public:
