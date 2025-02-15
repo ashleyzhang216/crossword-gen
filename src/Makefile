@@ -35,7 +35,6 @@ clean :
 # path of where object files will be created
 OFILES = \
 		common_data_types.o \
-		cw_utils.o \
 		common_parent.o \
 		\
 		crossword.o \
