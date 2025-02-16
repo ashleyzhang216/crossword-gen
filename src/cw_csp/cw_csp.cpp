@@ -610,11 +610,8 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
         case MIN_REMAINING_VALUES: {
                 size_t min_num_values = UINT_MAX;
                 for(unique_ptr<cw_variable>& var : variables) {
-                    // if this variable is unassigned AND (no other variable selected OR has fewer remaining values in domain)
-                    if(
-                        !var->domain.is_assigned() && 
-                        (result == id_obj_manager<cw_variable>::INVALID_ID || var->domain.size() < min_num_values)
-                    ) {
+                    // if this variable is unassigned AND has fewer remaining values in domain
+                    if(!var->domain.is_assigned() && var->domain.size() < min_num_values) {
                         min_num_values = var->domain.size();
                         result = var->id;
                     }
@@ -684,6 +681,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // select next variable
     size_t next_var = select_unassigned_var(var_strategy);
+    cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
     
