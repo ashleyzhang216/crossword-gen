@@ -287,31 +287,26 @@ void cw_csp::initialize_csp() {
         cw_assert(prev_arcs.size() + 1 == visited_vars.size());
 
         // this casting is dirty but guaranteed to work since constraints must only contain cw_arc
-        const cw_constraint * const first_constr = constraints[prev_arcs[0                   ]].get();
-        const cw_constraint * const cur_constr   = constraints[prev_arcs[prev_arcs.size() - 1]].get();
-        const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
-        const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
-        cw_assert(first_arc && cur_arc);
-
-        const size_t first_var = first_arc->rhs;
-        const size_t cur_var   = cur_arc->lhs;
-        cw_assert(first_var == visited_vars.at(0));
+        const cw_constraint * const cur_constr = constraints[prev_arcs[prev_arcs.size() - 1]].get();
+        const cw_arc * const cur_arc = dynamic_cast<const cw_arc* const>(cur_constr);
+        cw_assert(cur_arc);
+        const size_t cur_var = cur_arc->lhs;
         
         for(const size_t dep : constr_dependencies.at(cur_var)) {
+            // this messy casting also guaranteed to work for same reason as above
             const cw_constraint * const next_constr = constraints[dep].get();
             const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
             cw_assert(next_arc);
-
             const size_t next_var = next_arc->lhs;
 
-            // if next var unvisited so far, excluding the very first var
+            // if next var unvisited so far, excluding the very first var so cycles can form
             if(std::find(visited_vars.begin() + 1, visited_vars.end(), next_var) == visited_vars.end()) {
                 // visit this arc. may not need to visit the next var if it completes a cycle
                 prev_arcs.push_back(dep);
 
                 // check if formed a valid simple cycle
                 // second condition needed to avoid cycle of (var1 -> var2 -> ...)
-                if(next_var == first_var && visited_vars.size() >= cw_cycle::MIN_CYCLE_LEN) {
+                if(next_var == visited_vars.at(0) && visited_vars.size() >= cw_cycle::MIN_CYCLE_LEN) {
                     // started with 1 more var visited, first var isn't added again for cycles, so size should be equal
                     cw_assert(prev_arcs.size() == visited_vars.size());
                     cw_assert(visited_vars.size() <= cw_cycle::MAX_CYCLE_LEN);
