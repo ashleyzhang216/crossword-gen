@@ -7,6 +7,7 @@
 #ifndef CW_CONTAINERS_HPP
 #define CW_CONTAINERS_HPP
 
+#include "containers/rot_vector.hpp"
 #include "containers/id_obj_manager.hpp"
 
 #endif // CW_CONTAINERS_HPP
