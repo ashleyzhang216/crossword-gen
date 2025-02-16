@@ -373,7 +373,9 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
         const cw_constraint * const next_constr = constrs[arcs[next_idx]].get();
         const cw_arc * const curr_arc = dynamic_cast<const cw_arc* const>(curr_constr);
         const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
-        cw_assert(curr_arc && next_arc && curr_arc->rhs == next_arc->lhs);
+        cw_assert(curr_arc);
+        cw_assert(next_arc);
+        cw_assert(curr_arc->rhs == next_arc->lhs);
 
         // enforce no double-visiting
         cw_assert(visited.count(curr_arc->lhs) == 0);

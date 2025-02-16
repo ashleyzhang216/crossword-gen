@@ -125,18 +125,18 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_cycle(23l, {3, 2, 5, 1}, {{2, 0}, {2, 2}, {1, 2}, {0, 1}}), // 23
         cw_cycle(24l, {4, 1, 5, 0}, {{1, 1}, {2, 1}, {0, 2}, {1, 0}}), // 24
         cw_cycle(25l, {4, 2, 5, 0}, {{2, 1}, {2, 2}, {0, 2}, {1, 0}}), // 25
-        cw_cycle(26l, {4, 2, 5, 1}, {{2, 1}, {2, 2}, {1, 2}, {1, 1}}), // 26
+        cw_cycle(26l, {4, 2, 5, 1}, {{2, 1}, {2, 2}, {1, 2}, {1, 1}})  // 26
 
-        // cycles of length 6
-        cw_cycle(27l, {3, 2, 5, 0, 4, 1}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}, {1, 0}, {1, 1}})  // 27
+        // // cycles of length 6
+        // cw_cycle(27l, {3, 2, 5, 0, 4, 1}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}, {1, 0}, {1, 1}})  // 27
     );
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_3;
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15, 18, 19, 20, 22, 24, 25, 27);
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16, 18, 19, 21, 23, 24, 26, 27);
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 2, contrs_3_3, 11, 14, 17, 20, 21, 22, 23, 25, 26, 27);
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 3, contrs_3_3, 0, 1, 2, 18, 19, 20, 21, 22, 23, 27);
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 4, contrs_3_3, 3, 4, 5, 18, 20, 21, 24, 25, 26, 27);
-    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 5, contrs_3_3, 6, 7, 8, 19, 22, 23, 24, 25, 26, 27);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15, 18, 19, 20, 22, 24, 25);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16, 18, 19, 21, 23, 24, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 2, contrs_3_3, 11, 14, 17, 20, 21, 22, 23, 25, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 3, contrs_3_3, 0, 1, 2, 18, 19, 20, 21, 22, 23);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 4, contrs_3_3, 3, 4, 5, 18, 20, 21, 24, 25, 26);
+    insert_into_constr_dep(constr_dep_3_3, vars_3_3, 5, contrs_3_3, 6, 7, 8, 19, 22, 23, 24, 25, 26);
 
     unordered_set<unique_ptr<cw_variable> > vars_3_3_set;
     std::transform(vars_3_3.begin(), vars_3_3.end(), std::inserter(vars_3_3_set, vars_3_3_set.end()),

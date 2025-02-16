@@ -57,7 +57,7 @@ namespace cw_csp_test_driver_ns {
             auto& self, unordered_set<unique_ptr<cw_constraint> >& contrs_set, 
             vector<unique_ptr<cw_constraint> >& contrs, auto idx, auto... rest
         ) {
-            contrs_set.insert(contrs[static_cast<size_t>(idx)]->clone());
+            contrs_set.insert(contrs.at(static_cast<size_t>(idx))->clone());
             if constexpr(sizeof...(rest) > 0) {
                 self(self, contrs_set, contrs, rest...);
             }

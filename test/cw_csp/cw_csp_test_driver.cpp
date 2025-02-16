@@ -56,21 +56,21 @@ bool cw_csp_test_driver::test_constructor_empty(
     }
 
     // DEBUG:
-    if(!check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, false))) {
-        cout << "expected: " << endl;
-        for(const auto& ptr : expected_constraints) {
-            if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
-                cout << *ptr << endl;
-            }
-        }
+    // if(!check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, false))) {
+    //     cout << "expected: " << endl;
+    //     for(const auto& ptr : expected_constraints) {
+    //         if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
+    //             cout << *ptr << endl;
+    //         }
+    //     }
 
-        cout << "actual: " << endl;
-        for(const auto& ptr : result_constraints) {
-            if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
-                cout << *ptr << endl;
-            }
-        }
-    }
+    //     cout << "actual: " << endl;
+    //     for(const auto& ptr : result_constraints) {
+    //         if(ptr->dependencies().size() > cw_cycle::MIN_CYCLE_LEN) {
+    //             cout << *ptr << endl;
+    //         }
+    //     }
+    // }
 
     result &= check_condition(dut_name.str() + " vars",         set_contents_equal(result_variables,   expected_variables, true));
     result &= check_condition(dut_name.str() + " constraints",  set_contents_equal(result_constraints, expected_constraints, true));
