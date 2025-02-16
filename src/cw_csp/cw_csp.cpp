@@ -271,23 +271,23 @@ void cw_csp::initialize_csp() {
 
     /**
      * @brief find cycle constraints
-     * @pre prev is nonempty
-     * @pre visited is nonempty
+     * @pre prev_arcs is nonempty
+     * @pre visited_vars is nonempty
      * 
-     * @param prev vector of previous arcs in current cycle prototype
-     * @param visited set of previously visited vars in current cycle prototype
+     * @param prev_arcs vector of previous arcs in current cycle prototype
+     * @param visited_vars set of previously visited vars in current cycle prototype
     */
     set<set<size_t> > unique_cycles;
     vector<vector<size_t> > past_cycles; // TODO: DEBUG
     std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
-    find_cycles = [this, &find_cycles, &unique_cycles, &past_cycles](vector<size_t>& prev, set<size_t>& visited) {
-        cw_assert(prev.size());
-        cw_assert(visited.size());
-        cw_assert(visited.size() <= cw_cycle::MAX_CYCLE_LEN);
+    find_cycles = [this, &find_cycles, &unique_cycles, &past_cycles](vector<size_t>& prev_arcs, set<size_t>& visited_vars) {
+        cw_assert(prev_arcs.size());
+        cw_assert(visited_vars.size());
+        cw_assert(visited_vars.size() <= cw_cycle::MAX_CYCLE_LEN);
 
         // this casting is dirty but guaranteed to work since constraints must only contain cw_arc
-        const cw_constraint * const first_constr = constraints[prev[0              ]].get();
-        const cw_constraint * const cur_constr   = constraints[prev[prev.size() - 1]].get();
+        const cw_constraint * const first_constr = constraints[prev_arcs[0                   ]].get();
+        const cw_constraint * const cur_constr   = constraints[prev_arcs[prev_arcs.size() - 1]].get();
         const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
         const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
         cw_assert(first_arc && cur_arc);
@@ -302,17 +302,17 @@ void cw_csp::initialize_csp() {
 
             const size_t next_var = next_arc->lhs;
 
-            if(!visited.count(next_var)) {
-                prev.push_back(dep);
-                visited.insert(next_var);
+            if(!visited_vars.count(next_var)) {
+                prev_arcs.push_back(dep);
+                visited_vars.insert(next_var);
 
                 // check if formed simple cycle
                 if(next_var == first_var) {
                     // this should always be true for MIN_CYCLE_LEN=4
-                    if(visited.size() >= cw_cycle::MIN_CYCLE_LEN) {
+                    if(visited_vars.size() >= cw_cycle::MIN_CYCLE_LEN) {
 
                         // DEBUG: investigating length 6+ cycles
-                        auto rot_vec_unique = [&past_cycles](const vector<size_t>& prev) -> bool {
+                        auto rot_vec_unique = [&past_cycles](const vector<size_t>& prev_arcs) -> bool {
                             auto rot_vec_equal = [](const vector<size_t>& lhs, const vector<size_t>& rhs) -> bool {
                                 auto vec_equal = [](const vector<size_t>& lhs, const vector<size_t>& rhs, size_t rhs_idx) -> bool {
                                     if(lhs.size() != rhs.size()) {
@@ -352,7 +352,7 @@ void cw_csp::initialize_csp() {
                             };
 
                             for(size_t i = 0; i < past_cycles.size(); ++i) {
-                                if(rot_vec_equal(past_cycles.at(i), prev)) {
+                                if(rot_vec_equal(past_cycles.at(i), prev_arcs)) {
                                     return false;
                                 }
                             }
@@ -361,48 +361,48 @@ void cw_csp::initialize_csp() {
                         };
 
                         // // rotated/symmetrical cycles considered the same
-                        // if(!unique_cycles.count(visited)) {
-                        //     unique_cycles.insert(visited);
+                        // if(!unique_cycles.count(visited_vars)) {
+                        //     unique_cycles.insert(visited_vars);
                         //     constraints.push_back(make_unique<cw_cycle>(
-                        //         constraints.size(), constraints, prev
+                        //         constraints.size(), constraints, prev_arcs
                         //     ));
                         // }
 
                         // TODO: DEBUG
-                        if(rot_vec_unique(prev)) {
-                            unique_cycles.insert(visited);
+                        if(rot_vec_unique(prev_arcs)) {
+                            unique_cycles.insert(visited_vars);
                             constraints.push_back(make_unique<cw_cycle>(
-                                constraints.size(), constraints, prev
+                                constraints.size(), constraints, prev_arcs
                             ));
                         }
                     }
 
                     // do not continue recursive search, since it wouldn't be a simple cycle anymore
 
-                } else if(visited.size() < cw_cycle::MAX_CYCLE_LEN) {
+                } else if(visited_vars.size() < cw_cycle::MAX_CYCLE_LEN) {
                     // disallow search to continue if too long
-                    find_cycles(prev, visited);
+                    find_cycles(prev_arcs, visited_vars);
                 }
 
                 // TODO: remove this old implementation
-                // if(visited.size() == 4) {
+                // if(visited_vars.size() == 4) {
                 //     if(next_var == first_var) {
                 //         // rotated/symmetrical cycles considered the same
-                //         if(!unique_cycles.count(visited)) {
-                //             unique_cycles.insert(visited);
+                //         if(!unique_cycles.count(visited_vars)) {
+                //             unique_cycles.insert(visited_vars);
                 //             constraints.push_back(make_unique<cw_cycle>(
-                //                 constraints.size(), constraints, prev
+                //                 constraints.size(), constraints, prev_arcs
                 //             ));
                 //         }
                 //     }
                 // } else {
-                //     find_cycles(prev, visited);
+                //     find_cycles(prev_arcs, visited_vars);
                 // }
 
-                cw_assert(prev.back() == dep);
-                cw_assert(visited.count(next_var));
-                prev.pop_back();
-                visited.erase(next_var);
+                cw_assert(prev_arcs.back() == dep);
+                cw_assert(visited_vars.count(next_var));
+                prev_arcs.pop_back();
+                visited_vars.erase(next_var);
             }
         }
     };
