@@ -410,7 +410,6 @@ bool cw_csp::ac3() {
 
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
         unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
-
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
