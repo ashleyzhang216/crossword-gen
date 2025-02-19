@@ -35,6 +35,9 @@ namespace cw {
                        std::search(lhslhs.begin(), lhslhs.end(), other.data.rbegin(), other.data.rend()) != lhslhs.end();
             }
 
+            // allow hash function to access data
+            friend size_t hash<cw::rot_vector<T> >::operator()(const cw::rot_vector<T>&) const;
+
         protected:
             vector<T> data;
     }; // class rot_vector

@@ -84,7 +84,8 @@
     "filesystem": "cpp",
     "iterator": "cpp",
     "memory_resource": "cpp",
-    "__memory": "cpp"
+    "__memory": "cpp",
+    "functional": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

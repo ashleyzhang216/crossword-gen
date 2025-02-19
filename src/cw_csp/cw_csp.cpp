@@ -271,58 +271,71 @@ void cw_csp::initialize_csp() {
 
     /**
      * @brief find cycle constraints
-     * @pre prev is nonempty
-     * @pre visited is nonempty
+     * @pre prev_arcs is nonempty, and size < MAX_CYCLE_LEN
+     * @pre visited_vars is nonempty, size >= 2 (vars of first arc) and size <= MAX_CYCLE_LEN
      * 
-     * @param prev vector of previous arcs in current cycle prototype
-     * @param visited set of previously visited vars in current cycle prototype
+     * @param prev_arcs vector of previous arcs in current cycle prototype
+     * @param visited_vars vector of previously visited vars in current cycle prototype
     */
-    set<set<size_t> > unique_cycles;
-    std::function<void(vector<size_t>&, set<size_t>&)> find_cycles;
-    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev, set<size_t>& visited) {
-        cw_assert(prev.size());
-        cw_assert(visited.size());
-        cw_assert(visited.size() <= 4);
+    unordered_set<rot_vector<size_t> > unique_cycles;
+    std::function<void(vector<size_t>&, vector<size_t>&)> find_cycles;
+    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev_arcs, vector<size_t>& visited_vars) {
+        cw_assert(prev_arcs.size());
+        cw_assert(prev_arcs.size() < cw_cycle::MAX_CYCLE_LEN);
+        cw_assert(visited_vars.size());
+        cw_assert(visited_vars.size() <= cw_cycle::MAX_CYCLE_LEN);
+        cw_assert(prev_arcs.size() + 1 == visited_vars.size());
 
         // this casting is dirty but guaranteed to work since constraints must only contain cw_arc
-        const cw_constraint * const first_constr = constraints[prev[0              ]].get();
-        const cw_constraint * const cur_constr   = constraints[prev[prev.size() - 1]].get();
-        const cw_arc * const first_arc = dynamic_cast<const cw_arc* const>(first_constr);
-        const cw_arc * const cur_arc   = dynamic_cast<const cw_arc* const>(cur_constr  );
-        cw_assert(first_arc && cur_arc);
-
-        const size_t first_var = first_arc->rhs;
-        const size_t cur_var   = cur_arc->lhs;
+        const cw_constraint * const cur_constr = constraints[prev_arcs[prev_arcs.size() - 1]].get();
+        const cw_arc * const cur_arc = dynamic_cast<const cw_arc* const>(cur_constr);
+        cw_assert(cur_arc);
+        const size_t cur_var = cur_arc->lhs;
         
         for(const size_t dep : constr_dependencies.at(cur_var)) {
+            // this messy casting also guaranteed to work for same reason as above
             const cw_constraint * const next_constr = constraints[dep].get();
             const cw_arc * const next_arc = dynamic_cast<const cw_arc* const>(next_constr);
             cw_assert(next_arc);
-
             const size_t next_var = next_arc->lhs;
 
-            if(!visited.count(next_var)) {
-                prev.push_back(dep);
-                visited.insert(next_var);
+            // if next var unvisited so far, excluding the very first var so cycles can form
+            if(std::find(visited_vars.begin() + 1, visited_vars.end(), next_var) == visited_vars.end()) {
+                // visit this arc. may not need to visit the next var if it completes a cycle
+                prev_arcs.push_back(dep);
 
-                if(visited.size() == 4) {
-                    if(next_var == first_var) {
-                        // rotated/symmetrical cycles considered the same
-                        if(!unique_cycles.count(visited)) {
-                            unique_cycles.insert(visited);
-                            constraints.push_back(make_unique<cw_cycle>(
-                                constraints.size(), constraints, prev
-                            ));
-                        }
+                // check if formed a valid simple cycle
+                // second condition needed to avoid cycle of (var1 -> var2 -> ...)
+                if(next_var == visited_vars.at(0) && visited_vars.size() >= cw_cycle::MIN_CYCLE_LEN) {
+                    // started with 1 more var visited, first var isn't added again for cycles, so size should be equal
+                    cw_assert(prev_arcs.size() == visited_vars.size());
+                    cw_assert(visited_vars.size() <= cw_cycle::MAX_CYCLE_LEN);
+                    
+                    rot_vector<size_t> visited_cycle{visited_vars};
+                    if(!unique_cycles.count(visited_cycle)) {
+                        unique_cycles.insert(std::move(visited_cycle));
+                        constraints.push_back(make_unique<cw_cycle>(
+                            constraints.size(), constraints, prev_arcs
+                        ));
                     }
-                } else {
-                    find_cycles(prev, visited);
+
+                    // do not continue recursive search, since it wouldn't be a simple cycle anymore
+
+                } else if(visited_vars.size() < cw_cycle::MAX_CYCLE_LEN) {
+                    // visit this next var, now that we know it doesn't complete a cycle
+                    visited_vars.push_back(next_var);
+
+                    // disallow search to continue if too long
+                    find_cycles(prev_arcs, visited_vars);
+
+                    // backtrack from this var
+                    cw_assert(visited_vars.back() == next_var);
+                    visited_vars.pop_back();
                 }
 
-                cw_assert(prev.back() == dep);
-                cw_assert(visited.count(next_var));
-                prev.pop_back();
-                visited.erase(next_var);
+                // backtrack from this arc
+                cw_assert(prev_arcs.back() == dep);
+                prev_arcs.pop_back();
             }
         }
     };
@@ -339,9 +352,9 @@ void cw_csp::initialize_csp() {
                 const cw_arc * const arc = dynamic_cast<const cw_arc* const>(constr);
                 cw_assert(arc);
 
-                vector<size_t> prev = {dep};
-                set<size_t> visited = {arc->lhs};
-                find_cycles(prev, visited);
+                vector<size_t> prev_arcs = {dep};
+                vector<size_t> visited_vars = {arc->rhs, arc->lhs};
+                find_cycles(prev_arcs, visited_vars);
             }
         }
     }
@@ -502,11 +515,8 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
         case MIN_REMAINING_VALUES: {
                 size_t min_num_values = UINT_MAX;
                 for(unique_ptr<cw_variable>& var : variables) {
-                    // if this variable is unassigned AND (no other variable selected OR has fewer remaining values in domain)
-                    if(
-                        !var->domain.is_assigned() && 
-                        (result == id_obj_manager<cw_variable>::INVALID_ID || var->domain.size() < min_num_values)
-                    ) {
+                    // if this variable is unassigned AND has fewer remaining values in domain
+                    if(!var->domain.is_assigned() && var->domain.size() < min_num_values) {
                         min_num_values = var->domain.size();
                         result = var->id;
                     }
@@ -576,6 +586,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // select next variable
     size_t next_var = select_unassigned_var(var_strategy);
+    cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
     

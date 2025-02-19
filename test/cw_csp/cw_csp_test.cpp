@@ -116,7 +116,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_arc(16l, 1, 2, 5, 1), // 16
         cw_arc(17l, 2, 2, 5, 2), // 17
 
-        // cycles
+        // cycles of length 4
         cw_cycle(18l, {3, 1, 4, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}), // 18
         cw_cycle(19l, {3, 1, 5, 0}, {{1, 0}, {2, 1}, {0, 2}, {0, 0}}), // 19
         cw_cycle(20l, {3, 2, 4, 0}, {{2, 0}, {1, 2}, {0, 1}, {0, 0}}), // 20
@@ -127,6 +127,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_cycle(25l, {4, 2, 5, 0}, {{2, 1}, {2, 2}, {0, 2}, {1, 0}}), // 25
         cw_cycle(26l, {4, 2, 5, 1}, {{2, 1}, {2, 2}, {1, 2}, {1, 1}})  // 26
     );
+    static_assert(cw_cycle::MAX_CYCLE_LEN == 4ul, "test only written for length 4 cycle constraints");
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_3;
     insert_into_constr_dep(constr_dep_3_3, vars_3_3, 0, contrs_3_3, 9, 12, 15, 18, 19, 20, 22, 24, 25);
     insert_into_constr_dep(constr_dep_3_3, vars_3_3, 1, contrs_3_3, 10, 13, 16, 18, 19, 21, 23, 24, 26);
@@ -188,7 +189,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_arc(22l, 1, 3, 6, 1), // 22
         cw_arc(23l, 2, 3, 6, 2), // 23
 
-        // cycles
+        // cycles of length 4
         cw_cycle(24, {3, 1, 4, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}), // 24
         cw_cycle(25, {3, 1, 5, 0}, {{1, 0}, {2, 1}, {0, 2}, {0, 0}}), // 25
         cw_cycle(26, {3, 1, 6, 0}, {{1, 0}, {3, 1}, {0, 3}, {0, 0}}), // 26
@@ -211,6 +212,7 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
         cw_cycle(40, {5, 2, 6, 0}, {{2, 2}, {3, 2}, {0, 3}, {2, 0}}), // 40
         cw_cycle(41, {5, 2, 6, 1}, {{2, 2}, {3, 2}, {1, 3}, {2, 1}})  // 41
     );
+    static_assert(cw_cycle::MAX_CYCLE_LEN == 4ul, "test only written for length 4 cycle constraints");
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_4;
     insert_into_constr_dep(constr_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
     insert_into_constr_dep(constr_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
@@ -327,7 +329,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(22l, 1, 3, 6, 1), // 22
         cw_arc(23l, 2, 3, 6, 2), // 23
 
-        // cycles
+        // cycles of length 4
         cw_cycle(24, {3, 1, 4, 0}, {{1, 0}, {1, 1}, {0, 1}, {0, 0}}), // 24
         cw_cycle(25, {3, 1, 5, 0}, {{1, 0}, {2, 1}, {0, 2}, {0, 0}}), // 25
         cw_cycle(26, {3, 1, 6, 0}, {{1, 0}, {3, 1}, {0, 3}, {0, 0}}), // 26
@@ -350,6 +352,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_cycle(40, {5, 2, 6, 0}, {{2, 2}, {3, 2}, {0, 3}, {2, 0}}), // 40
         cw_cycle(41, {5, 2, 6, 1}, {{2, 2}, {3, 2}, {1, 3}, {2, 1}})  // 41
     );
+    static_assert(cw_cycle::MAX_CYCLE_LEN == 4ul, "test only written for length 4 cycle constraints");
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_3_4;
     insert_into_constr_dep(constr_dep_3_4, vars_3_4, 0, contrs_3_4, 12, 15, 18, 21, 24, 25, 26, 27, 29, 31, 33, 34, 35, 37, 39, 40);
     insert_into_constr_dep(constr_dep_3_4, vars_3_4, 1, contrs_3_4, 13, 16, 19, 22, 24, 25, 26, 28, 30, 32, 33, 34, 36, 38, 39, 41);
@@ -578,7 +581,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_arc(42l, 1, 3, 16, 2), // 42
         cw_arc(43l, 2, 2, 16, 3), // 43
 
-        // cycles
+        // cycles of length 4
         cw_cycle(44, { 8,  6, 10,  4}, {{2, 0}, {2, 2}, {0, 2}, {0, 0}}), // 44
         cw_cycle(45, {10,  6, 12,  5}, {{2, 2}, {3, 1}, {0, 1}, {0, 1}}), // 45
         cw_cycle(46, {14,  2, 16,  1}, {{1, 2}, {3, 1}, {0, 1}, {0, 0}}), // 46
@@ -587,6 +590,7 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
         cw_cycle(49, {13,  3, 16,  2}, {{1, 0}, {2, 2}, {1, 3}, {1, 0}}), // 49
         cw_cycle(50, {13,  3, 14,  2}, {{1, 0}, {1, 2}, {1, 2}, {1, 0}})  // 50
     );
+    static_assert(cw_cycle::MAX_CYCLE_LEN == 4ul, "test only written for length 4 cycle constraints");
     unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > constr_dep_6_7_complex;
     insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 0,  contrs_6_7_complex, 24, 29);
     insert_into_constr_dep(constr_dep_6_7_complex, vars_6_7_complex, 1,  contrs_6_7_complex, 36, 41, 46, 47);
