@@ -34,7 +34,7 @@ cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const sh
  * @param id the expected id of this timestep
  * @param r rvalue json obj for why/how this timestep ended
 */
-void cw_timestep::resolve(size_t expected_id, basic_jason&& r) {
+void cw_timestep::resolve(size_t expected_id, basic_json&& r) {
     cw_assert(id == expected_id);
     cw_assert(!resolved());
     cw_assert(children.empty() || children.back()->resolved());
@@ -87,7 +87,7 @@ size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
  * @param id the id the timestep expected to be resolved
  * @param result rvalue json obj for why/how this timestep ended
 */
-void cw_timetracker::end_timestep(size_t id, basic_jason&& result) {
+void cw_timetracker::end_timestep(size_t id, basic_json&& result) {
     if(enabled) {
         cw_assert(cur);
         cur->resolve(id, std::move(result));
@@ -103,7 +103,7 @@ void cw_timetracker::save_results(const string& filepath) {
         cw_assert(root);
         cw_assert(root == cur);
         cw_assert(!root->resolved());
-        end_timestep(0ul, basic_jason::object());
+        end_timestep(0ul, basic_json::object());
 
         ordered_json j = root;
         std::ofstream file(filepath);
@@ -134,14 +134,14 @@ void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& 
 cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name)
     : tracker(tracker),
       id(tracker.start_timestep(type, name)),
-      _result(basic_jason::object()) {
+      _result(basic_json::object()) {
     // do nothing, other initializations are enough
 }
 
 /**
  * @brief return ref to result json object for modification
  */
-basic_jason& cw_timestamper::result() {
+basic_json& cw_timestamper::result() {
     return _result;
 }
 

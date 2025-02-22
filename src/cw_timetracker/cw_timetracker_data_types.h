@@ -19,7 +19,7 @@ using namespace cw;
 using ordered_json = nlohmann::ordered_json;
 
 // for timestep results, order agnostic
-using basic_jason = nlohmann::json;
+using basic_json = nlohmann::json;
 
 // #define TIMETRACKER_TRACK_AC3
 
