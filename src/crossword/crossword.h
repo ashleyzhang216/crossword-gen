@@ -33,6 +33,9 @@ namespace crossword_ns {
             uint rows() const { return height; }
             uint cols() const { return length; }
 
+            // get original inputted contents
+            string init_contents() const { return _init_contents; }
+
             // access tiles for csp
             char read_at(uint row, uint col) const;
 
@@ -71,6 +74,9 @@ namespace crossword_ns {
             
             // previous word assignments
             stack<word_assignment> prev_written_words;
+            
+            // originally inputted grid contents
+            string _init_contents;
 
             // represents how frequent a tile's intersection caused a csp to become invalid
             // same shape as puzzle

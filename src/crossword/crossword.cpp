@@ -21,6 +21,7 @@ crossword::crossword(const string& name, uint length, uint height, permutation_r
       length(length),
       height(height),
       puzzle(height, vector<cw_tile>(length, cw_tile(WILDCARD))),
+      _init_contents(string(length * height, WILDCARD)),
       invalid_freq(height, vector<uint>(length, 0u)),
       num_fillable_tiles(length * height),
       reqs(reqs) {
@@ -66,6 +67,7 @@ crossword::crossword(const string& name, uint length, uint height, string conten
     for(uint i = 0; i < height; i++) {
         for(uint j = 0; j < length; j++) {
             char cur = contents.at(i*length + j);
+            _init_contents.at(i*length + j) = cur;
             cw_tile_type type = char_to_tile_type(cur);
 
             if(type != TILE_EMPTY) {
