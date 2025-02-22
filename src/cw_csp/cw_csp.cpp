@@ -542,17 +542,20 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
     // base case for initially invalid crosswords
     if(!ac3()) {
-        // stamper.set_result("fail: initial ac3");
+        stamper.result()["success"] = false;
+        stamper.result()["reason"]  = "ac3";
         return false;
     }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
                 if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
-                    // stamper.set_result("success");
+                    stamper.result()["success"] = true;
+                    stamper.result()["reason"]  = "recursive";
                     return true;
                 } else {
-                    // stamper.set_result("fail: exhausted domain");
+                    stamper.result()["success"] = false;
+                    stamper.result()["reason"]  = "recursive";
                     return false;
                 }
             } break;
