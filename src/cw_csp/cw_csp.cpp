@@ -100,6 +100,9 @@ void cw_csp::initialize_csp() {
     stringstream word_pattern; // pattern formed by word so far
     uint cur_var_row = 0ul, cur_var_col = 0ul, cur_var_len = 0ul; // valid iff traversing_word
 
+    // track frequency of each length of variable
+    unordered_map<size_t, size_t> var_len_freqs;
+
     utils.log(DEBUG, "cw_csp searching for vertical variables");
 
     // find vertical variables
@@ -139,6 +142,9 @@ void cw_csp::initialize_csp() {
                         variables.push_back(make_unique<cw_variable>(
                             variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
+
+                        // record variable length
+                        ++var_len_freqs[cur_var_len];
                     }
 
                 } else {
@@ -158,6 +164,9 @@ void cw_csp::initialize_csp() {
             variables.push_back(make_unique<cw_variable>(
                 variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
+
+            // record variable length
+            ++var_len_freqs[cur_var_len];
         }
     }
 
@@ -199,6 +208,9 @@ void cw_csp::initialize_csp() {
                         variables.push_back(make_unique<cw_variable>(
                             variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
                         ));
+
+                        // record variable length
+                        ++var_len_freqs[cur_var_len];
                     }
 
                 } else {
@@ -218,6 +230,9 @@ void cw_csp::initialize_csp() {
             variables.push_back(make_unique<cw_variable>(
                 variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
             ));
+
+            // record variable length
+            ++var_len_freqs[cur_var_len];
         }
     }
 
@@ -249,6 +264,9 @@ void cw_csp::initialize_csp() {
 
     utils.log(DEBUG, "cw_csp populating constraints");
 
+    // track frequency of each length of constraint
+    unordered_map<size_t, size_t> constr_len_freqs;
+
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
         for(uint col = 0; col < cw.cols(); col++) {
@@ -272,6 +290,9 @@ void cw_csp::initialize_csp() {
                     var_intersect_table[row][col].rhs,
                     var_intersect_table[row][col].lhs
                 ));
+
+                // record both arcs just created
+                constr_len_freqs[2ul] += 2;
             }
         }
     }
@@ -297,7 +318,7 @@ void cw_csp::initialize_csp() {
     */
     unordered_set<rot_vector<size_t> > unique_cycles;
     std::function<void(vector<size_t>&, vector<size_t>&)> find_cycles;
-    find_cycles = [this, &find_cycles, &unique_cycles](vector<size_t>& prev_arcs, vector<size_t>& visited_vars) {
+    find_cycles = [this, &find_cycles, &unique_cycles, &constr_len_freqs](vector<size_t>& prev_arcs, vector<size_t>& visited_vars) {
         cw_assert(prev_arcs.size());
         cw_assert(prev_arcs.size() < cw_cycle::MAX_CYCLE_LEN);
         cw_assert(visited_vars.size());
@@ -335,6 +356,9 @@ void cw_csp::initialize_csp() {
                         constraints.push_back(make_unique<cw_cycle>(
                             constraints.size(), constraints, prev_arcs
                         ));
+
+                        // record one constraint of this length
+                        ++constr_len_freqs[prev_arcs.size()];
                     }
 
                     // do not continue recursive search, since it wouldn't be a simple cycle anymore
@@ -385,6 +409,10 @@ void cw_csp::initialize_csp() {
             constr_dependencies[var].insert(i);
         }
     }
+
+    // record variable and constraint length histogram
+    stamper.result()["var_len_freqs"]    = std::move(var_len_freqs);
+    stamper.result()["constr_len_freqs"] = std::move(constr_len_freqs);
 }
 
 /**
