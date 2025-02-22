@@ -421,7 +421,7 @@ bool cw_csp::ac3() {
                 // undo pruning
                 undo_ac3();
                 #ifdef TIMETRACKER_TRACK_AC3
-                // stamper.set_result("fail");
+                stamper.result()["success"] = false;
                 #endif // TIMETRACKER_TRACK_AC3
                 return false;
             }
@@ -440,7 +440,7 @@ bool cw_csp::ac3() {
 
     // running AC-3 to completion does not make CSP invalid
     #ifdef TIMETRACKER_TRACK_AC3
-    // stamper.set_result("pass");
+    stamper.result()["success"] = true;
     #endif // TIMETRACKER_TRACK_AC3
     return true;
 }
