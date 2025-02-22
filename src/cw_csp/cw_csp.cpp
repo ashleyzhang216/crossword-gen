@@ -421,7 +421,7 @@ bool cw_csp::ac3() {
                 // undo pruning
                 undo_ac3();
                 #ifdef TIMETRACKER_TRACK_AC3
-                stamper.set_result("fail");
+                // stamper.set_result("fail");
                 #endif // TIMETRACKER_TRACK_AC3
                 return false;
             }
@@ -440,7 +440,7 @@ bool cw_csp::ac3() {
 
     // running AC-3 to completion does not make CSP invalid
     #ifdef TIMETRACKER_TRACK_AC3
-    stamper.set_result("pass");
+    // stamper.set_result("pass");
     #endif // TIMETRACKER_TRACK_AC3
     return true;
 }
@@ -542,17 +542,17 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
     // base case for initially invalid crosswords
     if(!ac3()) {
-        stamper.set_result("fail: initial ac3");
+        // stamper.set_result("fail: initial ac3");
         return false;
     }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
                 if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
-                    stamper.set_result("success");
+                    // stamper.set_result("success");
                     return true;
                 } else {
-                    stamper.set_result("fail: exhausted domain");
+                    // stamper.set_result("fail: exhausted domain");
                     return false;
                 }
             } break;
@@ -580,7 +580,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // base case
     if(solved()) {
-        stamper.set_result("success: solved");
+        // stamper.set_result("success: solved");
         return true;
     }
 
@@ -632,11 +632,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 });
 
                 // will be overwritten if fails recurisively
-                word_stamper.set_result("success: recursive");
+                // word_stamper.set_result("success: recursive");
 
                 // recurse
                 if(solve_backtracking(var_strategy, false, depth + 1)) {
-                    stamper.set_result("success: recursive");
+                    // stamper.set_result("success: recursive");
                     return true;
                 }
                 
@@ -644,9 +644,9 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 cw_assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
-                word_stamper.set_result("fail: recursive");
+                // word_stamper.set_result("fail: recursive");
             } else {
-                word_stamper.set_result("fail: ac3");
+                // word_stamper.set_result("fail: ac3");
             }
 
             utils.log(DEBUG, "word failed: ", word);
@@ -655,7 +655,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             variables[next_var]->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
-            word_stamper.set_result("fail: duplicate");
+            // word_stamper.set_result("fail: duplicate");
             utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
@@ -664,7 +664,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
-    stamper.set_result("fail: exhausted domain");
+    // stamper.set_result("fail: exhausted domain");
     return false;
 }
 
