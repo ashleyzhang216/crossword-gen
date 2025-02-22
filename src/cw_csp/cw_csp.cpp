@@ -627,12 +627,13 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 cw.write({
                     .origin_row = variables[next_var]->origin_row,
                     .origin_col = variables[next_var]->origin_col,
-                    .word = word.word,
-                    .dir = variables[next_var]->dir
+                    .word       = word.word,
+                    .dir        = variables[next_var]->dir
                 });
 
                 // will be overwritten if fails recurisively
-                // word_stamper.set_result("success: recursive");
+                word_stamper.result()["success"] = true;
+                word_stamper.result()["reason"]  = "recursive";
 
                 // recurse
                 if(solve_backtracking(var_strategy, false, depth + 1)) {
@@ -644,9 +645,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 cw_assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
-                // word_stamper.set_result("fail: recursive");
+                word_stamper.result()["success"] = false;
+                word_stamper.result()["reason"]  = "recursive";
             } else {
-                // word_stamper.set_result("fail: ac3");
+                word_stamper.result()["success"] = false;
+                word_stamper.result()["reason"]  = "ac3";
             }
 
             utils.log(DEBUG, "word failed: ", word);
@@ -655,7 +658,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             variables[next_var]->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
-            // word_stamper.set_result("fail: duplicate");
+            word_stamper.result()["success"] = false;
+            word_stamper.result()["reason"]  = "duplicate";
             utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
