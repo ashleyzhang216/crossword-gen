@@ -68,7 +68,7 @@ namespace cw_timetracker_ns {
             void end_timestep(size_t id, basic_json&& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(const string& filepath);
+            void save_results(const string& filepath, basic_json&& result = basic_json::object());
 
             // basic constructor, initializes root timestep
             cw_timetracker(const string& init_name, bool enabled);

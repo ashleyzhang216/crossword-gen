@@ -34,7 +34,7 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // base constructor, agnostic to grid layout
-            cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker);
+            cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
             unordered_set<unique_ptr<cw_variable > >                                           get_variables()           const;
@@ -53,8 +53,8 @@ namespace cw_csp_ns {
             // get string representation of solved cw for printing when solved() == true
             string result() const;
 
-            // save timetracker results for analysis
-            void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
+            // save profiling results
+            void save_timetracker_result(string filepath) const;
 
             // returns permutations of csp, i.e. csp with a permutated crossword grid
             vector<cw_csp> permutations(unordered_set<string>& explored_grids) const;
@@ -88,7 +88,7 @@ namespace cw_csp_ns {
             mutable cw_timetracker tracker;
 
             // original word dictionary filepath
-            string filepath;
+            string dict_filepath;
 
             // original tracker enabling input param
             bool use_timetracker;
