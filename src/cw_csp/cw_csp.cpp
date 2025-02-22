@@ -580,13 +580,21 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // base case
     if(solved()) {
-        // stamper.set_result("success: solved");
+        stamper.result()["success"]  = true;
+        stamper.result()["reason"]   = "solved";
+        stamper.result()["variable"] = nullptr;
         return true;
     }
 
     // select next variable
     size_t next_var = select_unassigned_var(var_strategy);
     cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
+    stamper.result()["variable"] = basic_json::object({
+        {"origin_row", variables[next_var]->origin_row},
+        {"origin_col", variables[next_var]->origin_col},
+        {"direction",  word_dir_name.at(variables[next_var]->dir)},
+        {"length",     variables[next_var]->length}
+    });
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
     
@@ -637,7 +645,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 // recurse
                 if(solve_backtracking(var_strategy, false, depth + 1)) {
-                    // stamper.set_result("success: recursive");
+                    stamper.result()["success"] = true;
+                    stamper.result()["reason"]  = "recursive";
                     return true;
                 }
                 
@@ -668,7 +677,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
-    // stamper.set_result("fail: exhausted domain");
+    stamper.result()["success"] = false;
+    stamper.result()["reason"]  = "domain exhausted";
     return false;
 }
 
