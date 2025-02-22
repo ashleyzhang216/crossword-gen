@@ -97,13 +97,16 @@ void cw_timetracker::end_timestep(size_t id, basic_json&& result) {
 
 /**
  * @brief saves the results in a JSON file at the specified path
+ * @pre this is the first time results are saved
+ *
+ * @param result the json result for the root timestep
 */
-void cw_timetracker::save_results(const string& filepath) {
+void cw_timetracker::save_results(const string& filepath, basic_json&& result) {
     if(enabled) {
         cw_assert(root);
         cw_assert(root == cur);
         cw_assert(!root->resolved());
-        end_timestep(0ul, basic_json::object());
+        end_timestep(0ul, std::move(result));
 
         ordered_json j = root;
         std::ofstream file(filepath);
