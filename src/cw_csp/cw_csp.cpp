@@ -455,7 +455,18 @@ bool cw_csp::ac3() {
         constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
-        unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
+        unordered_set<size_t> modified;
+        {
+            #ifdef TIMETRACKER_TRACK_AC3
+            cw_timestamper stamper(tracker, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
+            #endif
+
+            modified = constraints[constr_id]->prune_domain(variables);
+            #ifdef TIMETRACKER_TRACK_AC3
+            stamper.result()["constr_len"]  = constraints[constr_id]->size();
+            stamper.result()["vars_pruned"] = modified;
+            #endif
+        }
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain

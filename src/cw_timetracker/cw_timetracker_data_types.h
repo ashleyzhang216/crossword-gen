@@ -21,7 +21,7 @@ using ordered_json = nlohmann::ordered_json;
 // for timestep results, order agnostic
 using basic_json = nlohmann::json;
 
-// #define TIMETRACKER_TRACK_AC3
+#define TIMETRACKER_TRACK_AC3
 
 namespace cw_timetracker_data_types_ns {
     /**
@@ -37,6 +37,7 @@ namespace cw_timetracker_data_types_ns {
 
         #ifdef TIMETRACKER_TRACK_AC3
         TS_CSP_AC3,               // cw_csp.ac3()
+        TS_CSP_AC3_PRUNE,         // a single call to cw_variable::prune_domain()
         TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
         #endif // TIMETRACKER_TRACK_AC3
     };
@@ -51,6 +52,7 @@ namespace cw_timetracker_data_types_ns {
 
         #ifdef TIMETRACKER_TRACK_AC3
         {TS_CSP_AC3,               "AC3"},
+        {TS_CSP_AC3_PRUNE,         "AC3 Prune"},
         {TS_CSP_UNDO_AC3,          "Undo AC3"},
         #endif // TIMETRACKER_TRACK_AC3
     })
