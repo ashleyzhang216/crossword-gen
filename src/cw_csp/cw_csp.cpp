@@ -413,6 +413,7 @@ void cw_csp::initialize_csp() {
     // record variable and constraint length histogram
     stamper.result()["var_len_freqs"]    = std::move(var_len_freqs);
     stamper.result()["constr_len_freqs"] = std::move(constr_len_freqs);
+    stamper.result()["constr_deps"]      = constr_dependencies;
 }
 
 /**
@@ -653,7 +654,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         {"origin_row", variables[next_var]->origin_row},
         {"origin_col", variables[next_var]->origin_col},
         {"direction",  word_dir_name.at(variables[next_var]->dir)},
-        {"length",     variables[next_var]->length}
+        {"length",     variables[next_var]->length},
+        {"id",         next_var}
     });
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
