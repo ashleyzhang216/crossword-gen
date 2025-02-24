@@ -262,6 +262,13 @@ unordered_set<size_t> cw_arc::dependents() const {
 }
 
 /**
+ * @brief get number of variables this constraint traverses over
+ */
+size_t cw_arc::size() const {
+    return 2ul;
+}
+
+/**
  * @brief get pairs of indices at which adjacent variables in this constraint intersect
 */
 vector<pair<uint, uint> > cw_arc::intersection_indices() const {
@@ -661,6 +668,13 @@ unordered_set<size_t> cw_cycle::dependencies() const {
 */
 unordered_set<size_t> cw_cycle::dependents() const {
     return {var_cycle.begin(), var_cycle.end()};
+}
+
+/**
+ * @brief get number of variables this constraint traverses over
+ */
+size_t cw_cycle::size() const {
+    return var_cycle.size();
 }
 
 /**

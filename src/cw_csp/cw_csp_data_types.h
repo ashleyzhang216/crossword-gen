@@ -90,6 +90,9 @@ namespace cw_csp_data_types_ns {
             // ids of var which may be modified in prune_domain() which can affect dependent constraints
             virtual unordered_set<size_t> dependents() const = 0;
 
+            // number of variables traversed over
+            virtual size_t size() const = 0;
+
             // for each pair of intersecting variables, their lhs/rhs index values
             virtual vector<pair<uint, uint> > intersection_indices() const = 0;
 
@@ -148,6 +151,9 @@ namespace cw_csp_data_types_ns {
         // only dependent is lhs
         virtual unordered_set<size_t> dependents() const override;
 
+        // always traverses over exactly 2 variables
+        virtual size_t size() const override;
+
         // only pair of intersections is (lhs_index, rhs_index)
         virtual vector<pair<uint, uint> > intersection_indices() const override;
 
@@ -183,7 +189,7 @@ namespace cw_csp_data_types_ns {
         // must have exact length of cycle_len
         vector<size_t> var_cycle;
 
-        // must have same len of vars, i.e. cycle_len, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
+        // must have same len of var_cycle, i.e. cycle_len, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
         vector<pair<uint, uint> > intersections;
 
         // construct using existing arcs 
@@ -201,11 +207,14 @@ namespace cw_csp_data_types_ns {
         // returns true iff lhs domain is now empty
         virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
 
-        // all elements in vars are dependencies
+        // all elements in var_cycle are dependencies
         virtual unordered_set<size_t> dependencies() const override;
 
-        // all elements in vars are dependents
+        // all elements in var_cycle are dependents
         virtual unordered_set<size_t> dependents() const override;
+
+        // traverses over one variable per element in var_cycle
+        virtual size_t size() const override;
 
         // equivalent to getter for intersections
         virtual vector<pair<uint, uint> > intersection_indices() const override;
