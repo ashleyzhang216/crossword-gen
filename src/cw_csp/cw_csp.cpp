@@ -670,13 +670,6 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     // select next variable
     size_t next_var = select_unassigned_var(var_strategy);
     cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
-    stamper.result()["variable"] = basic_json::object({
-        {"origin_row", variables[next_var]->origin_row},
-        {"origin_col", variables[next_var]->origin_col},
-        {"direction",  word_dir_name.at(variables[next_var]->dir)},
-        {"length",     variables[next_var]->length},
-        {"id",         next_var}
-    });
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
     
@@ -690,6 +683,16 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
         return lhs.word > rhs.word;
     };
     sort(domain_copy.begin(), domain_copy.end(), compare);
+
+    // record variable chosen
+    stamper.result()["variable"] = basic_json::object({
+        {"origin_row",  variables[next_var]->origin_row},
+        {"origin_col",  variables[next_var]->origin_col},
+        {"direction",   word_dir_name.at(variables[next_var]->dir)},
+        {"length",      variables[next_var]->length},
+        {"id",          next_var},
+        {"domain_size", domain_copy.size()}
+    });
 
     // only initialize if this is top level solve_backtracking() call in prod
     unique_ptr<progress_bar> bar = nullptr;

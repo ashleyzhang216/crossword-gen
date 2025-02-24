@@ -21,7 +21,7 @@ using ordered_json = nlohmann::ordered_json;
 // for timestep results, order agnostic
 using basic_json = nlohmann::json;
 
-#define TIMETRACKER_TRACK_AC3
+// #define TIMETRACKER_TRACK_AC3
 
 namespace cw_timetracker_data_types_ns {
     /**
