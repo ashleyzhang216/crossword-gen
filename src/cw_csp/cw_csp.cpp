@@ -77,12 +77,19 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
 void cw_csp::save_timetracker_result(string filepath) const {
     tracker.save_results(filepath, basic_json::object({
         {"success", solved()},
-        {"result", solved() ? result() : ""},
+        {"solution", solved() ? result() : ""},
         {"grid", basic_json::object({
             {"rows", cw.rows()},
             {"cols", cw.cols()},
             {"dict", dict_filepath},
-            {"contents", cw.init_contents()}
+            {"contents", cw.init_contents()},
+            {"track_ac3",
+                #ifdef TIMETRACKER_TRACK_AC3
+                true
+                #else
+                false
+                #endif
+            }
         })}
     }));
 }
