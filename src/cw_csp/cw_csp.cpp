@@ -410,10 +410,23 @@ void cw_csp::initialize_csp() {
         }
     }
 
-    // record variable and constraint length histogram
-    stamper.result()["var_len_freqs"]    = std::move(var_len_freqs);
-    stamper.result()["constr_len_freqs"] = std::move(constr_len_freqs);
-    stamper.result()["constr_deps"]      = constr_dependencies;
+    // record variable length histogram
+    stamper.result()["var_len_freqs"] = basic_json::object();
+    for(const auto& pair : var_len_freqs) {
+        stamper.result()["var_len_freqs"][std::to_string(pair.first)] = pair.second;
+    }
+
+    // record constraint length histogram
+    stamper.result()["constr_len_freqs"] = basic_json::object();
+    for(const auto& pair : constr_len_freqs) {
+        stamper.result()["constr_len_freqs"][std::to_string(pair.first)] = pair.second;
+    }
+
+    // record constraint dependencies for debugging
+    stamper.result()["constr_deps"] = basic_json::object();
+    for(const auto& pair : constr_dependencies) {
+        stamper.result()["constr_deps"][std::to_string(pair.first)] = pair.second;
+    }
 }
 
 /**
