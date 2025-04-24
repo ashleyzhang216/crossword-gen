@@ -617,7 +617,10 @@ unordered_map<size_t, size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>
                 const size_t rhs_removed_words = vars[var_cycle[rhs_idx]]->domain.remove_matching_words(
                     intersections[i].second, static_cast<char>(j + 'a')
                 );
-                cw_assert(lhs_removed_words || rhs_removed_words);
+
+                // it's possible that previous letter/index pair removals on different intersection indices from both vars caused all
+                // matching words to already be removed from both vars, hence the last check if this is the case
+                cw_assert(lhs_removed_words || rhs_removed_words || (modified.count(var_cycle[lhs_idx]) && modified.count(var_cycle[rhs_idx])));
 
                 // don't report a letter/index pair as removed if no word matching that pair were removed
                 if(lhs_removed_words) ++modified[var_cycle[lhs_idx]];
