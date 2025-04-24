@@ -3,6 +3,8 @@ import argparse
 import sys
 import os
 
+from helpers.ac3_pruning import analyze_ac3_pruning_durations
+
 def main():
     # parse cli args
     parser = argparse.ArgumentParser(description='Analyze profiling JSON output files')
@@ -30,6 +32,8 @@ def main():
     except json.JSONDecodeError as e:
         print(f"Error: Failed to parse JSON file '{args.data_path}'. {e}")
         sys.exit(1)
+
+    analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
 
 if __name__ == "__main__":
     main()
