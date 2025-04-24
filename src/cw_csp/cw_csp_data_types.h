@@ -79,7 +79,7 @@ namespace cw_csp_data_types_ns {
             size_t id;
 
             // constraint operations
-            virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) = 0;
+            virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) = 0;
             virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const = 0;
             virtual bool invalid(const id_obj_manager<cw_variable>& vars) const = 0;
 
@@ -137,7 +137,7 @@ namespace cw_csp_data_types_ns {
         cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
@@ -199,7 +199,7 @@ namespace cw_csp_data_types_ns {
         cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair<uint, uint> >& intersections);
 
         // AC-N step; remove all words in first var's domain that don't have a path to the last var
-        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;

@@ -198,18 +198,21 @@ cw_arc::cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs
  * @brief AC-3 step to prune words in lhs domain without valid rhs words
  * 
  * @param  vars ref to id_obj_manager to index into to get lhs/rhs vars
- * @return set of vars whose domains changed
+ * @return map of all (var whose domain changed -> nonzero number of letter/index pairs removed)
 */
-unordered_set<size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
-    unordered_set<size_t> result;
+unordered_map<size_t, size_t> cw_arc::prune_domain(id_obj_manager<cw_variable>& vars) {
+    unordered_map<size_t, size_t> result;
 
     letter_bitset_t lhs_letters = vars[lhs]->domain.get_all_letters_at_index(lhs_index);
     letter_bitset_t rhs_letters = vars[rhs]->domain.get_all_letters_at_index(rhs_index);
     for(uint i = 0; i < NUM_ENGLISH_LETTERS; ++i) {
         if(lhs_letters[i] && !rhs_letters[i]) {
             // cannot satisfy constraint for this letter
-            cw_assert(vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a')) > 0);
-            result.insert(lhs);
+            const size_t num_words_removed = vars[lhs]->domain.remove_matching_words(lhs_index, static_cast<char>(i + 'a'));
+            cw_assert(num_words_removed);
+
+            // one additional letter/index pair removed, distinct from # of words removed
+            ++result[lhs];
         }
     }
 
@@ -420,11 +423,11 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
  * @brief AC-N step to prune words in first var domain without cyclical path back to first var
  * 
  * @param  vars ref to id_obj_manager to index into to get vars from
- * @return set of vars whose domains changed
+ * @return map of all (var whose domain changed -> nonzero number of letter/index pairs removed)
 */
-unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
-    // imagine a graph with N=4 layers, with each layer having up to 26 nodes
-    // each layer is placed in between two variables that intersect
+unordered_map<size_t, size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) {
+    // imagine a graph with N layers, with each layer having up to 26 nodes
+    // each layer is placed *in between* two variables that intersect
     // a node exists if the corresponding letter can be placed in the intersection 
     // an edge exists from a node to another node in the next layer iff allowed by has_letters_at_index_with_letter_assigned()
 
@@ -590,7 +593,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
         if(letter_nodes[root_layer][j]) {
             // get nodes in cycles with exact length CYCLE_LEN that contain node j on first layer
             vector<letter_bitset_t> nodes_in_cycle = get_nodes_of_cycles_containing(root_layer, j);
-            assert(nodes_in_cycle.size() == cycle_len);
+            cw_assert(nodes_in_cycle.size() == cycle_len);
             
             // add to letter_in_cycle which contains all cycle nodes
             for(size_t i = 0; i < cycle_len; ++i) {
@@ -600,7 +603,7 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
     }
 
     // remove letters from domains if node not part of a cycle
-    unordered_set<size_t> modified;
+    unordered_map<size_t, size_t> modified;
     for(size_t i = 0; i < cycle_len; ++i) {
         for(size_t j = 0; j < NUM_ENGLISH_LETTERS; ++j) {
             // remove if node exists AND not part of a cycle
@@ -608,11 +611,17 @@ unordered_set<size_t> cw_cycle::prune_domain(id_obj_manager<cw_variable>& vars) 
                 const size_t lhs_idx = i;
                 const size_t rhs_idx = (i + 1) % cycle_len;
 
-                vars[var_cycle[lhs_idx]]->domain.remove_matching_words(intersections[i].first,  static_cast<char>(j + 'a'));
-                vars[var_cycle[rhs_idx]]->domain.remove_matching_words(intersections[i].second, static_cast<char>(j + 'a'));
+                const size_t lhs_removed_words = vars[var_cycle[lhs_idx]]->domain.remove_matching_words(
+                    intersections[i].first,  static_cast<char>(j + 'a')
+                );
+                const size_t rhs_removed_words = vars[var_cycle[rhs_idx]]->domain.remove_matching_words(
+                    intersections[i].second, static_cast<char>(j + 'a')
+                );
+                cw_assert(lhs_removed_words || rhs_removed_words);
 
-                modified.insert(var_cycle[lhs_idx]);
-                modified.insert(var_cycle[rhs_idx]);
+                // don't report a letter/index pair as removed if no word matching that pair were removed
+                if(lhs_removed_words) ++modified[var_cycle[lhs_idx]];
+                if(rhs_removed_words) ++modified[var_cycle[rhs_idx]];
             }
         }
     }

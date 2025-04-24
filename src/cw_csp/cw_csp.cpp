@@ -476,7 +476,7 @@ bool cw_csp::ac3() {
         constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
-        unordered_set<size_t> modified;
+        unordered_map<size_t, size_t> modified;
         {
             #ifdef TIMETRACKER_TRACK_AC3
             cw_timestamper stamper(tracker, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
@@ -505,7 +505,7 @@ bool cw_csp::ac3() {
             }
 
             // add dependent constraints to queue
-            for(size_t dep : modified) {
+            for(const auto& [dep, _] : modified) {
                 for(size_t dep_constr : constr_dependencies.at(dep)) {
                     if(constraints_in_queue.count(dep_constr) == 0) {
                         constraint_queue.push(dep_constr);
