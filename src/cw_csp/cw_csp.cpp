@@ -485,7 +485,10 @@ bool cw_csp::ac3() {
             modified = constraints[constr_id]->prune_domain(variables);
             #ifdef TIMETRACKER_TRACK_AC3
             stamper.result()["constr_len"]  = constraints[constr_id]->size();
-            stamper.result()["vars_pruned"] = modified;
+            stamper.result()["vars_pruned"] = basic_json::object();
+            for(const auto& [var_id, pairs_removed] : modified) {
+                stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
+            }
             #endif
         }
         if(modified.size() > 0) {
