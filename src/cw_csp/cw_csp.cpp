@@ -469,6 +469,12 @@ void cw_csp::initialize_csp() {
     for(size_t id : constraints.ids()) {
         stamper.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
     }
+
+    // record lengths of each constraint
+    stamper.result()["constr_lens"] = ordered_json::object();
+    for(size_t id : constraints.ids()) {
+        stamper.result()["constr_lens"][std::to_string(id)] = constraints[id]->size();
+    }
 }
 
 /**
@@ -519,7 +525,6 @@ bool cw_csp::ac3() {
 
             modified = constraints[constr_id]->prune_domain(variables);
             #ifdef TIMETRACKER_TRACK_AC3
-            stamper.result()["constr_len"]  = constraints[constr_id]->size();
             stamper.result()["vars_pruned"] = ordered_json::object();
             for(const auto& [var_id, pairs_removed] : modified) {
                 stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
