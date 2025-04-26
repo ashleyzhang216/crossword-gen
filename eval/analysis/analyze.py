@@ -3,13 +3,13 @@ import argparse
 import sys
 import os
 
-from helpers.ac3_pruning import analyze_ac3_pruning_durations
+from helpers.ac3_pruning import analyze_ac3_pruning
 
 def main():
     # parse cli args
     parser = argparse.ArgumentParser(description='Analyze profiling JSON output files')
     parser.add_argument('data_path', help='Path to the JSON data file')
-    parser.add_argument('output_dir', help='Name of output directory.')
+    parser.add_argument('output_dir', help='Name of output directory')
     args = parser.parse_args()
 
     # create output dir
@@ -33,7 +33,8 @@ def main():
         print(f"Error: Failed to parse JSON file '{args.data_path}'. {e}")
         sys.exit(1)
 
-    analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
+    # analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
+    print(analyze_ac3_pruning(data))
 
 if __name__ == "__main__":
     main()
