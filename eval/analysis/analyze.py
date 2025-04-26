@@ -34,7 +34,7 @@ def main():
         sys.exit(1)
 
     # analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
-    print(analyze_ac3_pruning(data))
+    analyze_ac3_pruning(data)
 
 if __name__ == "__main__":
     main()
