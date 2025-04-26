@@ -26,7 +26,7 @@ namespace cw_timetracker_ns {
         cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev);
 
         // ends timestep measurement
-        void resolve(size_t expected_id, basic_json&& r);
+        void resolve(size_t expected_id, ordered_json&& r);
 
         // returns true iff timestep has been resolved
         bool resolved() { return end.has_value(); }
@@ -53,7 +53,7 @@ namespace cw_timetracker_ns {
         optional<time_point<high_resolution_clock> > end;
 
         // context as to how or why this timestep ended
-        basic_json result;
+        ordered_json result;
     }; // cw_timestep
 
     /**
@@ -65,10 +65,10 @@ namespace cw_timetracker_ns {
             size_t start_timestep(ts_type_t type, const string& name);
             
             // end previous timestep
-            void end_timestep(size_t id, basic_json&& result);
+            void end_timestep(size_t id, ordered_json&& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(const string& filepath, basic_json&& result = basic_json::object());
+            void save_results(const string& filepath, ordered_json&& result = ordered_json::object());
 
             // basic constructor, initializes root timestep
             cw_timetracker(const string& init_name, bool enabled);
@@ -100,7 +100,7 @@ namespace cw_timetracker_ns {
             cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name);
 
             // returns ref to json object for modification
-            basic_json& result();
+            ordered_json& result();
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();
@@ -121,7 +121,7 @@ namespace cw_timetracker_ns {
             size_t id;
 
             // result attached to timestep, format specific to each timestep type
-            basic_json _result;
+            ordered_json _result;
     }; // cw_timestamper
 }; // cw_timetracker_ns
 

@@ -75,10 +75,10 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
  * @param filepath the filepath to save the result to, as a json file
  */
 void cw_csp::save_timetracker_result(string filepath) const {
-    tracker.save_results(filepath, basic_json::object({
+    tracker.save_results(filepath, ordered_json::object({
         {"success", solved()},
         {"solution", solved() ? result() : ""},
-        {"grid", basic_json::object({
+        {"grid", ordered_json::object({
             {"rows", cw.rows()},
             {"cols", cw.cols()},
             {"dict", dict_filepath},
@@ -440,26 +440,26 @@ void cw_csp::initialize_csp() {
     }
 
     // record variable length histogram
-    stamper.result()["var_len_freqs"] = basic_json::object();
+    stamper.result()["var_len_freqs"] = ordered_json::object();
     for(const auto& pair : var_len_freqs) {
         stamper.result()["var_len_freqs"][std::to_string(pair.first)] = pair.second;
     }
 
     // record constraint length histogram
-    stamper.result()["constr_len_freqs"] = basic_json::object();
+    stamper.result()["constr_len_freqs"] = ordered_json::object();
     for(const auto& pair : constr_len_freqs) {
         stamper.result()["constr_len_freqs"][std::to_string(pair.first)] = pair.second;
     }
 
     // record constraint dependencies for debugging
-    stamper.result()["constr_deps"] = basic_json::object();
+    stamper.result()["constr_deps"] = ordered_json::object();
     for(const auto& pair : constr_dependencies) {
         stamper.result()["constr_deps"][std::to_string(pair.first)] = pair.second;
     }
 
     // record sizes of each variable's domain
     cw_assert(var_domain_sizes.size() == variables.size());
-    stamper.result()["var_domain_sizes"] = basic_json::object();
+    stamper.result()["var_domain_sizes"] = ordered_json::object();
     for(const auto& [var, size] : var_domain_sizes) {
         stamper.result()["var_domain_sizes"][std::to_string(var)] = size;
     }
@@ -514,7 +514,7 @@ bool cw_csp::ac3() {
             modified = constraints[constr_id]->prune_domain(variables);
             #ifdef TIMETRACKER_TRACK_AC3
             stamper.result()["constr_len"]  = constraints[constr_id]->size();
-            stamper.result()["vars_pruned"] = basic_json::object();
+            stamper.result()["vars_pruned"] = ordered_json::object();
             for(const auto& [var_id, pairs_removed] : modified) {
                 stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
             }
@@ -717,7 +717,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     sort(domain_copy.begin(), domain_copy.end(), compare);
 
     // record variable chosen
-    stamper.result()["variable"] = basic_json::object({
+    stamper.result()["variable"] = ordered_json::object({
         {"origin_row",  variables[next_var]->origin_row},
         {"origin_col",  variables[next_var]->origin_col},
         {"direction",   word_dir_name.at(variables[next_var]->dir)},
