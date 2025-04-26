@@ -45,8 +45,8 @@ def get_track_ac3(data) -> bool:
     assert('track_ac3' in data.get('result'))
     return data.get('result').get('track_ac3')
 
-# getter for constr_dependent_vars entry
-def get_dependent_vars(data, constr_id) -> list[int]:
+# getter for constr_dependent_vars entries
+def get_constr_dependent_vars(data) -> dict[str, list[int]]:
     assert('type' in data and data.get('type') == "Total")
     assert('children' in data)
     children = data.get('children', [])
@@ -56,8 +56,7 @@ def get_dependent_vars(data, constr_id) -> list[int]:
     assert('constr_dependent_vars' in children[0].get('result'))
 
     constr_dependent_vars = children[0].get('result').get('constr_dependent_vars')
-    assert(str(constr_id) in constr_dependent_vars)
-    return constr_dependent_vars.get(str(constr_id))
+    return constr_dependent_vars
 
 # returns map of constraint id -> {"pairs_pruned": (map of # of pairs pruned -> list of durations), "num_vars_pruned": multimap of # of vars pruned at a time}
 def gather_constr_prune_data(data):
@@ -94,8 +93,41 @@ def gather_constr_prune_data(data):
     traverse(traverse, data, prune_data)
     return prune_data
 
+# returns map of variable id -> (multimap of # of pairs pruned)
 def gather_var_prune_data(data):
-    pass
+    constr_dependent_vars = get_constr_dependent_vars(data)
+
+    def traverse(self, node, prune_data):
+        if node.get('type') == "AC3 Prune":
+            assert('name' in node)
+            assert('result' in node and 'vars_pruned' in node.get('result'))
+            assert('duration_us' in node)
+            assert('children' in node)
+
+            name = node['name']
+            result = node['result']
+            vars_pruned = result['vars_pruned']
+
+            assert(name in constr_dependent_vars)
+            vars = constr_dependent_vars[name]
+
+            for var in vars:
+                if not var in prune_data:
+                    prune_data[var] = {}
+
+                pairs_pruned = vars_pruned.get(str(var), 0)
+
+                if not pairs_pruned in prune_data[var]:
+                    prune_data[var][pairs_pruned] = 1
+                else:
+                    prune_data[var][pairs_pruned] += 1
+
+        for child in node.get('children', []):
+            self(self, child, prune_data)
+
+    prune_data = {}
+    traverse(traverse, data, prune_data)
+    return prune_data
 
 # run all child functions, return true iff ac3 pruning was tracked
 def analyze_ac3_pruning(data) -> bool:
@@ -104,4 +136,5 @@ def analyze_ac3_pruning(data) -> bool:
         return False
 
     print(gather_constr_prune_data(data))
+    print(gather_var_prune_data(data))
     return True
