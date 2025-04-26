@@ -27,7 +27,7 @@ namespace cw_tree_ns {
             cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& profile_header);
             
             // singlethreaded search for 1 solution per permutated grid, returning up to num_solutions results
-            vector<string> solve(size_t num_solutions);
+            vector<string> solve(size_t num_solutions, bool allow_permutations);
         
         protected:
             // initial user input grid, undefined once solve() is called

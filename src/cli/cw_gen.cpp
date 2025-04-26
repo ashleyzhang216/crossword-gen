@@ -42,7 +42,7 @@ vector<string> cw_gen::solve() {
     crossword cw = crossword("puzzle cw", length, height, contents.value_or(string(num_tiles(), WILDCARD)));
     tree = make_unique<cw_tree>("cw_tree", std::move(cw), dict_path.at(dict), display_progress_bar, profile_header);
 
-    return tree->solve(num_solutions);
+    return tree->solve(num_solutions, allow_permutations);
 }
 
 /**
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     if(num_solutions == 0) {
         cout << "Error: got illegal number of grid to search: " << num_solutions << ", must be nonzero" << endl;
         exit(1);
-    } else if(num_solutions > 1 && result.count("modify")) {
+    } else if(num_solutions > 1 && !result.count("modify")) {
         // TODO: support this feature
         cout << "Error: searching for multiple solutions on a non-modifiable grid is currently not supported" << endl;
         exit(1);

@@ -68,7 +68,7 @@ namespace cw_gen_ns {
             size_t num_solutions;
 
             // whether to allow searching of grid permutations
-            bool allow_permutations;
+            bool allow_permutations = false;
 
             // whether to display progress bar or not
             bool display_progress_bar = false;
