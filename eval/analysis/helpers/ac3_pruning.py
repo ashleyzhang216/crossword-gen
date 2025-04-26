@@ -37,4 +37,16 @@ def analyze_ac3_pruning_durations(data, img_filepath):
     # plt.ylabel('Frequency')
     # plt.legend()
     plt.show()
-    
+
+# return track_ac3 flag
+def track_ac3(data) -> bool:
+    assert('type' in data and data.get('type') == "Total")
+    assert('result' in data)
+    assert('track_ac3' in data.get('result'))
+    return data.get('result').get('track_ac3')
+
+def analyze_ac3_pruning(data) -> bool:
+    if not track_ac3(data):
+        print("Warning: AC-3 not tracked in provided file, skipping")
+        return False
+    return True
