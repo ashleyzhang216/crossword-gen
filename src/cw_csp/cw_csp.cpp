@@ -463,6 +463,12 @@ void cw_csp::initialize_csp() {
     for(const auto& [var, size] : var_domain_sizes) {
         stamper.result()["var_domain_sizes"][std::to_string(var)] = size;
     }
+
+    // record dependent variables of each constraint
+    stamper.result()["constr_dependent_vars"] = ordered_json::object();
+    for(size_t id : constraints.ids()) {
+        stamper.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
+    }
 }
 
 /**

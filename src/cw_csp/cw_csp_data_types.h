@@ -87,7 +87,7 @@ namespace cw_csp_data_types_ns {
             // used to build constr_dependencies table in cw_csp
             virtual unordered_set<size_t> dependencies() const = 0;
 
-            // ids of var which may be modified in prune_domain() which can affect dependent constraints
+            // ids of var which may be modified in prune_domain(), possibly affecting dependent constraints
             virtual unordered_set<size_t> dependents() const = 0;
 
             // number of variables traversed over
