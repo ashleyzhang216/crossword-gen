@@ -82,15 +82,15 @@ void cw_csp::save_timetracker_result(string filepath) const {
             {"rows", cw.rows()},
             {"cols", cw.cols()},
             {"dict", dict_filepath},
-            {"contents", cw.init_contents()},
-            {"track_ac3",
-                #ifdef TIMETRACKER_TRACK_AC3
-                true
-                #else
-                false
-                #endif
-            }
-        })}
+            {"contents", cw.init_contents()}
+        })},
+        {"track_ac3",
+            #ifdef TIMETRACKER_TRACK_AC3
+            true
+            #else
+            false
+            #endif
+        }
     }));
 }
 
