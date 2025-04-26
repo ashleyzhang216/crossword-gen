@@ -108,7 +108,10 @@ void cw_csp::initialize_csp() {
     uint cur_var_row = 0ul, cur_var_col = 0ul, cur_var_len = 0ul; // valid iff traversing_word
 
     // track frequency of each length of variable
-    unordered_map<size_t, size_t> var_len_freqs;
+    map<size_t, size_t> var_len_freqs;
+    
+    // track initial sizes of each variable's domain
+    map<size_t, size_t> var_domain_sizes;
 
     utils.log(DEBUG, "cw_csp searching for vertical variables");
 
@@ -145,9 +148,13 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
+                        // gather new var domain and record its size
+                        unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+                        var_domain_sizes[variables.size()] = domain.size();
+
                         // save new variable
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), std::move(domain)
                         ));
 
                         // record variable length
@@ -166,10 +173,15 @@ void cw_csp::initialize_csp() {
             }
         }
 
+        // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
+            // gather new var domain and record its size
+            unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+            var_domain_sizes[variables.size()] = domain.size();
+
+            // save new variable
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), std::move(domain)
             ));
 
             // record variable length
@@ -212,8 +224,13 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
+                        // gather new var domain and record its size
+                        unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+                        var_domain_sizes[variables.size()] = domain.size();
+
+                        // save new variable
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), std::move(domain)
                         ));
 
                         // record variable length
@@ -232,10 +249,15 @@ void cw_csp::initialize_csp() {
             }
         }
 
+        // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
+            // gather new var domain and record its size
+            unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+            var_domain_sizes[variables.size()] = domain.size();
+
+            // save new variable
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), std::move(domain)
             ));
 
             // record variable length
@@ -272,7 +294,7 @@ void cw_csp::initialize_csp() {
     utils.log(DEBUG, "cw_csp populating constraints");
 
     // track frequency of each length of constraint
-    unordered_map<size_t, size_t> constr_len_freqs;
+    map<size_t, size_t> constr_len_freqs;
 
     // find the valid constraints in var_intersect_table (ones with 2 variables) to add to constraints
     for(uint row = 0; row < cw.rows(); row++) {
@@ -433,6 +455,13 @@ void cw_csp::initialize_csp() {
     stamper.result()["constr_deps"] = basic_json::object();
     for(const auto& pair : constr_dependencies) {
         stamper.result()["constr_deps"][std::to_string(pair.first)] = pair.second;
+    }
+
+    // record sizes of each variable's domain
+    cw_assert(var_domain_sizes.size() == variables.size());
+    stamper.result()["var_domain_sizes"] = basic_json::object();
+    for(const auto& [var, size] : var_domain_sizes) {
+        stamper.result()["var_domain_sizes"][std::to_string(var)] = size;
     }
 }
 
