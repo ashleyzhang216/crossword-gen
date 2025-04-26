@@ -56,6 +56,8 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
             csp.save_timetracker_result(profile_header.value() + "0" + ".json");
         }
     } else {
+        // TODO: find as many solutions possible on each current grid before exploring permutations upon domain exhaustion
+
         // to avoid duplicate solutions and output profiling files
         unordered_set<string> explored_grids;
         size_t num_explored = 0ul;
