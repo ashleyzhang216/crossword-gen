@@ -37,6 +37,7 @@ namespace cw_gen_ns {
             void set_dict           (const string& d) { dict   = d;                             }
             void set_contents       (const string& c) { contents = std::make_optional(c);       }
             void set_num_solutions  (size_t n)        { num_solutions = n;                      }
+            void enable_modify_grid ()                { allow_permutations = true;              }
             void enable_progress_bar()                { display_progress_bar = true;            }
             void enable_profile     (const string& f) { profile_header = std::make_optional(f); }
 
@@ -63,8 +64,11 @@ namespace cw_gen_ns {
             // contents to populate crossword grid with
             optional<string> contents;
 
-            // number of grids to find solutions for
+            // number of solutions to find
             size_t num_solutions;
+
+            // whether to allow searching of grid permutations
+            bool allow_permutations = false;
 
             // whether to display progress bar or not
             bool display_progress_bar = false;
