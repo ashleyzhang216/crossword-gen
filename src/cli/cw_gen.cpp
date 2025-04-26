@@ -70,9 +70,10 @@ int main(int argc, char** argv) {
         ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
         ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("xlarge"))
         ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
-        ("n,num",       "Number of grid permutations to find puzzles on",                        cxxopts::value<size_t>()->default_value("1"))
+        ("n,num",       "Number of solutions to find",                                           cxxopts::value<size_t>()->default_value("1"))
+        ("m,modify",    "Allow grid modifications upon domain exhaustion",                       cxxopts::value<bool>())
         ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
-        ("p,progress",  "Enable progress bar (default: false)",                                  cxxopts::value<bool>())
+        ("p,progress",  "Enable progress bar",                                                   cxxopts::value<bool>())
         ("P,profile",   "Name of JSON profile file to generate if provided",                     cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
@@ -151,8 +152,18 @@ int main(int argc, char** argv) {
     if(num_solutions == 0) {
         cout << "Error: got illegal number of grid to search: " << num_solutions << ", must be nonzero" << endl;
         exit(1);
+    } else if(num_solutions > 1 && result.count("modify")) {
+        // TODO: support this feature
+        cout << "Error: searching for multiple solutions on a non-modifiable grid is currently not supported" << endl;
+        exit(1);
     }
     cwgen.set_num_solutions(num_solutions);
+
+    // ############### permutations ###############
+
+    if(result.count("modify")) {
+        cwgen.enable_modify_grid();
+    }
 
     // ############### verbosity ###############
 
