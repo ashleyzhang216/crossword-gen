@@ -59,10 +59,49 @@ def get_dependent_vars(data, constr_id) -> list[int]:
     assert(str(constr_id) in constr_dependent_vars)
     return constr_dependent_vars.get(str(constr_id))
 
+# returns map of constraint id -> {"pairs_pruned": (map of # of pairs pruned -> list of durations), "num_vars_pruned": multimap of # of vars pruned at a time}
+def gather_constr_prune_data(data):
+    def traverse(self, node, prune_data):
+        if node.get('type') == "AC3 Prune":
+            assert('name' in node)
+            assert('result' in node and 'vars_pruned' in node.get('result'))
+            assert('duration_us' in node)
+            assert('children' in node)
+
+            name = node['name']
+            result = node['result']
+            duration = node['duration_us']
+            vars_pruned = result['vars_pruned']
+
+            constr_id = int(name)
+            constr_data = prune_data.setdefault(constr_id, {
+                "pairs_pruned": {},
+                "num_vars_pruned": {}
+            })
+
+            # calculate and store pairs pruned
+            total_pairs = sum(vars_pruned.values())
+            constr_data["pairs_pruned"].setdefault(total_pairs, []).append(duration)
+
+            # count variable pruning occurrences
+            num_vars = len(vars_pruned)
+            constr_data["num_vars_pruned"][num_vars] = constr_data["num_vars_pruned"].get(num_vars, 0) + 1
+
+        for child in node.get('children', []):
+            self(self, child, prune_data)
+
+    prune_data = {}
+    traverse(traverse, data, prune_data)
+    return prune_data
+
+def gather_var_prune_data(data):
+    pass
+
 # run all child functions, return true iff ac3 pruning was tracked
 def analyze_ac3_pruning(data) -> bool:
     if not get_track_ac3(data):
         print("Warning: AC-3 not tracked in provided file, skipping")
         return False
 
+    print(gather_constr_prune_data(data))
     return True
