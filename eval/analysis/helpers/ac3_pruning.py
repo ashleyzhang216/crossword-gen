@@ -3,6 +3,8 @@ import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 
+#################### data collection ####################
+
 # getter for track_ac3 flag
 def get_track_ac3(data) -> bool:
     assert('type' in data and data.get('type') == "Total")
@@ -10,7 +12,7 @@ def get_track_ac3(data) -> bool:
     assert('track_ac3' in data.get('result'))
     return data.get('result').get('track_ac3')
 
-# getter for constr_dependent_vars entries
+# getter for constr_dependent_vars entries, dict of constraint id str -> dependent var ids
 def get_constr_dependent_vars(data) -> dict[str, list[int]]:
     assert('type' in data and data.get('type') == "Total")
     assert('children' in data)
@@ -22,6 +24,19 @@ def get_constr_dependent_vars(data) -> dict[str, list[int]]:
 
     constr_dependent_vars = children[0].get('result').get('constr_dependent_vars')
     return constr_dependent_vars
+
+# getter for constr_lens entries, dict of constraint id str -> integer length
+def get_constr_lens(data) -> dict[str, int]:
+    assert('type' in data and data.get('type') == "Total")
+    assert('children' in data)
+    children = data.get('children', [])
+    assert(len(children) > 0)
+    assert('type' in children[0] and children[0].get('type') == "Initialize")
+    assert('result' in children[0])
+    assert('constr_lens' in children[0].get('result'))
+
+    constr_lens = children[0].get('result').get('constr_lens')
+    return constr_lens
 
 # returns map of constraint id -> {"pairs_pruned": (map of # of pairs pruned -> list of durations), "num_vars_pruned": multimap of # of vars pruned at a time}
 def gather_constr_prune_data(data):
@@ -93,6 +108,8 @@ def gather_var_prune_data(data):
     prune_data = {}
     traverse(traverse, data, prune_data)
     return prune_data
+
+#################### data analysis ####################
 
 # get average microseconds per pair pruned
 def get_avg_prune_duration(constr_prune_data):
@@ -171,6 +188,8 @@ def weighted_linear_regression(x, y, weights=None):
         'weights': weights
     }
 
+#################### plotting ####################
+
 # plot average microseconds per prune vs # of pairs pruned in a single pass, and weighted least squares fit
 def plot_avg_prune_durations(constr_prune_data, max_error=1.0, confidence=0.95):
     # map of # pairs pruned -> [list of all durations]
@@ -248,11 +267,39 @@ def plot_prune_size_freqs(constr_prune_data):
 
     plt.hist(num_pairs_pruned, bins=len(set(num_pairs_pruned)), edgecolor='black')
 
+    plt.title('Histogram of Pairs Pruned per Pass (Log Scale)')
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Frequency (log scale)')
-    plt.title('Histogram of Pairs Pruned per Pass (Log Scale)')
 
     plt.show()
+
+# plot comparison of total pairs pruned per constraint length
+def plot_pairs_pruned_distribution(constr_prune_data, constr_lens):
+    # map of constraint length -> total number of pairs pruned
+    all_pairs_pruned = {}
+
+    for constr_id, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+        constr_len = constr_lens.get(str(constr_id))
+
+        for pairs_pruned, durations in pairs_data.items():
+            all_pairs_pruned.setdefault(constr_len, []).extend([pairs_pruned] * len(durations))
+
+    lengths = np.asarray(sorted(all_pairs_pruned.keys()))
+    total_pruned = np.asarray([sum(all_pairs_pruned[l]) for l in all_pairs_pruned])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.bar(lengths, total_pruned, edgecolor='black')
+
+    plt.title('Total Pairs Pruned vs Constraint Length')
+    plt.xlabel('Constraint Lengths')
+    plt.ylabel('Pairs Pruned')
+
+    plt.show()
+
+#################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
 def analyze_ac3_pruning(data) -> bool:
@@ -267,5 +314,6 @@ def analyze_ac3_pruning(data) -> bool:
 
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
+    plot_pairs_pruned_distribution(constr_data, get_constr_lens(data))
 
     return True
