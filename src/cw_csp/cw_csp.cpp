@@ -470,6 +470,12 @@ void cw_csp::initialize_csp() {
         stamper.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
     }
 
+    // record length of each variable
+    stamper.result()["var_lens"] = ordered_json::object();
+    for(size_t id : variables.ids()) {
+        stamper.result()["var_lens"][std::to_string(id)] = variables[id]->length;
+    }
+
     // record lengths of each constraint
     stamper.result()["constr_lens"] = ordered_json::object();
     for(size_t id : constraints.ids()) {
