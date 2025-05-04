@@ -12,31 +12,18 @@ def get_track_ac3(data) -> bool:
     assert('track_ac3' in data.get('result'))
     return data.get('result').get('track_ac3')
 
-# getter for constr_dependent_vars entries, dict of constraint id str -> dependent var ids
-def get_constr_dependent_vars(data) -> dict[str, list[int]]:
+# getter for subfields in the result field of the initialize node
+def get_initialize_field(data, field_name):
     assert('type' in data and data.get('type') == "Total")
     assert('children' in data)
     children = data.get('children', [])
     assert(len(children) > 0)
     assert('type' in children[0] and children[0].get('type') == "Initialize")
     assert('result' in children[0])
-    assert('constr_dependent_vars' in children[0].get('result'))
+    assert(field_name in children[0].get('result'))
 
-    constr_dependent_vars = children[0].get('result').get('constr_dependent_vars')
-    return constr_dependent_vars
-
-# getter for constr_lens entries, dict of constraint id str -> integer length
-def get_constr_lens(data) -> dict[str, int]:
-    assert('type' in data and data.get('type') == "Total")
-    assert('children' in data)
-    children = data.get('children', [])
-    assert(len(children) > 0)
-    assert('type' in children[0] and children[0].get('type') == "Initialize")
-    assert('result' in children[0])
-    assert('constr_lens' in children[0].get('result'))
-
-    constr_lens = children[0].get('result').get('constr_lens')
-    return constr_lens
+    field = children[0].get('result').get(field_name)
+    return field
 
 # returns map of constraint id -> {"pairs_pruned": (map of # of pairs pruned -> list of durations), "num_vars_pruned": multimap of # of vars pruned at a time}
 def gather_constr_prune_data(data):
@@ -73,9 +60,9 @@ def gather_constr_prune_data(data):
     traverse(traverse, data, prune_data)
     return prune_data
 
-# returns map of variable id -> (multimap of # of pairs pruned)
+# returns map of variable id -> (map of # of pairs pruned -> list of durations)
 def gather_var_prune_data(data):
-    constr_dependent_vars = get_constr_dependent_vars(data)
+    constr_dependent_vars = get_initialize_field(data, "constr_dependent_vars")
 
     def traverse(self, node, prune_data):
         if node.get('type') == "AC3 Prune":
@@ -86,21 +73,17 @@ def gather_var_prune_data(data):
 
             name = node['name']
             result = node['result']
+            duration = node['duration_us']
             vars_pruned = result['vars_pruned']
 
             assert(name in constr_dependent_vars)
             vars = constr_dependent_vars[name]
 
             for var in vars:
-                if not var in prune_data:
-                    prune_data[var] = {}
-
                 pairs_pruned = vars_pruned.get(str(var), 0)
 
-                if not pairs_pruned in prune_data[var]:
-                    prune_data[var][pairs_pruned] = 1
-                else:
-                    prune_data[var][pairs_pruned] += 1
+                prune_data.setdefault(var, {})
+                prune_data[var].setdefault(pairs_pruned, []).append(duration)
 
         for child in node.get('children', []):
             self(self, child, prune_data)
@@ -287,7 +270,7 @@ def plot_pairs_pruned_distribution(constr_prune_data, constr_lens):
             all_pairs_pruned.setdefault(constr_len, []).extend([pairs_pruned] * len(durations))
 
     lengths = np.asarray(sorted(all_pairs_pruned.keys()))
-    total_pruned = np.asarray([sum(all_pairs_pruned[l]) for l in all_pairs_pruned])
+    total_pruned = np.asarray([sum(all_pairs_pruned[l]) for l in lengths])
 
     plt.figure(figsize=(10, 6))
 
@@ -296,6 +279,39 @@ def plot_pairs_pruned_distribution(constr_prune_data, constr_lens):
     plt.title('Total Pairs Pruned vs Constraint Length')
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Pairs Pruned')
+
+    plt.show()
+
+# plot ratio of non-null AC-3 prunes vs var domain size
+def plot_ac3_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
+    # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
+    all_prunes = {}
+
+    for var_id, data in var_prune_data.items():
+        assert(str(var_id) in var_domain_sizes)
+        all_prunes.setdefault(var_id, {
+            "empty": 0,
+            "nonempty": 0
+        })
+
+        for pairs_pruned, durations in data.items():
+            if pairs_pruned == 0:
+                all_prunes[var_id]["empty"] += len(durations)
+            else:
+                all_prunes[var_id]["nonempty"] += len(durations)
+
+    dom_sizes = np.asarray([var_domain_sizes[str(var_id)] for var_id in all_prunes.keys()])
+    ratios = np.asarray([all_prunes[v]["nonempty"] / (all_prunes[v]["empty"] + all_prunes[v]["nonempty"]) for v in all_prunes])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.scatter(dom_sizes, ratios, alpha=0.6, label='Variable')
+
+    plt.title('Ratio of Successful AC-3 Prunes vs Variable Domain Sizes')
+    plt.xlabel('Domain Size')
+    plt.ylabel('Ratio of Successful AC-3 Prunes')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
 
     plt.show()
 
@@ -314,6 +330,8 @@ def analyze_ac3_pruning(data) -> bool:
 
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
-    plot_pairs_pruned_distribution(constr_data, get_constr_lens(data))
+    plot_pairs_pruned_distribution(constr_data, get_initialize_field(data, "constr_lens"))
+
+    plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
 
     return True
