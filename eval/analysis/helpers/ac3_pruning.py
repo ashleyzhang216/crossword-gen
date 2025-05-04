@@ -300,8 +300,9 @@ def plot_ac3_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
             else:
                 all_prunes[var_id]["nonempty"] += len(durations)
 
-    dom_sizes = np.asarray([var_domain_sizes[str(var_id)] for var_id in all_prunes.keys()])
-    ratios = np.asarray([all_prunes[v]["nonempty"] / (all_prunes[v]["empty"] + all_prunes[v]["nonempty"]) for v in all_prunes])
+    var_ids = sorted(all_prunes.keys())
+    dom_sizes = np.asarray([var_domain_sizes[str(var_id)] for var_id in var_ids])
+    ratios = np.asarray([all_prunes[v]["nonempty"] / (all_prunes[v]["empty"] + all_prunes[v]["nonempty"]) for v in var_ids])
 
     plt.figure(figsize=(10, 6))
 
@@ -309,6 +310,40 @@ def plot_ac3_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
 
     plt.title('Ratio of Successful AC-3 Prunes vs Variable Domain Sizes')
     plt.xlabel('Domain Size')
+    plt.ylabel('Ratio of Successful AC-3 Prunes')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+
+    plt.show()
+
+# plot ratio of non-null AC-3 prunes vs var lengths
+def plot_ac3_ratio_vs_var_lens(var_prune_data, var_lens):
+    # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
+    all_prunes = {}
+
+    for var_id, data in var_prune_data.items():
+        assert(str(var_id) in var_lens)
+        all_prunes.setdefault(var_id, {
+            "empty": 0,
+            "nonempty": 0
+        })
+
+        for pairs_pruned, durations in data.items():
+            if pairs_pruned == 0:
+                all_prunes[var_id]["empty"] += len(durations)
+            else:
+                all_prunes[var_id]["nonempty"] += len(durations)
+
+    var_ids = sorted(all_prunes.keys())
+    var_lens = np.asarray([var_lens[str(var_id)] for var_id in var_ids])
+    ratios = np.asarray([all_prunes[v]["nonempty"] / (all_prunes[v]["empty"] + all_prunes[v]["nonempty"]) for v in var_ids])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.scatter(var_lens, ratios, alpha=0.6, label='Variable')
+
+    plt.title('Ratio of Successful AC-3 Prunes vs Variable Lengths')
+    plt.xlabel('Variable Length')
     plt.ylabel('Ratio of Successful AC-3 Prunes')
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -333,5 +368,6 @@ def analyze_ac3_pruning(data) -> bool:
     plot_pairs_pruned_distribution(constr_data, get_initialize_field(data, "constr_lens"))
 
     plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
+    plot_ac3_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
 
     return True
