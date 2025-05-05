@@ -24,6 +24,27 @@ def gather_ac3_success_data(data):
     traverse(traverse, data, all_calls)
     return all_calls
 
+#################### plotting ####################
+
+# plot histogram of ac3 call durations, separated by success/fail
+def plot_ac3_call_durations(ac3_success_data):
+    plt.figure(figsize=(10, 6))
+
+    binwidth = 2500
+    global_min = min(min(ac3_success_data['success']), min(ac3_success_data['fail']))
+    global_max = max(max(ac3_success_data['success']), max(ac3_success_data['fail']))
+    bins = range(global_min, global_max + binwidth, binwidth)
+
+    plt.hist(ac3_success_data['success'], bins=bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
+    plt.hist(ac3_success_data['fail'], bins=bins, alpha=0.5, label='Failed AC-3 Calls', color='red', edgecolor='black')
+
+    plt.title('Histogram of AC-3 Call Durations')
+    plt.xlabel('AC-3 Call Duration (μs)')
+    plt.ylabel('Frequency')
+    plt.legend()
+
+    plt.show()
+
 #################### parent function ####################
 
 # run all child functions, return true
@@ -32,5 +53,7 @@ def analyze_ac3_calls(data) -> bool:
 
     num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])
     print("Total number of AC-3 calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+
+    plot_ac3_call_durations(ac3_success_data)
 
     return True
