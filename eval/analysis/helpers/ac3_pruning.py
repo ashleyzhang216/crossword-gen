@@ -141,6 +141,15 @@ def get_avg_prune_duration(constr_prune_data):
 
     return total_duration / total_pairs_pruned
 
+# get average pairs pruned per ac3 call
+def get_avg_pairs_pruned_per_ac3(ac3_data):
+    all_prunes = []
+
+    for pairs_pruned, data in ac3_data.items():
+        all_prunes.extend([pairs_pruned] * (data['success'] + data['fail']))
+
+    return sum(all_prunes) / len(all_prunes)
+
 # perform a weighted linear regression
 def weighted_linear_regression(x, y, weights=None):
     """
@@ -426,6 +435,8 @@ def analyze_ac3_pruning(data) -> bool:
 
     plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_ac3_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
+
+    print("Average pairs pruned per AC-3 call:", get_avg_pairs_pruned_per_ac3(ac3_data))
 
     plot_pairs_pruned_per_ac3(ac3_data)
 
