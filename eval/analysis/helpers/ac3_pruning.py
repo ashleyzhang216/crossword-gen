@@ -1,4 +1,3 @@
-import json
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -123,7 +122,7 @@ def gather_ac3_data(data):
     traverse(traverse, data, all_prunes)
     return all_prunes
 
-#################### data analysis ####################
+#################### data parsers ####################
 
 # get average microseconds per pair pruned
 def get_avg_prune_duration(constr_prune_data):
@@ -140,15 +139,6 @@ def get_avg_prune_duration(constr_prune_data):
                 total_pairs_pruned += pairs_pruned * len(durations)
 
     return total_duration / total_pairs_pruned
-
-# get total number of ac3 calls
-def get_num_ac3_calls(ac3_data):
-    num_calls = 0
-
-    for _, data in ac3_data.items():
-        num_calls += data['success'] + data['fail']
-
-    return num_calls
 
 # get average pairs pruned per ac3 call
 def get_avg_pairs_pruned_per_ac3(ac3_data):
@@ -436,7 +426,7 @@ def analyze_ac3_pruning(data) -> bool:
     var_data = gather_var_prune_data(data)
     ac3_data = gather_ac3_data(data)
 
-    print("Average time per pair pruned:", get_avg_prune_duration(constr_data), "us")
+    print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
 
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
@@ -445,8 +435,7 @@ def analyze_ac3_pruning(data) -> bool:
     plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_ac3_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
 
-    print("Total number of AC-3 calls:", get_num_ac3_calls(ac3_data))
-    print("Average pairs pruned per AC-3 call:", get_avg_pairs_pruned_per_ac3(ac3_data))
+    print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_data):.2f}')
 
     plot_pairs_pruned_per_ac3(ac3_data)
 
