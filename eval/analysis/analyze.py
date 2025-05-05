@@ -4,6 +4,7 @@ import sys
 import os
 
 from helpers.ac3_pruning import analyze_ac3_pruning
+from helpers.ac3_calls import analyze_ac3_calls
 
 def main():
     # parse cli args
@@ -35,6 +36,7 @@ def main():
 
     # analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
     analyze_ac3_pruning(data)
+    analyze_ac3_calls(data)
 
 if __name__ == "__main__":
     main()
