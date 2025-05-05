@@ -149,6 +149,23 @@ def get_avg_pairs_pruned_per_ac3(ac3_data):
 
     return sum(all_prunes) / len(all_prunes)
 
+# get num successful AC-3 prune calls, num failed AC-3 prune calls
+def get_num_prunes_by_success(constr_prune_data):
+    num_success = 0
+    num_fail = 0
+
+    for _, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+
+        for pairs_pruned, durations in pairs_data.items():
+            if pairs_pruned > 0:
+                num_success += len(durations)
+            else:
+                num_fail += len(durations)
+
+    return num_success, num_fail
+
 # perform a weighted linear regression
 def weighted_linear_regression(x, y, weights=None):
     """
@@ -314,6 +331,7 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
     plt.figure(figsize=(10, 6))
 
     plt.bar(lengths, total_pruned, edgecolor='black')
+    plt.xticks(lengths)
 
     plt.title('Total Pairs Pruned vs Constraint Length')
     plt.xlabel('Constraint Lengths')
@@ -322,7 +340,7 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
-def plot_ac3_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
+def plot_success_prune_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
     # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
     all_prunes = {}
 
@@ -356,7 +374,7 @@ def plot_ac3_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var lengths
-def plot_ac3_ratio_vs_var_lens(var_prune_data, var_lens):
+def plot_success_prune_ratio_vs_var_lens(var_prune_data, var_lens):
     # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
     all_prunes = {}
 
@@ -386,6 +404,47 @@ def plot_ac3_ratio_vs_var_lens(var_prune_data, var_lens):
     plt.ylabel('Ratio of Successful AC-3 Prunes')
     plt.grid(True, alpha=0.3)
     plt.legend()
+
+    plt.show()
+
+# plot ratio of non-null AC-3 prunes vs constraint lengths
+def plot_success_prune_ratio_vs_constr_lens(constr_prune_data, constr_lens):
+    # map of constraint length -> {"success": freq, "fail": freq}
+    all_calls = {}
+
+    for constr_id, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+        constr_len = constr_lens.get(str(constr_id))
+        all_calls.setdefault(constr_len, {
+            'success': 0,
+            'fail': 0
+        })
+
+        for pairs_pruned, durations in pairs_data.items():
+            if pairs_pruned > 0:
+                all_calls[constr_len]['success'] += len(durations)
+            else:
+                all_calls[constr_len]['fail'] += len(durations)
+
+    lengths = np.asarray(sorted(all_calls.keys()))
+    ratios = np.asarray([all_calls[l]['success']/(all_calls[l]['success']+all_calls[l]['fail']) for l in lengths])
+    total_calls = np.asarray([all_calls[l]['success']+all_calls[l]['fail'] for l in lengths])
+
+    plt.figure(figsize=(10, 6))
+
+    bars = plt.bar(lengths, ratios, edgecolor='black')
+    plt.bar_label(bars,
+              labels=[f'{r:.4f}\n(out of {c} calls)' for r, c in zip(ratios, total_calls)],
+              padding=3,
+              fontsize=9)
+
+    plt.xticks(lengths)
+    plt.ylim(0, 1.1 * max(ratios))
+
+    plt.title('Ratio of Successful AC-3 Prunes vs Constraint Length')
+    plt.xlabel('Constraint Lengths')
+    plt.ylabel('Ratio of Successful AC-3 Prunes')
 
     plt.show()
 
@@ -426,14 +485,20 @@ def analyze_ac3_pruning(data) -> bool:
     var_data = gather_var_prune_data(data)
     ac3_data = gather_ac3_data(data)
 
+    # TODO: separate by successful or not succesful
     print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
 
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
     plot_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
 
-    plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
-    plot_ac3_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
+    plot_success_prune_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
+    plot_success_prune_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
+
+    num_success, num_fail = get_num_prunes_by_success(constr_data)
+    print("Total number of AC-3 prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+
+    plot_success_prune_ratio_vs_constr_lens(constr_data, get_initialize_field(data, "constr_lens"))
 
     print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_data):.2f}')
 
