@@ -92,6 +92,37 @@ def gather_var_prune_data(data):
     traverse(traverse, data, prune_data)
     return prune_data
 
+# returns map of # of pairs pruned -> {"success": freq, "fail": freq}
+def gather_ac3_data(data):
+    # map of # of pairs pruned -> freq
+    all_prunes = {}
+
+    def traverse(self, node, prune_data):
+        if node.get('type') == "AC3":
+            total_pairs_pruned = 0
+            for child in node.get('children', []):
+                if child.get('type') == "AC3 Prune":
+                    assert('result' in child and 'vars_pruned' in child.get('result'))
+
+                    result = child['result']
+                    vars_pruned = result['vars_pruned']
+                    total_pairs_pruned += sum(vars_pruned.values())
+
+            all_prunes.setdefault(total_pairs_pruned, {
+                "success": 0,
+                "fail": 0
+            })
+
+            assert('result' in node and 'success' in node.get('result'))
+            success = node['result']['success']
+            all_prunes[total_pairs_pruned]["success" if success else "fail"] += 1
+        else:
+            for child in node.get('children', []):
+                self(self, child, prune_data)
+
+    traverse(traverse, data, all_prunes)
+    return all_prunes
+
 #################### data analysis ####################
 
 # get average microseconds per pair pruned
@@ -234,7 +265,7 @@ def plot_avg_prune_durations(constr_prune_data, max_error=1.0, confidence=0.95):
 
     plt.show()
 
-# plot histogram of number of pairs pruned per pass
+# plot histogram of number of pairs pruned per ac3 prune
 def plot_prune_size_freqs(constr_prune_data):
     num_pairs_pruned = []
 
@@ -257,7 +288,7 @@ def plot_prune_size_freqs(constr_prune_data):
     plt.show()
 
 # plot comparison of total pairs pruned per constraint length
-def plot_pairs_pruned_distribution(constr_prune_data, constr_lens):
+def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
     # map of constraint length -> total number of pairs pruned
     all_pairs_pruned = {}
 
@@ -350,6 +381,31 @@ def plot_ac3_ratio_vs_var_lens(var_prune_data, var_lens):
 
     plt.show()
 
+# plot histogram of number of pairs pruned per ac3 call
+def plot_pairs_pruned_per_ac3(ac3_data):
+    all_prunes = []
+    success_prunes = []
+    fail_prunes = []
+
+    for pairs_pruned, data in ac3_data.items():
+        all_prunes.extend([pairs_pruned] * (data['success'] + data['fail']))
+        success_prunes.extend([pairs_pruned] * data['success'])
+        fail_prunes.extend([pairs_pruned] * data['fail'])
+
+    plt.figure(figsize=(10, 6))
+
+    success_bins = min(len(set(success_prunes)), 40)
+    fail_bins = min(len(set(success_prunes)), 40)
+    plt.hist(success_prunes, bins=success_bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
+    plt.hist(fail_prunes, bins=fail_bins, alpha=0.5, label='Failed AC-3 Calls', color='red', edgecolor='black')
+
+    plt.title('Histogram of Pairs Pruned per AC-3 Call')
+    plt.xlabel('Number of Pairs Pruned in AC-3 Call')
+    plt.ylabel('Frequency')
+    plt.legend()
+
+    plt.show()
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -360,14 +416,17 @@ def analyze_ac3_pruning(data) -> bool:
 
     constr_data = gather_constr_prune_data(data)
     var_data = gather_var_prune_data(data)
+    ac3_data = gather_ac3_data(data)
 
     print("Average time per pair pruned:", get_avg_prune_duration(constr_data), "us")
 
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
-    plot_pairs_pruned_distribution(constr_data, get_initialize_field(data, "constr_lens"))
+    plot_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
 
     plot_ac3_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_ac3_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
+
+    plot_pairs_pruned_per_ac3(ac3_data)
 
     return True
