@@ -166,6 +166,23 @@ def get_num_prunes_by_success(constr_prune_data):
 
     return num_success, num_fail
 
+# get total seconds of successful AC-3 prune calls, total seconds of failed AC-3 prune calls
+def get_total_prune_durations(constr_prune_data):
+    total_success_us = 0
+    total_fail_us = 0
+
+    for _, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+
+        for pairs_pruned, durations in pairs_data.items():
+            if pairs_pruned > 0:
+                total_success_us += sum(durations)
+            else:
+                total_fail_us += sum(durations)
+
+    return total_success_us * 1e-6, total_fail_us * 1e-6
+
 # perform a weighted linear regression
 def weighted_linear_regression(x, y, weights=None):
     """
@@ -364,7 +381,6 @@ def plot_total_duration_by_num_pairs_pruned(constr_prune_data):
     num_prunes = np.asarray([len(all_durations[n]) for n in num_pairs])
 
     fig_height = max(8, len(num_pairs) * 0.2)
-    print('fig height', fig_height)
     plt.figure(figsize=(10, 10))
 
     bars = plt.barh(num_pairs, totals, edgecolor='black')
@@ -528,7 +544,6 @@ def analyze_ac3_pruning(data) -> bool:
     var_data = gather_var_prune_data(data)
     ac3_data = gather_ac3_data(data)
 
-    # TODO: separate by successful or not succesful
     print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
 
     plot_avg_prune_durations(constr_data)
@@ -541,6 +556,9 @@ def analyze_ac3_pruning(data) -> bool:
 
     num_success, num_fail = get_num_prunes_by_success(constr_data)
     print("Total number of AC-3 prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+
+    time_success, time_fail = get_total_prune_durations(constr_data)
+    print("Total time spent on AC-3 prune calls:", f'{time_success+time_fail} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
 
     plot_success_prune_ratio_vs_constr_lens(constr_data, get_initialize_field(data, "constr_lens"))
 
