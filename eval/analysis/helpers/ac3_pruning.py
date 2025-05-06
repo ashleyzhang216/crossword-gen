@@ -415,17 +415,18 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
 
     lengths = np.asarray(sorted(all_pairs_pruned.keys()))
     total_pruned = np.asarray([sum(all_pairs_pruned[l]) for l in lengths])
+    avg_pruned = np.asarray([sum(all_pairs_pruned[l])/len(all_pairs_pruned[l]) for l in lengths])
     percents_pruned = np.asarray([100 * sum(all_pairs_pruned[l]) / sum(total_pruned) for l in lengths])
 
     plt.figure(figsize=(10, 6))
 
     bars = plt.bar(lengths, total_pruned, edgecolor='black')
     plt.bar_label(bars,
-              labels=[f'{p:.2f}%\n({t} pairs)' for p, t in zip(percents_pruned, total_pruned)],
+              labels=[f'{p:.2f}%\n({t} pairs)\n(avg {a:.3f} pairs per call)' for p, t, a in zip(percents_pruned, total_pruned, avg_pruned)],
               padding=3,
               fontsize=9)
 
-    plt.ylim(0, 1.1 * max(total_pruned))
+    plt.ylim(0, 1.2 * max(total_pruned))
     plt.xticks(lengths)
 
     plt.title('Total Pairs Pruned vs Constraint Length')
