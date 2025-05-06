@@ -370,7 +370,7 @@ def plot_avg_prune_durations(constr_prune_data, max_error=1.0, confidence=0.95):
         bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
     )
 
-    plt.title('Average AC-3 Pruning Durations vs Pairs Pruned')
+    plt.title('Average AC-3 Pruning Durations vs Num Pairs Pruned')
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Average Duration (μs)')
     plt.grid(True, alpha=0.3)
@@ -400,9 +400,46 @@ def plot_prune_size_freqs(constr_prune_data):
 
     plt.show()
 
-# plot comparison of total pairs pruned per constraint length
+# plot histogram of num pairs pruned, separated by constraint lengths
 def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
-    # map of constraint length -> total number of pairs pruned
+    # map of constraint length -> list of number of pairs pruned
+    all_pairs_pruned = {}
+
+    min_pairs_pruned = 0
+    max_pairs_pruned = 0
+    for constr_id, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+        constr_len = constr_lens.get(str(constr_id))
+
+        for pairs_pruned, durations in pairs_data.items():
+            all_pairs_pruned.setdefault(constr_len, []).extend([pairs_pruned] * len(durations))
+            min_pairs_pruned = min(min_pairs_pruned, pairs_pruned)
+            max_pairs_pruned = max(max_pairs_pruned, pairs_pruned)
+
+    lengths = np.asarray(sorted(all_pairs_pruned.keys()))
+
+    plt.figure(figsize=(10, 6))
+    plt.yscale('log')
+
+    binwidth = int(min(10, max((max_pairs_pruned-min_pairs_pruned)/64, 1)))
+    bins = range(min_pairs_pruned, max_pairs_pruned + binwidth, binwidth)
+
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    for i, l in enumerate(lengths):
+        label = f'Length {l} Constraints ({sum(all_pairs_pruned[l])/len(all_pairs_pruned[l]):.3f} avg)'
+        plt.hist(all_pairs_pruned[l], bins=bins, alpha=0.5, label=label, color=colors[i % len(colors)], edgecolor='black')
+
+    plt.title('Histogram of Pairs Pruned per Pass by Constraint Length (Log Scale)')
+    plt.xlabel('Number of Pairs Pruned in Pass')
+    plt.ylabel('Frequency (log scale)')
+    plt.legend()
+
+    plt.show()
+
+# plot comparison of total pairs pruned per constraint length
+def plot_total_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
+    # map of constraint length -> list of number of pairs pruned
     all_pairs_pruned = {}
 
     for constr_id, data in constr_prune_data.items():
@@ -422,7 +459,7 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
 
     bars = plt.bar(lengths, total_pruned, edgecolor='black')
     plt.bar_label(bars,
-              labels=[f'{p:.2f}%\n({t} pairs)\n(avg {a:.3f} pairs per call)' for p, t, a in zip(percents_pruned, total_pruned, avg_pruned)],
+              labels=[f'{p:.2f}%\n({t} pairs)\n(avg {a:.3f} pairs per prune)' for p, t, a in zip(percents_pruned, total_pruned, avg_pruned)],
               padding=3,
               fontsize=9)
 
@@ -449,24 +486,14 @@ def plot_total_duration_by_num_pairs_pruned(constr_prune_data):
 
     num_pairs = np.asarray(sorted(all_durations.keys()))
     totals = np.asarray([sum(all_durations[n]) * 1e-6 for n in num_pairs])
-    percents = np.asarray([100 * sum(all_durations[n]) * 1e-6 / sum(totals) for n in num_pairs])
-    num_prunes = np.asarray([len(all_durations[n]) for n in num_pairs])
 
-    fig_height = max(8, len(num_pairs) * 0.2)
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 6))
 
-    bars = plt.barh(num_pairs, totals, edgecolor='black')
-    plt.bar_label(bars,
-              labels=[f'{p:.2f}% ({n} prunes)' for p, n in zip(percents, num_prunes)],
-              padding=5,
-              fontsize=7)
+    plt.bar(num_pairs, totals, edgecolor='black')
 
-    plt.xlim(0, 1.3 * max(totals))
-    plt.yticks(num_pairs)
-
-    plt.title('Total Duration of All Prunes vs Pairs Pruned')
-    plt.ylabel('Number of Pairs Pruned in Pass')
-    plt.xlabel('Total Duration (s)')
+    plt.title('Total Duration of All Prunes vs Num Pairs Pruned')
+    plt.xlabel('Number of Pairs Pruned in Pass')
+    plt.ylabel('Total Duration of Prunes (s)')
 
     plt.show()
 
@@ -680,6 +707,7 @@ def analyze_ac3_pruning(data) -> bool:
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
     plot_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
+    plot_total_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_duration_by_num_pairs_pruned(constr_data)
 
     plot_success_prune_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
