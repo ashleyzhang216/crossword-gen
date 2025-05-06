@@ -33,7 +33,7 @@ def plot_ac3_call_durations(ac3_success_data):
     binwidth = 2500
     global_min = min(min(ac3_success_data['success']), min(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else min(ac3_success_data['success'])
     global_max = max(max(ac3_success_data['success']), max(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else max(ac3_success_data['success'])
-    bins = range(global_min, global_max + binwidth, binwidth)
+    bins = range(global_min - binwidth, global_max + binwidth, binwidth)
 
     plt.hist(ac3_success_data['success'], bins=bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
     plt.hist(ac3_success_data['fail'], bins=bins, alpha=0.5, label='Failed AC-3 Calls', color='red', edgecolor='black')
