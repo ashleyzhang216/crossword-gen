@@ -92,8 +92,7 @@ def gather_var_prune_data(data):
     return prune_data
 
 # returns map of # of pairs pruned -> {"success": freq, "fail": freq}
-def gather_ac3_data(data):
-    # map of # of pairs pruned -> freq
+def gather_ac3_prune_data(data):
     all_prunes = {}
 
     def traverse(self, node, prune_data):
@@ -122,6 +121,48 @@ def gather_ac3_data(data):
     traverse(traverse, data, all_prunes)
     return all_prunes
 
+# returns {"unique": map of # of unique constraints considered -> {"success": freq, "fail": freq}, (success is based on ac3 call)
+#          "total":  map of total # of unique constraints considered -> {"success": freq, "fail": freq}}
+def gather_ac3_constr_data(data):
+    unique_constr_data = {}
+    total_constr_data = {}
+
+    def traverse(self, node, unique_constr_data, total_constr_data):
+        if node.get('type') == "AC3":
+            constr_ids_considered = []
+
+            for child in node.get('children', []):
+                if child.get('type') == "AC3 Prune":
+                    assert('name' in child)
+                    constr_id = child['name']
+                    constr_ids_considered.append(constr_id)
+
+            num_unique_prunes = len(set(constr_ids_considered))
+            num_total_prunes = len(constr_ids_considered)
+
+            unique_constr_data.setdefault(num_unique_prunes, {
+                "success": 0,
+                "fail": 0
+            })
+            total_constr_data.setdefault(num_total_prunes, {
+                "success": 0,
+                "fail": 0
+            })
+
+            assert('result' in node and 'success' in node.get('result'))
+            success = node['result']['success']
+            unique_constr_data[num_unique_prunes]["success" if success else "fail"] += 1
+            total_constr_data[num_total_prunes]["success" if success else "fail"] += 1
+        else:
+            for child in node.get('children', []):
+                self(self, child, unique_constr_data, total_constr_data)
+
+    traverse(traverse, data, unique_constr_data, total_constr_data)
+    return {
+        "unique": unique_constr_data,
+        "total": total_constr_data
+    }
+
 #################### data parsers ####################
 
 # get average microseconds per pair pruned
@@ -141,13 +182,43 @@ def get_avg_prune_duration(constr_prune_data):
     return total_duration / total_pairs_pruned
 
 # get average pairs pruned per ac3 call
-def get_avg_pairs_pruned_per_ac3(ac3_data):
+def get_avg_pairs_pruned_per_ac3(ac3_prune_data):
     all_prunes = []
 
-    for pairs_pruned, data in ac3_data.items():
+    for pairs_pruned, data in ac3_prune_data.items():
         all_prunes.extend([pairs_pruned] * (data['success'] + data['fail']))
 
     return sum(all_prunes) / len(all_prunes)
+
+# get average num of unique prunes per ac3 call for all ac3 calls, successful ac3 calls, failed ac3 calls
+def get_avg_unique_prunes_per_ac3(ac3_constr_data):
+    num_prunes_success = []
+    num_prunes_fail = []
+
+    for num_prunes, data in ac3_constr_data['unique'].items():
+        num_prunes_success.extend([num_prunes] * data['success'])
+        num_prunes_fail.extend([num_prunes] * data['fail'])
+
+    num_prunes_all = num_prunes_success + num_prunes_fail
+    avg_prunes_all = sum(num_prunes_all)/len(num_prunes_all)
+    avg_prunes_success = sum(num_prunes_success)/len(num_prunes_success)
+    avg_prunes_fail = sum(num_prunes_fail)/len(num_prunes_fail) if len(num_prunes_fail) > 0 else 0
+    return avg_prunes_all, avg_prunes_success, avg_prunes_fail
+
+# get average num of total prunes per ac3 call for all ac3 calls, successful ac3 calls, failed ac3 calls
+def get_avg_total_prunes_per_ac3(ac3_constr_data):
+    num_prunes_success = []
+    num_prunes_fail = []
+
+    for num_prunes, data in ac3_constr_data['total'].items():
+        num_prunes_success.extend([num_prunes] * data['success'])
+        num_prunes_fail.extend([num_prunes] * data['fail'])
+
+    num_prunes_all = num_prunes_success + num_prunes_fail
+    avg_prunes_all = sum(num_prunes_all)/len(num_prunes_all)
+    avg_prunes_success = sum(num_prunes_success)/len(num_prunes_success)
+    avg_prunes_fail = sum(num_prunes_fail)/len(num_prunes_fail) if len(num_prunes_fail) > 0 else 0
+    return avg_prunes_all, avg_prunes_success, avg_prunes_fail
 
 # get num successful AC-3 prune calls, num failed AC-3 prune calls
 def get_num_prunes_by_success(constr_prune_data):
@@ -508,12 +579,12 @@ def plot_success_prune_ratio_vs_constr_lens(constr_prune_data, constr_lens):
     plt.show()
 
 # plot histogram of number of pairs pruned per ac3 call
-def plot_pairs_pruned_per_ac3(ac3_data):
+def plot_pairs_pruned_per_ac3(ac3_prune_data):
     all_prunes = []
     success_prunes = []
     fail_prunes = []
 
-    for pairs_pruned, data in ac3_data.items():
+    for pairs_pruned, data in ac3_prune_data.items():
         all_prunes.extend([pairs_pruned] * (data['success'] + data['fail']))
         success_prunes.extend([pairs_pruned] * data['success'])
         fail_prunes.extend([pairs_pruned] * data['fail'])
@@ -532,6 +603,64 @@ def plot_pairs_pruned_per_ac3(ac3_data):
 
     plt.show()
 
+# plot histogram of number of unique prunes/constraints considered per ac3 call
+def plot_num_unique_prunes_per_ac3(ac3_constr_data, num_constraints):
+    num_prunes_success = []
+    num_prunes_fail = []
+
+    for num_prunes, data in ac3_constr_data['unique'].items():
+        num_prunes_success.extend([num_prunes] * data['success'])
+        num_prunes_fail.extend([num_prunes] * data['fail'])
+
+    num_prunes_success = np.asarray(num_prunes_success)
+    num_prunes_fail = np.asarray(num_prunes_fail)
+
+    plt.figure(figsize=(10, 6))
+
+    binwidth = int(num_constraints / 16)
+    global_min = min(min(num_prunes_success), min(num_prunes_fail)) if len(num_prunes_fail) > 0 else min(num_prunes_success)
+    global_max = max(max(num_prunes_success), max(num_prunes_fail)) if len(num_prunes_fail) > 0 else max(num_prunes_success)
+    bins = range(global_min - binwidth, global_max + binwidth, binwidth)
+
+    plt.hist(num_prunes_success, bins=bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
+    plt.hist(num_prunes_fail, bins=bins, alpha=0.5, label='Failed AC-3 Calls', color='red', edgecolor='black')
+
+    plt.title('Histogram of Unique Prunes/Constraints Considered per AC-3 Call')
+    plt.xlabel('Number of Unique Prunes in AC-3 Call')
+    plt.ylabel('Frequency')
+    plt.legend(title=f"Out of {num_constraints} constraints available")
+
+    plt.show()
+
+# plot histogram of total number of prunes/constraints considered per ac3 call
+def plot_num_total_prunes_per_ac3(ac3_constr_data, num_constraints):
+    num_prunes_success = []
+    num_prunes_fail = []
+
+    for num_prunes, data in ac3_constr_data['total'].items():
+        num_prunes_success.extend([num_prunes] * data['success'])
+        num_prunes_fail.extend([num_prunes] * data['fail'])
+
+    num_prunes_success = np.asarray(num_prunes_success)
+    num_prunes_fail = np.asarray(num_prunes_fail)
+
+    plt.figure(figsize=(10, 6))
+
+    binwidth = int(num_constraints / 16)
+    global_min = min(min(num_prunes_success), min(num_prunes_fail)) if len(num_prunes_fail) > 0 else min(num_prunes_success)
+    global_max = max(max(num_prunes_success), max(num_prunes_fail)) if len(num_prunes_fail) > 0 else max(num_prunes_success)
+    bins = range(global_min, global_max + binwidth, binwidth)
+
+    plt.hist(num_prunes_success, bins=bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
+    plt.hist(num_prunes_fail, bins=bins, alpha=0.5, label='Failed AC-3 Calls', color='red', edgecolor='black')
+
+    plt.title('Histogram of Total Prunes/Constraints Considered per AC-3 Call')
+    plt.xlabel('Number of Total Prunes in AC-3 Call')
+    plt.ylabel('Frequency')
+    plt.legend(title=f"Out of {num_constraints} constraints available")
+
+    plt.show()
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -542,7 +671,8 @@ def analyze_ac3_pruning(data) -> bool:
 
     constr_data = gather_constr_prune_data(data)
     var_data = gather_var_prune_data(data)
-    ac3_data = gather_ac3_data(data)
+    ac3_prune_data = gather_ac3_prune_data(data)
+    ac3_constr_data = gather_ac3_constr_data(data)
 
     print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
 
@@ -555,15 +685,23 @@ def analyze_ac3_pruning(data) -> bool:
     plot_success_prune_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
 
     num_success, num_fail = get_num_prunes_by_success(constr_data)
-    print("Total number of AC-3 prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+    print("Total number of prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
 
     time_success, time_fail = get_total_prune_durations(constr_data)
-    print("Total time spent on AC-3 prune calls:", f'{time_success+time_fail} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
+    print("Total time spent on prune calls:", f'{time_success+time_fail} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
 
     plot_success_prune_ratio_vs_constr_lens(constr_data, get_initialize_field(data, "constr_lens"))
 
-    print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_data):.2f}')
+    print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
 
-    plot_pairs_pruned_per_ac3(ac3_data)
+    plot_pairs_pruned_per_ac3(ac3_prune_data)
+
+    avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
+    avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
+    print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
+    print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
+
+    plot_num_unique_prunes_per_ac3(ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+    plot_num_total_prunes_per_ac3(ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
 
     return True
