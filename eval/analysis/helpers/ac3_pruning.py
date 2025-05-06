@@ -337,14 +337,48 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
               padding=3,
               fontsize=9)
 
-    plt.xticks(lengths)
     plt.ylim(0, 1.1 * max(total_pruned))
-
     plt.xticks(lengths)
 
     plt.title('Total Pairs Pruned vs Constraint Length')
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Pairs Pruned')
+
+    plt.show()
+
+# plot bar graph of total time spent by # of pairs pruned in a single pass
+def plot_total_duration_by_num_pairs_pruned(constr_prune_data):
+    # map of {"success": list of durations, "fail": list of durations}
+    all_durations = {}
+
+    for _, data in constr_prune_data.items():
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+
+        for pairs_pruned, durations in pairs_data.items():
+            all_durations.setdefault(pairs_pruned, []).extend(durations)
+
+    num_pairs = np.asarray(sorted(all_durations.keys()))
+    totals = np.asarray([sum(all_durations[n]) * 1e-6 for n in num_pairs])
+    percents = np.asarray([100 * sum(all_durations[n]) * 1e-6 / sum(totals) for n in num_pairs])
+    num_prunes = np.asarray([len(all_durations[n]) for n in num_pairs])
+
+    fig_height = max(8, len(num_pairs) * 0.2)
+    print('fig height', fig_height)
+    plt.figure(figsize=(10, 10))
+
+    bars = plt.barh(num_pairs, totals, edgecolor='black')
+    plt.bar_label(bars,
+              labels=[f'{p:.2f}% ({n} prunes)' for p, n in zip(percents, num_prunes)],
+              padding=5,
+              fontsize=7)
+
+    plt.xlim(0, 1.3 * max(totals))
+    plt.yticks(num_pairs)
+
+    plt.title('Total Duration of All Prunes vs Pairs Pruned')
+    plt.ylabel('Number of Pairs Pruned in Pass')
+    plt.xlabel('Total Duration (s)')
 
     plt.show()
 
@@ -500,6 +534,7 @@ def analyze_ac3_pruning(data) -> bool:
     plot_avg_prune_durations(constr_data)
     plot_prune_size_freqs(constr_data)
     plot_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
+    plot_total_duration_by_num_pairs_pruned(constr_data)
 
     plot_success_prune_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_success_prune_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
