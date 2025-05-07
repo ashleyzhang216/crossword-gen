@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from helpers.utils import get_track_ac3
+
 #################### data collection ####################
 
 # returns map of {"success": list of durations, "fail": list of durations}
@@ -50,6 +52,10 @@ def plot_ac3_call_duration_freq(output_dir, ac3_success_data):
 
 # run all child functions, return true
 def analyze_ac3_calls(data, output_dir) -> bool:
+    if not get_track_ac3(data):
+        print("Warning: AC-3 not tracked in provided file, skipping analyze_ac3_calls()")
+        return False
+
     ac3_success_data = gather_ac3_success_data(data)
 
     num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])
