@@ -50,7 +50,7 @@ def plot_ac3_call_duration_freq(output_dir, ac3_success_data):
 
 #################### parent function ####################
 
-# run all child functions, return true
+# run all child functions, return true iff ac3 pruning was tracked
 def analyze_ac3_calls(data, output_dir) -> bool:
     if not get_track_ac3(data):
         print("Warning: AC-3 not tracked in provided file, skipping analyze_ac3_calls()")
