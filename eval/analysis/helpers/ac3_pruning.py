@@ -399,10 +399,11 @@ def plot_prune_size_freqs(output_dir, constr_prune_data):
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Frequency (log scale)')
 
+    plt.savefig(output_dir + 'prune_size_freqs.png', bbox_inches='tight')
     plt.show()
 
 # plot histogram of num pairs pruned, separated by constraint lengths
-def plot_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_lens):
+def plot_pairs_pruned_freq_by_constr_len(output_dir, constr_prune_data, constr_lens):
     # map of constraint length -> list of number of pairs pruned
     all_pairs_pruned = {}
 
@@ -436,6 +437,7 @@ def plot_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_lens):
     plt.ylabel('Frequency (log scale)')
     plt.legend()
 
+    plt.savefig(output_dir + 'pairs_pruned_freq_by_constr_len.png', bbox_inches='tight')
     plt.show()
 
 # plot comparison of total pairs pruned per constraint length
@@ -471,10 +473,11 @@ def plot_total_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Pairs Pruned')
 
+    plt.savefig(output_dir + 'total_pairs_pruned_by_constr_len.png', bbox_inches='tight')
     plt.show()
 
 # plot bar graph of total time spent by # of pairs pruned in a single pass
-def plot_total_duration_by_num_pairs_pruned(output_dir, constr_prune_data):
+def plot_total_durations_by_num_pairs_pruned(output_dir, constr_prune_data):
     # map of {"success": list of durations, "fail": list of durations}
     all_durations = {}
 
@@ -496,6 +499,7 @@ def plot_total_duration_by_num_pairs_pruned(output_dir, constr_prune_data):
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Total Duration of Prunes (s)')
 
+    plt.savefig(output_dir + 'total_durations_by_num_pairs_pruned.png', bbox_inches='tight')
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
@@ -530,6 +534,7 @@ def plot_success_prune_ratio_vs_var_domain_size(output_dir, var_prune_data, var_
     plt.grid(True, alpha=0.3)
     plt.legend()
 
+    plt.savefig(output_dir + 'success_prune_ratio_vs_var_domain_size.png', bbox_inches='tight')
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var lengths
@@ -564,6 +569,7 @@ def plot_success_prune_ratio_vs_var_lens(output_dir, var_prune_data, var_lens):
     plt.grid(True, alpha=0.3)
     plt.legend()
 
+    plt.savefig(output_dir + 'success_prune_ratio_vs_var_lens.png', bbox_inches='tight')
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs constraint lengths
@@ -605,10 +611,11 @@ def plot_success_prune_ratio_vs_constr_lens(output_dir, constr_prune_data, const
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Ratio of Successful AC-3 Prunes')
 
+    plt.savefig(output_dir + 'success_prune_ratio_vs_constr_lens.png', bbox_inches='tight')
     plt.show()
 
 # plot histogram of number of pairs pruned per ac3 call
-def plot_pairs_pruned_per_ac3(output_dir, ac3_prune_data):
+def plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data):
     all_prunes = []
     success_prunes = []
     fail_prunes = []
@@ -630,10 +637,11 @@ def plot_pairs_pruned_per_ac3(output_dir, ac3_prune_data):
     plt.ylabel('Frequency')
     plt.legend()
 
+    plt.savefig(output_dir + 'pairs_pruned_per_ac3_freq.png', bbox_inches='tight')
     plt.show()
 
 # plot histogram of number of unique prunes/constraints considered per ac3 call
-def plot_num_unique_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints):
+def plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constraints):
     num_prunes_success = []
     num_prunes_fail = []
 
@@ -659,10 +667,11 @@ def plot_num_unique_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints)
     plt.ylabel('Frequency')
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
+    plt.savefig(output_dir + 'num_unique_prunes_per_ac3_freq.png', bbox_inches='tight')
     plt.show()
 
 # plot histogram of total number of prunes/constraints considered per ac3 call
-def plot_num_total_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints):
+def plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constraints):
     num_prunes_success = []
     num_prunes_fail = []
 
@@ -688,6 +697,7 @@ def plot_num_total_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints):
     plt.ylabel('Frequency')
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
+    plt.savefig(output_dir + 'num_total_prunes_per_ac3_freq.png', bbox_inches='tight')
     plt.show()
 
 #################### parent function ####################
@@ -707,9 +717,9 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
 
     plot_avg_pair_prune_durations(output_dir, constr_data)
     plot_prune_size_freqs(output_dir, constr_data)
-    plot_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
+    plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
-    plot_total_duration_by_num_pairs_pruned(output_dir, constr_data)
+    plot_total_durations_by_num_pairs_pruned(output_dir, constr_data)
 
     plot_success_prune_ratio_vs_var_domain_size(output_dir, var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_success_prune_ratio_vs_var_lens(output_dir, var_data, get_initialize_field(data, "var_lens"))
@@ -724,14 +734,14 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
 
     print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
 
-    plot_pairs_pruned_per_ac3(output_dir, ac3_prune_data)
+    plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data)
 
     avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
     avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
     print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
     print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
 
-    plot_num_unique_prunes_per_ac3(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
-    plot_num_total_prunes_per_ac3(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+    plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+    plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
 
     return True
