@@ -77,7 +77,7 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
 void cw_csp::save_timetracker_result(string filepath) const {
     tracker.save_results(filepath, ordered_json::object({
         {"success", solved()},
-        {"solution", solved() ? result() : ""},
+        {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},
         {"grid", ordered_json::object({
             {"rows", cw.rows()},
             {"cols", cw.cols()},
