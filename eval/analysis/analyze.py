@@ -5,9 +5,11 @@ import os
 
 from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
+from helpers.runtimes import analyze_runtimes
 
 AC3_PRUNING_DIR = "ac3_pruning"
 AC3_CALLS_DIR = "ac3_calls"
+RUNTIMES_DIR = "runtimes"
 
 def main():
     # parse cli args
@@ -29,6 +31,7 @@ def main():
     # create subdirs
     os.makedirs(args.output_dir + '/' + AC3_PRUNING_DIR + '/')
     os.makedirs(args.output_dir + '/' + AC3_CALLS_DIR + '/')
+    os.makedirs(args.output_dir + '/' + RUNTIMES_DIR + '/')
 
     # open file
     try:
@@ -43,6 +46,7 @@ def main():
 
     analyze_ac3_pruning(data, args.output_dir + '/' + AC3_PRUNING_DIR + '/')
     analyze_ac3_calls(data, args.output_dir + '/' + AC3_CALLS_DIR + '/')
+    analyze_runtimes(data, args.output_dir + '/' + RUNTIMES_DIR + '/')
 
 if __name__ == "__main__":
     main()
