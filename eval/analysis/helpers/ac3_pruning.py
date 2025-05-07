@@ -318,7 +318,7 @@ def weighted_linear_regression(x, y, weights=None):
 #################### plotting ####################
 
 # plot average microseconds per prune vs # of pairs pruned in a single pass, and weighted least squares fit
-def plot_avg_prune_durations(constr_prune_data, max_error=1.0, confidence=0.95):
+def plot_avg_pair_prune_durations(output_dir, constr_prune_data, max_error=1.0, confidence=0.95):
     # map of # pairs pruned -> [list of all durations]
     all_durations = {}
 
@@ -376,10 +376,11 @@ def plot_avg_prune_durations(constr_prune_data, max_error=1.0, confidence=0.95):
     plt.grid(True, alpha=0.3)
     plt.legend()
 
+    plt.savefig(output_dir + 'avg_pair_prune_durations.png', bbox_inches='tight')
     plt.show()
 
 # plot histogram of number of pairs pruned per ac3 prune
-def plot_prune_size_freqs(constr_prune_data):
+def plot_prune_size_freqs(output_dir, constr_prune_data):
     num_pairs_pruned = []
 
     for _, data in constr_prune_data.items():
@@ -401,7 +402,7 @@ def plot_prune_size_freqs(constr_prune_data):
     plt.show()
 
 # plot histogram of num pairs pruned, separated by constraint lengths
-def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
+def plot_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_lens):
     # map of constraint length -> list of number of pairs pruned
     all_pairs_pruned = {}
 
@@ -438,7 +439,7 @@ def plot_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
     plt.show()
 
 # plot comparison of total pairs pruned per constraint length
-def plot_total_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
+def plot_total_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_lens):
     # map of constraint length -> list of number of pairs pruned
     all_pairs_pruned = {}
 
@@ -473,7 +474,7 @@ def plot_total_pairs_pruned_by_constr_len(constr_prune_data, constr_lens):
     plt.show()
 
 # plot bar graph of total time spent by # of pairs pruned in a single pass
-def plot_total_duration_by_num_pairs_pruned(constr_prune_data):
+def plot_total_duration_by_num_pairs_pruned(output_dir, constr_prune_data):
     # map of {"success": list of durations, "fail": list of durations}
     all_durations = {}
 
@@ -498,7 +499,7 @@ def plot_total_duration_by_num_pairs_pruned(constr_prune_data):
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
-def plot_success_prune_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes):
+def plot_success_prune_ratio_vs_var_domain_size(output_dir, var_prune_data, var_domain_sizes):
     # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
     all_prunes = {}
 
@@ -532,7 +533,7 @@ def plot_success_prune_ratio_vs_var_domain_size(var_prune_data, var_domain_sizes
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var lengths
-def plot_success_prune_ratio_vs_var_lens(var_prune_data, var_lens):
+def plot_success_prune_ratio_vs_var_lens(output_dir, var_prune_data, var_lens):
     # map of var id -> {"empty": num prunes w/o effect, "nonempty": num prunes that removed 1+ pair}
     all_prunes = {}
 
@@ -566,7 +567,7 @@ def plot_success_prune_ratio_vs_var_lens(var_prune_data, var_lens):
     plt.show()
 
 # plot ratio of non-null AC-3 prunes vs constraint lengths
-def plot_success_prune_ratio_vs_constr_lens(constr_prune_data, constr_lens):
+def plot_success_prune_ratio_vs_constr_lens(output_dir, constr_prune_data, constr_lens):
     # map of constraint length -> {"success": freq, "fail": freq}
     all_calls = {}
 
@@ -607,7 +608,7 @@ def plot_success_prune_ratio_vs_constr_lens(constr_prune_data, constr_lens):
     plt.show()
 
 # plot histogram of number of pairs pruned per ac3 call
-def plot_pairs_pruned_per_ac3(ac3_prune_data):
+def plot_pairs_pruned_per_ac3(output_dir, ac3_prune_data):
     all_prunes = []
     success_prunes = []
     fail_prunes = []
@@ -632,7 +633,7 @@ def plot_pairs_pruned_per_ac3(ac3_prune_data):
     plt.show()
 
 # plot histogram of number of unique prunes/constraints considered per ac3 call
-def plot_num_unique_prunes_per_ac3(ac3_constr_data, num_constraints):
+def plot_num_unique_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints):
     num_prunes_success = []
     num_prunes_fail = []
 
@@ -661,7 +662,7 @@ def plot_num_unique_prunes_per_ac3(ac3_constr_data, num_constraints):
     plt.show()
 
 # plot histogram of total number of prunes/constraints considered per ac3 call
-def plot_num_total_prunes_per_ac3(ac3_constr_data, num_constraints):
+def plot_num_total_prunes_per_ac3(output_dir, ac3_constr_data, num_constraints):
     num_prunes_success = []
     num_prunes_fail = []
 
@@ -692,7 +693,7 @@ def plot_num_total_prunes_per_ac3(ac3_constr_data, num_constraints):
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
-def analyze_ac3_pruning(data) -> bool:
+def analyze_ac3_pruning(data, output_dir) -> bool:
     if not get_track_ac3(data):
         print("Warning: AC-3 not tracked in provided file, skipping")
         return False
@@ -704,14 +705,14 @@ def analyze_ac3_pruning(data) -> bool:
 
     print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
 
-    plot_avg_prune_durations(constr_data)
-    plot_prune_size_freqs(constr_data)
-    plot_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
-    plot_total_pairs_pruned_by_constr_len(constr_data, get_initialize_field(data, "constr_lens"))
-    plot_total_duration_by_num_pairs_pruned(constr_data)
+    plot_avg_pair_prune_durations(output_dir, constr_data)
+    plot_prune_size_freqs(output_dir, constr_data)
+    plot_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
+    plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
+    plot_total_duration_by_num_pairs_pruned(output_dir, constr_data)
 
-    plot_success_prune_ratio_vs_var_domain_size(var_data, get_initialize_field(data, "var_domain_sizes"))
-    plot_success_prune_ratio_vs_var_lens(var_data, get_initialize_field(data, "var_lens"))
+    plot_success_prune_ratio_vs_var_domain_size(output_dir, var_data, get_initialize_field(data, "var_domain_sizes"))
+    plot_success_prune_ratio_vs_var_lens(output_dir, var_data, get_initialize_field(data, "var_lens"))
 
     num_success, num_fail = get_num_prunes_by_success(constr_data)
     print("Total number of prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
@@ -719,18 +720,18 @@ def analyze_ac3_pruning(data) -> bool:
     time_success, time_fail = get_total_prune_durations(constr_data)
     print("Total time spent on prune calls:", f'{time_success+time_fail} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
 
-    plot_success_prune_ratio_vs_constr_lens(constr_data, get_initialize_field(data, "constr_lens"))
+    plot_success_prune_ratio_vs_constr_lens(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
 
     print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
 
-    plot_pairs_pruned_per_ac3(ac3_prune_data)
+    plot_pairs_pruned_per_ac3(output_dir, ac3_prune_data)
 
     avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
     avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
     print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
     print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
 
-    plot_num_unique_prunes_per_ac3(ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
-    plot_num_total_prunes_per_ac3(ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+    plot_num_unique_prunes_per_ac3(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+    plot_num_total_prunes_per_ac3(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
 
     return True

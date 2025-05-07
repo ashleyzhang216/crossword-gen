@@ -6,6 +6,9 @@ import os
 from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
 
+AC3_PRUNING_DIR = "ac3_pruning"
+AC3_CALLS_DIR = "ac3_calls"
+
 def main():
     # parse cli args
     parser = argparse.ArgumentParser(description='Analyze profiling JSON output files')
@@ -23,6 +26,10 @@ def main():
         except FileExistsError:
             raise FileExistsError(f"Directory '{args.output_dir}' already exists!")
 
+    # create subdirs
+    os.makedirs(args.output_dir + '/' + AC3_PRUNING_DIR + '/')
+    os.makedirs(args.output_dir + '/' + AC3_CALLS_DIR + '/')
+
     # open file
     try:
         with open(args.data_path, 'r') as file:
@@ -34,9 +41,8 @@ def main():
         print(f"Error: Failed to parse JSON file '{args.data_path}'. {e}")
         sys.exit(1)
 
-    # analyze_ac3_pruning_durations(data, args.output_dir + "/ac3_pruning")
-    analyze_ac3_pruning(data)
-    analyze_ac3_calls(data)
+    analyze_ac3_pruning(data, args.output_dir + '/' + AC3_PRUNING_DIR + '/')
+    analyze_ac3_calls(data, args.output_dir + '/' + AC3_CALLS_DIR + '/')
 
 if __name__ == "__main__":
     main()
