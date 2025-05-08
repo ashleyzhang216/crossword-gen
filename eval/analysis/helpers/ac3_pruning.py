@@ -634,8 +634,6 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     ac3_prune_data = gather_ac3_prune_data(data)
     ac3_constr_data = gather_ac3_constr_data(data)
 
-    print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
-
     plot_avg_pair_prune_durations(output_dir, constr_data)
     plot_prune_size_freqs(output_dir, constr_data)
     plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
@@ -645,24 +643,44 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     plot_success_prune_ratio_vs_var_domain_size(output_dir, var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_success_prune_ratio_vs_var_lens(output_dir, var_data, get_initialize_field(data, "var_lens"))
 
-    num_success, num_fail = get_num_prunes_by_success(constr_data)
-    print("Total number of prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
-
-    time_success, time_fail = get_total_prune_durations(constr_data)
-    print("Total time spent on prune calls:", f'{time_success+time_fail} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
-
     plot_success_prune_ratio_vs_constr_lens(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
-
-    print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
 
     plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data)
 
-    avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
-    avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
-    print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
-    print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
-
     plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
     plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
+
+    with open(output_dir + 'ac3_pruning_metrics.md', 'w') as file:
+        file.write("## AC-3 Pruning Metrics\n\n")
+
+        file.write("### Average time per pair pruned\n")
+        file.write(f'{get_avg_prune_duration(constr_data):.2f} us\n')
+
+        print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
+
+        num_success, num_fail = get_num_prunes_by_success(constr_data)
+        print("Total number of prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+        file.write("### Total number of prune calls\n")
+        file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
+
+        time_success, time_fail = get_total_prune_durations(constr_data)
+        print("Total time spent on prune calls:", f'{time_success+time_fail:.2f} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
+        file.write("### Total time spent on prune calls\n")
+        file.write(f'{time_success+time_fail:.2f} sec ({100*time_success/(time_success + time_fail):.2f}% successful)\n')
+
+        print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
+        file.write("### Average number of pairs pruned per AC-3 call\n")
+        file.write(f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f} pairs\n')
+
+        avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
+        avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
+        print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
+        print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
+
+        file.write("### Average number of prune calls per AC-3 call\n")
+        file.write("| Prune Calls | All | Successful AC-3 | Failed AC-3|\n")
+        file.write("|-------------|-----|-----------------|------------|\n")
+        file.write(f"| Unique | {avg_unique_prunes_all:.2f} | {avg_unique_prunes_success:.2f} | {avg_unique_prunes_fail:.2f} |\n")
+        file.write(f"| Total | {avg_total_prunes_all:.2f} | {avg_total_prunes_success:.2f} | {avg_total_prunes_fail:.2f} |\n")
 
     return True
