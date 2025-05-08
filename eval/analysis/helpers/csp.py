@@ -112,7 +112,7 @@ def analyze_csp(data, output_dir) -> bool:
     with open(output_dir + 'csp_metrics.md', 'w') as file:
         file.write("## CSP Metrics\n\n")
 
-        file.write("### Variable Lengths\n")
+        file.write("### Variable lengths\n")
         file.write('| Length |')
         for length in sorted(var_len_data.keys()):
             file.write(' ' + str(length) + ' |')
@@ -122,7 +122,7 @@ def analyze_csp(data, output_dir) -> bool:
             file.write(' ' + str(var_len_data[length]) + ' |')
         file.write('\n')
 
-        file.write("### Constraint Lengths\n")
+        file.write("### Constraint lengths\n")
         file.write('| Length |')
         for length in sorted(constr_len_data.keys()):
             file.write(' ' + str(length) + ' |')
@@ -132,7 +132,7 @@ def analyze_csp(data, output_dir) -> bool:
             file.write(' ' + str(constr_len_data[length]) + ' |')
         file.write('\n')
 
-        file.write("### Variable Domain Sizes\n")
+        file.write("### Variable domain sizes\n")
         file.write("| Min | Max | Average | Median |\n")
         file.write("|-----|-----|---------|--------|\n")
         file.write(f"| {min(dom_size_data)} | {max(dom_size_data)} | {sum(dom_size_data)/len(dom_size_data):.2f} | {np.median(dom_size_data):.1f}|\n")
