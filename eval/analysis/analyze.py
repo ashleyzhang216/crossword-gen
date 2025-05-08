@@ -53,6 +53,7 @@ def main():
     analyze_runtimes(data, runtimes_path)
 
     combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path], args.output_dir + '/' + "metrics.md")
+    print(f"Results for {args.data_path} written to new directory {args.output_dir}")
 
 if __name__ == "__main__":
     main()

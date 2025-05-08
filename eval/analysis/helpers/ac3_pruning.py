@@ -615,7 +615,7 @@ def plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constrai
 # run all child functions, return true iff ac3 pruning was tracked
 def analyze_ac3_pruning(data, output_dir) -> bool:
     if not get_track_ac3(data):
-        print("Warning: AC-3 not tracked in provided file, skipping analyze_ac3_pruning()")
+        print("Warning: AC-3 not tracked in provided file, skipping analysis of AC-3 pruning")
         return False
 
     constr_data = gather_constr_prune_data(data)
