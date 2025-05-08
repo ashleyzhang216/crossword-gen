@@ -64,7 +64,6 @@ def analyze_ac3_calls(data, output_dir) -> bool:
         file.write("## AC-3 Calls Metrics\n\n")
 
         num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])
-        print("Total number of AC-3 calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
         file.write("### Total number of AC-3 calls\n")
         file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
 
