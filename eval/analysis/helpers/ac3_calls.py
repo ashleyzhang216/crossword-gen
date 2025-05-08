@@ -46,7 +46,6 @@ def plot_ac3_call_duration_freq(output_dir, ac3_success_data):
     plt.legend()
 
     plt.savefig(output_dir + 'ac3_call_duration_freq.png', bbox_inches='tight')
-    plt.show()
 
 #################### parent function ####################
 
