@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-#################### plotting ####################
+#################### data collection ####################
 
-def plot_init_search_runtimes(output_dir, data):
+# returns {"init": initialization time in us, "search": solving time in us}
+def gather_init_search_runtime_data(data):
     assert('type' in data and data.get('type') == "Total")
     assert('children' in data)
     children = data.get('children', [])
@@ -16,8 +17,16 @@ def plot_init_search_runtimes(output_dir, data):
     assert('duration_us' in init_node)
     assert('duration_us' in search_node)
 
+    return {
+        "init": init_node.get('duration_us'), 
+        "search": search_node.get('duration_us')
+    }
+
+#################### plotting ####################
+
+def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     steps = np.asarray(['Init', 'Search'])
-    durations = np.asarray([init_node.get('duration_us') * 1e-6, search_node.get('duration_us') * 1e-6])
+    durations = np.asarray([init_search_runtime_data.get('init') * 1e-6, init_search_runtime_data.get('search') * 1e-6])
 
     plt.figure(figsize=(10, 6))
 
@@ -35,6 +44,8 @@ def plot_init_search_runtimes(output_dir, data):
 
 # run all child functions, returns true
 def analyze_runtimes(data, output_dir) -> bool:
-    plot_init_search_runtimes(output_dir, data)
+    init_search_runtime_data = gather_init_search_runtime_data(data)
+
+    plot_init_search_runtimes(output_dir, init_search_runtime_data)
 
     return True
