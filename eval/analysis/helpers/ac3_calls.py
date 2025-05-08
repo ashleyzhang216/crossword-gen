@@ -66,6 +66,16 @@ def analyze_ac3_calls(data, output_dir) -> bool:
         file.write("### Total number of AC-3 calls\n")
         file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
 
+        file.write("### AC-3 call durations\n")
+        file.write("| Result | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
+        file.write("|--------|----------|----------|--------------|-------------|\n")
+        s = ac3_success_data['success']
+        f = ac3_success_data['fail']
+        a = s + f
+        file.write(f"| All | {min(a)} | {max(a)} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n")
+        file.write(f"| Success | {min(s)} | {max(s)} | {sum(s)/len(s):.2f} | {np.median(s):.1f} |\n")
+        file.write(f"| Fail | {min(f)} | {max(f)} | {sum(f)/len(f):.2f} | {np.median(f):.1f} |\n")
+
         file.write('\n')
 
     return True
