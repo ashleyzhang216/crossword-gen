@@ -683,4 +683,6 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write(f"| Unique | {avg_unique_prunes_all:.2f} | {avg_unique_prunes_success:.2f} | {avg_unique_prunes_fail:.2f} |\n")
         file.write(f"| Total | {avg_total_prunes_all:.2f} | {avg_total_prunes_success:.2f} | {avg_total_prunes_fail:.2f} |\n")
 
+        file.write('\n')
+
     return True
