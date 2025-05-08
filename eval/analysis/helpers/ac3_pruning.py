@@ -298,7 +298,6 @@ def plot_avg_pair_prune_durations(output_dir, constr_prune_data, max_error=1.0, 
     plt.legend()
 
     plt.savefig(output_dir + 'avg_pair_prune_durations.png', bbox_inches='tight')
-    plt.show()
 
 # plot histogram of number of pairs pruned per ac3 prune
 def plot_prune_size_freqs(output_dir, constr_prune_data):
@@ -321,7 +320,6 @@ def plot_prune_size_freqs(output_dir, constr_prune_data):
     plt.ylabel('Frequency (log scale)')
 
     plt.savefig(output_dir + 'prune_size_freqs.png', bbox_inches='tight')
-    plt.show()
 
 # plot histogram of num pairs pruned, separated by constraint lengths
 def plot_pairs_pruned_freq_by_constr_len(output_dir, constr_prune_data, constr_lens):
@@ -359,7 +357,6 @@ def plot_pairs_pruned_freq_by_constr_len(output_dir, constr_prune_data, constr_l
     plt.legend()
 
     plt.savefig(output_dir + 'pairs_pruned_freq_by_constr_len.png', bbox_inches='tight')
-    plt.show()
 
 # plot comparison of total pairs pruned per constraint length
 def plot_total_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_lens):
@@ -395,7 +392,6 @@ def plot_total_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_
     plt.ylabel('Pairs Pruned')
 
     plt.savefig(output_dir + 'total_pairs_pruned_by_constr_len.png', bbox_inches='tight')
-    plt.show()
 
 # plot bar graph of total time spent by # of pairs pruned in a single pass
 def plot_total_durations_by_num_pairs_pruned(output_dir, constr_prune_data):
@@ -421,7 +417,6 @@ def plot_total_durations_by_num_pairs_pruned(output_dir, constr_prune_data):
     plt.ylabel('Total Duration of Prunes (s)')
 
     plt.savefig(output_dir + 'total_durations_by_num_pairs_pruned.png', bbox_inches='tight')
-    plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
 def plot_success_prune_ratio_vs_var_domain_size(output_dir, var_prune_data, var_domain_sizes):
@@ -456,7 +451,6 @@ def plot_success_prune_ratio_vs_var_domain_size(output_dir, var_prune_data, var_
     plt.legend()
 
     plt.savefig(output_dir + 'success_prune_ratio_vs_var_domain_size.png', bbox_inches='tight')
-    plt.show()
 
 # plot ratio of non-null AC-3 prunes vs var lengths
 def plot_success_prune_ratio_vs_var_lens(output_dir, var_prune_data, var_lens):
@@ -491,7 +485,6 @@ def plot_success_prune_ratio_vs_var_lens(output_dir, var_prune_data, var_lens):
     plt.legend()
 
     plt.savefig(output_dir + 'success_prune_ratio_vs_var_lens.png', bbox_inches='tight')
-    plt.show()
 
 # plot ratio of non-null AC-3 prunes vs constraint lengths
 def plot_success_prune_ratio_vs_constr_lens(output_dir, constr_prune_data, constr_lens):
@@ -533,7 +526,6 @@ def plot_success_prune_ratio_vs_constr_lens(output_dir, constr_prune_data, const
     plt.ylabel('Ratio of Successful AC-3 Prunes')
 
     plt.savefig(output_dir + 'success_prune_ratio_vs_constr_lens.png', bbox_inches='tight')
-    plt.show()
 
 # plot histogram of number of pairs pruned per ac3 call
 def plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data):
@@ -559,7 +551,6 @@ def plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data):
     plt.legend()
 
     plt.savefig(output_dir + 'pairs_pruned_per_ac3_freq.png', bbox_inches='tight')
-    plt.show()
 
 # plot histogram of number of unique prunes/constraints considered per ac3 call
 def plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constraints):
@@ -589,7 +580,6 @@ def plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constra
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
     plt.savefig(output_dir + 'num_unique_prunes_per_ac3_freq.png', bbox_inches='tight')
-    plt.show()
 
 # plot histogram of total number of prunes/constraints considered per ac3 call
 def plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constraints):
@@ -619,7 +609,6 @@ def plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constrai
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
     plt.savefig(output_dir + 'num_total_prunes_per_ac3_freq.png', bbox_inches='tight')
-    plt.show()
 
 #################### parent function ####################
 
