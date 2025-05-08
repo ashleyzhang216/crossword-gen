@@ -58,9 +58,16 @@ def analyze_ac3_calls(data, output_dir) -> bool:
 
     ac3_success_data = gather_ac3_success_data(data)
 
-    num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])
-    print("Total number of AC-3 calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
-
     plot_ac3_call_duration_freq(output_dir, ac3_success_data)
+
+    with open(output_dir + 'ac3_calls_metrics.md', 'w') as file:
+        file.write("## AC-3 Calls Metrics\n\n")
+
+        num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])
+        print("Total number of AC-3 calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
+        file.write("### Total number of AC-3 calls\n")
+        file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
+
+        file.write('\n')
 
     return True

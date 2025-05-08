@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 #################### data collection ####################
 
-# returns {"init": initialization time in us, "search": solving time in us}
+# returns {"init": initialization time in sec, "search": solving time in sec}
 def gather_init_search_runtime_data(data):
     assert('type' in data and data.get('type') == "Total")
     assert('children' in data)
@@ -18,15 +18,15 @@ def gather_init_search_runtime_data(data):
     assert('duration_us' in search_node)
 
     return {
-        "init": init_node.get('duration_us'), 
-        "search": search_node.get('duration_us')
+        "init": init_node.get('duration_us') * 1e-6,
+        "search": search_node.get('duration_us') * 1e-6
     }
 
 #################### plotting ####################
 
 def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     steps = np.asarray(['Init', 'Search'])
-    durations = np.asarray([init_search_runtime_data.get('init') * 1e-6, init_search_runtime_data.get('search') * 1e-6])
+    durations = np.asarray([init_search_runtime_data.get('init'), init_search_runtime_data.get('search')])
 
     plt.figure(figsize=(10, 6))
 
@@ -47,5 +47,15 @@ def analyze_runtimes(data, output_dir) -> bool:
     init_search_runtime_data = gather_init_search_runtime_data(data)
 
     plot_init_search_runtimes(output_dir, init_search_runtime_data)
+
+    with open(output_dir + 'runtimes_metrics.md', 'w') as file:
+        file.write("## Runtimes Metrics\n\n")
+
+        file.write("### Runtime Breakdown\n")
+        file.write("| Total (sec) | Initialization (sec) | Search (sec) |\n")
+        file.write("|-------------|----------------------|--------------|\n")
+        file.write(f"| {init_search_runtime_data['init']+init_search_runtime_data['search']:.3f} | {init_search_runtime_data['init']:.2f} | {init_search_runtime_data['search']:.2f} |\n")
+
+        file.write('\n')
 
     return True
