@@ -6,11 +6,13 @@ import os
 from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
 from helpers.runtimes import analyze_runtimes
+from helpers.csp import analyze_csp
 from helpers.utils import combine_metrics_files
 
 AC3_PRUNING_DIR = "ac3_pruning"
 AC3_CALLS_DIR = "ac3_calls"
 RUNTIMES_DIR = "runtimes"
+CSP_DIR = "csp"
 
 def main():
     # parse cli args
@@ -33,9 +35,11 @@ def main():
     ac3_pruning_path = args.output_dir + '/' + AC3_PRUNING_DIR + '/'
     ac3_calls_path = args.output_dir + '/' + AC3_CALLS_DIR + '/'
     runtimes_path = args.output_dir + '/' + RUNTIMES_DIR + '/'
+    csp_path = args.output_dir + '/' + CSP_DIR + '/'
     os.makedirs(ac3_pruning_path)
     os.makedirs(ac3_calls_path)
     os.makedirs(runtimes_path)
+    os.makedirs(csp_path)
 
     # open file
     try:
@@ -51,8 +55,9 @@ def main():
     analyze_ac3_pruning(data, ac3_pruning_path)
     analyze_ac3_calls(data, ac3_calls_path)
     analyze_runtimes(data, runtimes_path)
+    analyze_csp(data, csp_path)
 
-    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path], args.output_dir + '/' + "metrics.md")
+    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path, csp_path], args.output_dir + '/' + "metrics.md")
     print(f"Results for {args.data_path} written to new directory {args.output_dir}")
 
 if __name__ == "__main__":
