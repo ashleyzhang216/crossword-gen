@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+import os
 
 #################### data collection ####################
 
@@ -85,3 +86,19 @@ def weighted_linear_regression(x, y, weights=None):
         'fitted_values': y_pred,
         'weights': weights
     }
+
+#################### metrics file handling ####################
+
+def combine_metrics_files(subdirs, output_file):
+    with open(output_file, 'w') as combined:
+        combined.write("# All Metrics\n\n")
+
+        for subdir in subdirs:
+            for _, _, filenames in os.walk(subdir):
+                md_files = md_files = [f for f in filenames if f.endswith('.md')]
+                if not md_files:
+                    continue
+
+                for md_file in md_files:
+                    with open(subdir + md_file, 'r') as f:
+                        combined.write(f.read())

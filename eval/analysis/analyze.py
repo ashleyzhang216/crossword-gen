@@ -6,6 +6,7 @@ import os
 from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
 from helpers.runtimes import analyze_runtimes
+from helpers.utils import combine_metrics_files
 
 AC3_PRUNING_DIR = "ac3_pruning"
 AC3_CALLS_DIR = "ac3_calls"
@@ -29,9 +30,12 @@ def main():
             raise FileExistsError(f"Directory '{args.output_dir}' already exists!")
 
     # create subdirs
-    os.makedirs(args.output_dir + '/' + AC3_PRUNING_DIR + '/')
-    os.makedirs(args.output_dir + '/' + AC3_CALLS_DIR + '/')
-    os.makedirs(args.output_dir + '/' + RUNTIMES_DIR + '/')
+    ac3_pruning_path = args.output_dir + '/' + AC3_PRUNING_DIR + '/'
+    ac3_calls_path = args.output_dir + '/' + AC3_CALLS_DIR + '/'
+    runtimes_path = args.output_dir + '/' + RUNTIMES_DIR + '/'
+    os.makedirs(ac3_pruning_path)
+    os.makedirs(ac3_calls_path)
+    os.makedirs(runtimes_path)
 
     # open file
     try:
@@ -44,9 +48,11 @@ def main():
         print(f"Error: Failed to parse JSON file '{args.data_path}'. {e}")
         sys.exit(1)
 
-    analyze_ac3_pruning(data, args.output_dir + '/' + AC3_PRUNING_DIR + '/')
-    analyze_ac3_calls(data, args.output_dir + '/' + AC3_CALLS_DIR + '/')
-    analyze_runtimes(data, args.output_dir + '/' + RUNTIMES_DIR + '/')
+    analyze_ac3_pruning(data, ac3_pruning_path)
+    analyze_ac3_calls(data, ac3_calls_path)
+    analyze_runtimes(data, runtimes_path)
+
+    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path], args.output_dir + '/' + "metrics.md")
 
 if __name__ == "__main__":
     main()
