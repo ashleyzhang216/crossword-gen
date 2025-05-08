@@ -6,7 +6,7 @@ from helpers.utils import get_initialize_field
 #################### data collection ####################
 
 # returns map of variable len -> frequency
-def get_var_len_data(data):
+def gather_var_len_data(data):
     all_var_lens = {}
 
     var_lens = get_initialize_field(data, "var_lens")
@@ -17,7 +17,7 @@ def get_var_len_data(data):
     return all_var_lens
 
 # returns map of constr len -> frequency
-def get_constr_len_data(data):
+def gather_constr_len_data(data):
     all_constr_lens = {}
 
     constr_lens = get_initialize_field(data, "constr_lens")
@@ -26,6 +26,16 @@ def get_constr_len_data(data):
         all_constr_lens[length] += 1
 
     return all_constr_lens
+
+# returns list of variable domain sizes
+def gather_dom_size_data(data):
+    all_sizes = []
+
+    var_domain_sizes = get_initialize_field(data, "var_domain_sizes")
+    for _, size in var_domain_sizes.items():
+        all_sizes.append(size)
+
+    return all_sizes
 
 #################### plotting ####################
 
@@ -75,15 +85,29 @@ def plot_constr_len_freq(output_dir, constr_len_data):
 
     plt.savefig(output_dir + 'constr_len_freq.png', bbox_inches='tight')
 
+# plot histogram of variable domain sizes
+def plot_dom_size_freq(output_dir, dom_size_data):
+    plt.figure(figsize=(10, 6))
+
+    plt.hist(dom_size_data, edgecolor='black')
+
+    plt.title('Histogram of Variable Domain Sizes')
+    plt.xlabel('Domain Size')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'dom_size_freq.png', bbox_inches='tight')
+
 #################### parent function ####################
 
 # run all child functions, return true
 def analyze_csp(data, output_dir) -> bool:
-    var_len_data = get_var_len_data(data)
-    constr_len_data = get_constr_len_data(data)
+    var_len_data = gather_var_len_data(data)
+    constr_len_data = gather_constr_len_data(data)
+    dom_size_data = gather_dom_size_data(data)
 
     plot_var_len_freq(output_dir, var_len_data)
     plot_constr_len_freq(output_dir, constr_len_data)
+    plot_dom_size_freq(output_dir, dom_size_data)
 
     with open(output_dir + 'csp_metrics.md', 'w') as file:
         file.write("## CSP Metrics\n\n")
@@ -107,6 +131,11 @@ def analyze_csp(data, output_dir) -> bool:
         for length in sorted(constr_len_data.keys()):
             file.write(' ' + str(constr_len_data[length]) + ' |')
         file.write('\n')
+
+        file.write("### Variable Domain Sizes\n")
+        file.write("| Min | Max | Average | Median |\n")
+        file.write("|-----|-----|---------|--------|\n")
+        file.write(f"| {min(dom_size_data)} | {max(dom_size_data)} | {sum(dom_size_data)/len(dom_size_data):.2f} | {np.median(dom_size_data):.1f}|\n")
 
         file.write('\n')
 
