@@ -656,26 +656,19 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write("### Average time per pair pruned\n")
         file.write(f'{get_avg_prune_duration(constr_data):.2f} us\n')
 
-        print("Average time per pair pruned:", f'{get_avg_prune_duration(constr_data):.2f}', "us")
-
         num_success, num_fail = get_num_prunes_by_success(constr_data)
-        print("Total number of prune calls:", f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)')
         file.write("### Total number of prune calls\n")
         file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
 
         time_success, time_fail = get_total_prune_durations(constr_data)
-        print("Total time spent on prune calls:", f'{time_success+time_fail:.2f} sec ({100*time_success/(time_success + time_fail):.2f}% successful)')
         file.write("### Total time spent on prune calls\n")
         file.write(f'{time_success+time_fail:.2f} sec ({100*time_success/(time_success + time_fail):.2f}% successful)\n')
 
-        print("Average pairs pruned per AC-3 call:", f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f}')
         file.write("### Average number of pairs pruned per AC-3 call\n")
         file.write(f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f} pairs\n')
 
         avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
         avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
-        print("Average number of unique prune calls per AC-3 call:", f'{avg_unique_prunes_all:.2f} ({avg_unique_prunes_success:.2f} successful AC-3, {avg_unique_prunes_fail:.2f} failed AC-3)')
-        print("Average number of total prune calls per AC-3 call:", f'{avg_total_prunes_all:.2f} ({avg_total_prunes_success:.2f} successful AC-3, {avg_total_prunes_fail:.2f} failed AC-3)')
 
         file.write("### Average number of prune calls per AC-3 call\n")
         file.write("| Prune Calls | All | Successful AC-3 | Failed AC-3|\n")
