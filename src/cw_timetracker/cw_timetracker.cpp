@@ -120,8 +120,8 @@ void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& 
     cw_assert(step->end.has_value());
     j["type"] = step->type;
     j["name"] = step->name;
-    j["result"] = step->result;
     j["duration_us"] = std::chrono::duration_cast<std::chrono::microseconds>(step->end.value() - step->start).count();
+    j["result"] = step->result;
     j["children"] = step->children;
 }
 
