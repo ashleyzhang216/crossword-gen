@@ -26,31 +26,31 @@ namespace cw_timetracker_data_types_ns {
     */
     enum ts_type_t {
         // cw_csp
-        TS_CSP_TOTAL,             // all execution in cw_csp
-        TS_CSP_INITIALIZE,        // cw_csp.initialize_csp()
-        TS_CSP_SOLVE,             // cw_csp.solve()
-        TS_CSP_BACKTRACK_STEP,    // cw_csp.solve_backtracking()
-        TS_CSP_TRY_ASSIGN,        // an attempt to assign word in cw_csp.solve_backtracking()
+        TS_CSP_TOTAL,       // all execution in cw_csp
+        TS_CSP_INITIALIZE,  // cw_csp.initialize_csp()
+        TS_CSP_SOLVE,       // cw_csp.solve()
+        TS_CSP_SEARCH_STEP, // an attempt to extend the search tree for one variable
+        TS_CSP_TRY_ASSIGN,  // an attempt to assign a word in a search step
 
         #ifdef TIMETRACKER_TRACK_AC3
-        TS_CSP_AC3,               // cw_csp.ac3()
-        TS_CSP_AC3_PRUNE,         // a single call to cw_variable::prune_domain()
-        TS_CSP_UNDO_AC3,          // cw_csp.undo_ac3()
+        TS_CSP_AC3,         // cw_csp.ac3()
+        TS_CSP_AC3_PRUNE,   // a single call to cw_variable::prune_domain()
+        TS_CSP_UNDO_AC3,    // cw_csp.undo_ac3()
         #endif // TIMETRACKER_TRACK_AC3
     };
 
     // mapping from timestep type to display name
     NLOHMANN_JSON_SERIALIZE_ENUM( ts_type_t, {
-        {TS_CSP_TOTAL,             "Total"},
-        {TS_CSP_INITIALIZE,        "Initialize"},
-        {TS_CSP_SOLVE,             "Solve"},
-        {TS_CSP_BACKTRACK_STEP,    "Solve Backtracking"},
-        {TS_CSP_TRY_ASSIGN,        "Try Assign"},
+        {TS_CSP_TOTAL,       "Total"},
+        {TS_CSP_INITIALIZE,  "Initialize"},
+        {TS_CSP_SOLVE,       "Solve"},
+        {TS_CSP_SEARCH_STEP, "Search Step"},
+        {TS_CSP_TRY_ASSIGN,  "Try Assign"},
 
         #ifdef TIMETRACKER_TRACK_AC3
-        {TS_CSP_AC3,               "AC3"},
-        {TS_CSP_AC3_PRUNE,         "AC3 Prune"},
-        {TS_CSP_UNDO_AC3,          "Undo AC3"},
+        {TS_CSP_AC3,         "AC3"},
+        {TS_CSP_AC3_PRUNE,   "AC3 Prune"},
+        {TS_CSP_UNDO_AC3,    "Undo AC3"},
         #endif // TIMETRACKER_TRACK_AC3
     })
 }; // cw_timetracker_data_types_ns

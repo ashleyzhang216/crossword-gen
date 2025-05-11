@@ -668,7 +668,8 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
  * @return true iff successful
 */
 bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
-    cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "depth: " + std::to_string(depth));
+    cw_timestamper stamper(tracker, TS_CSP_SEARCH_STEP, "Backtracking");
+    stamper.result()["depth"] = depth;
 
     utils.log(DEBUG, "entering solve_backtracking() with depth ", depth);
 
