@@ -675,9 +675,10 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // base case
     if(solved()) {
-        stamper.result()["success"]  = true;
-        stamper.result()["reason"]   = "solved";
-        stamper.result()["variable"] = nullptr;
+        stamper.result()["variable"]    = nullptr;
+        stamper.result()["success"]     = true;
+        stamper.result()["reason"]      = "solved";
+        stamper.result()["jump_height"] = nullptr;
         return true;
     }
 
@@ -744,8 +745,9 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
                 // recurse
                 if(solve_backtracking(var_strategy, false, depth + 1)) {
-                    stamper.result()["success"] = true;
-                    stamper.result()["reason"]  = "recursive";
+                    stamper.result()["success"]     = true;
+                    stamper.result()["reason"]      = "recursive";
+                    stamper.result()["jump_height"] = nullptr;
                     return true;
                 }
                 
@@ -776,8 +778,9 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
-    stamper.result()["success"] = false;
-    stamper.result()["reason"]  = "domain exhausted";
+    stamper.result()["success"]     = false;
+    stamper.result()["reason"]      = "domain exhausted";
+    stamper.result()["jump_height"] = 1; // upon failure, backtracking always goes up only one search step
     return false;
 }
 
