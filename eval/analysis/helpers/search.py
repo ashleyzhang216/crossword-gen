@@ -26,8 +26,7 @@ class Color(Enum):
     RED = "#f8cecc"
 
 class SearchNode:
-    def __init__(self, id:int, success:bool, reason:SearchReason, parent=None):
-        self.id = id
+    def __init__(self, success:bool, reason:SearchReason, parent=None):
         self.success = success
         self.reason = reason
         self.parent = parent
@@ -36,8 +35,8 @@ class SearchNode:
         self.jump_height = None
         self.failed_subtree_size = None
 
-    def add_child(self, id:int, success:bool, reason:SearchReason):
-        child = SearchNode(id, success, reason, parent=self)
+    def add_child(self, success:bool, reason:SearchReason):
+        child = SearchNode(success, reason, parent=self)
         self.children.append(child)
         return child
 
@@ -98,14 +97,10 @@ def gather_search_tree(data) -> SearchNode:
     search_root = children[1]
     assert('result' in search_root and 'success' in search_root['result'])
 
-    tree = SearchNode(0, search_root['result']['success'], SearchReason(search_root['result']['reason']))
-    next_id = 1
-
+    tree = SearchNode(search_root['result']['success'], SearchReason(search_root['result']['reason']))
     def traverse(search_node:SearchNode, data_node):
-        nonlocal next_id
         if data_node['type'] == "Try Assign":
-            node_child = search_node.add_child(next_id, data_node['result']['success'], SearchReason(data_node['result']['reason']))
-            next_id += 1
+            node_child = search_node.add_child(data_node['result']['success'], SearchReason(data_node['result']['reason']))
 
             for child_data_node in data_node.get('children', []):
                 traverse(node_child, child_data_node)
@@ -162,23 +157,19 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
     dot = Digraph(comment='Search Tree')
     dot.attr('node', style='filled', compound='true')
 
-    all_ids = set()
     def add_node_edges(node:SearchNode):
-        assert(not node.id in all_ids)
-        all_ids.add(node.id)
-
         jump_h = "None" if node.jump_height is None else str(node.jump_height)
-        dot.node(str(node.id), jump_h, color=node.get_color())
+        dot.node(str(id(node)), jump_h, color=node.get_color())
         for i, child in enumerate(node.children):
             # forward edge to child
-            dot.edge(str(node.id), str(child.id))
+            dot.edge(str(id(node)), str(id(child)))
 
             # backjump edge from child
             if not child.jump_height is None:
                 if child.jump_height > 1:
                     assert(i == len(node.children) - 1)
 
-                dot.edge(str(child.id), str(child.get_node_jumped_to().id))
+                dot.edge(str(id(child)), str(id(child.get_node_jumped_to())))
 
             add_node_edges(child)
 
@@ -204,8 +195,7 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
                 label,
                 fillcolor=color.value,
                 # fontcolor="#333333",
-                style='filled',
-                shape='box'
+                style='filled'
             )
             # Add invisible edges to align items vertically
             if i > 0:
@@ -216,7 +206,7 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
                 )
 
     # Position the legend relative to the main graph
-    dot.edge('legend_spacer', str(search_tree.id), style='invis')
+    dot.edge('legend_spacer', str(id(search_tree)), style='invis')
 
     dot.render(output_dir + 'search_tree.gv', view=False)
 
