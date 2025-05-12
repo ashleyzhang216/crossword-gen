@@ -51,8 +51,8 @@ def analyze_runtimes(data, output_dir) -> bool:
         file.write("## Runtimes Metrics\n\n")
 
         file.write("### Runtime Breakdown\n")
-        file.write("| Total (sec) | Initialization (sec) | Search (sec) |\n")
-        file.write("|-------------|----------------------|--------------|\n")
+        file.write("| Total (s) | Initialization (s) | Search (s) |\n")
+        file.write("|-----------|--------------------|------------|\n")
         file.write(f"| {init_search_runtime_data['init']+init_search_runtime_data['search']:.3f} | {init_search_runtime_data['init']:.2f} | {init_search_runtime_data['search']:.2f} |\n")
 
         file.write('\n')
