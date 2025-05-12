@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from enum import Enum
 from graphviz import Digraph
+from typing import Callable
 
 #################### data collection ####################
 
@@ -17,6 +18,12 @@ class SearchReason(Enum):
             return cls(value)
         except ValueError:
             raise ValueError(f"{value} is not a valid SearchReason")
+
+class Color(Enum):
+    GREEN = "#d5e8d4"
+    YELLOW = "#fff2cc"
+    ORANGE = "#f5d6b0"
+    RED = "#f8cecc"
 
 class SearchNode:
     def __init__(self, id:int, success:bool, reason:SearchReason, parent=None):
@@ -68,15 +75,15 @@ class SearchNode:
         assert(not self.reason is None)
         if self.success:
             assert(self.reason == SearchReason.SOLVED or self.reason == SearchReason.RECURSIVE)
-            return "#d5e8d4" # green
+            return Color.GREEN.value
         else:
             match self.reason:
                 case SearchReason.RECURSIVE:
-                    return "#fff2cc" # yellow
+                    return Color.YELLOW.value
                 case SearchReason.AC3:
-                    return "#f8cecc" # red
+                    return Color.RED.value
                 case SearchReason.DUPLICATE:
-                    return "#f5d6b0" # orange
+                    return Color.ORANGE.value
                 case _:
                     raise ValueError(f"Node with success={self.success} and reason={self.reason.value} has no valid color")
 
@@ -133,14 +140,14 @@ def gather_search_tree(data) -> SearchNode:
             elif node.success:
                 assert(node.jump_height is None)
 
-        def call_from_leaves(node:SearchNode):
+        def call_func_from_leaves(node:SearchNode, func:Callable[[SearchNode], None]):
             if len(node.children) == 0:
-                verify_node(node)
+                func(node)
             else:
                 for child in node.children:
-                    call_from_leaves(child)
+                    call_func_from_leaves(child, func)
 
-        call_from_leaves(root)
+        call_func_from_leaves(root, verify_node)
 
     traverse(tree, data)
     tree.set_failed_subtree_size()
@@ -153,7 +160,7 @@ def gather_search_tree(data) -> SearchNode:
 # draw search tree
 def plot_search_tree(output_dir, search_tree:SearchNode):
     dot = Digraph(comment='Search Tree')
-    dot.attr('node', style='filled')
+    dot.attr('node', style='filled', compound='true')
 
     all_ids = set()
     def add_node_edges(node:SearchNode):
@@ -176,6 +183,41 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
             add_node_edges(child)
 
     add_node_edges(search_tree)
+
+    # add legend
+    with dot.subgraph(name='cluster_legend') as legend:
+        legend.attr(label='Legend', style='rounded', color='gray',
+                   fontname='Helvetica', fontsize='12')
+
+        # Create invisible nodes to align the legend items
+        legend.node('legend_spacer', '', shape='none', style='invis')
+
+        colors = [
+            [Color.GREEN, "Success"],
+            [Color.YELLOW, "Fail - recursive"],
+            [Color.ORANGE, "Fail - duplicate"],
+            [Color.RED, "Fail - ac3"]
+        ]
+        for i, [color, label] in enumerate(colors):
+            legend.node(
+                f'legend_{i}',
+                label,
+                fillcolor=color.value,
+                # fontcolor="#333333",
+                style='filled',
+                shape='box'
+            )
+            # Add invisible edges to align items vertically
+            if i > 0:
+                legend.edge(
+                    f'legend_{i-1}',
+                    f'legend_{i}',
+                    style='invis'
+                )
+
+    # Position the legend relative to the main graph
+    dot.edge('legend_spacer', str(search_tree.id), style='invis')
+
     dot.render(output_dir + 'search_tree.gv', view=False)
 
 #################### parent function ####################
