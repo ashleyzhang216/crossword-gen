@@ -29,8 +29,8 @@ namespace cw_timetracker_data_types_ns {
         TS_CSP_TOTAL,       // all execution in cw_csp
         TS_CSP_INITIALIZE,  // cw_csp.initialize_csp()
         TS_CSP_SOLVE,       // cw_csp.solve()
-        TS_CSP_SEARCH_STEP, // an attempt to extend the search tree for one variable
-        TS_CSP_TRY_ASSIGN,  // an attempt to assign a word during a search step, represents a search tree node
+        TS_CSP_SEARCH_STEP, // an attempt to assign any value to a variable, represents a group of search tree nodes branched off of a common parent node
+        TS_CSP_TRY_ASSIGN,  // an attempt to assign a specific word during a search step, represents a search tree node
 
         #ifdef TIMETRACKER_TRACK_AC3
         TS_CSP_AC3,         // cw_csp.ac3()
