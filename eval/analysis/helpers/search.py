@@ -6,21 +6,17 @@ from graphviz import Digraph
 #################### data collection ####################
 
 class SearchReason(Enum):
-    RECURSIVE = ("recursive", "#fff2cc") # yellow
-    AC3 = ("ac3", "#f8cecc") # red
-    SOLVED = ("solved", "#d5e8d4") # green
-    DUPLICATE = ("duplicate", "#f5d6b0") # orange
-
-    def __init__(self, string_value, color):
-        self.string_value = string_value
-        self.color = color
+    RECURSIVE = "recursive"
+    AC3 = "ac3"
+    SOLVED = "solved"
+    DUPLICATE = "duplicate"
 
     @classmethod
     def from_string(cls, value):
-        for member in cls:
-            if member.string_value == value:
-                return member
-        raise ValueError(f"{value} is not a valid SearchReason")
+        try:
+            return cls(value)
+        except ValueError:
+            raise ValueError(f"{value} is not a valid SearchReason")
 
 class SearchNode:
     def __init__(self, id:int, success:bool, reason:SearchReason, parent=None):
@@ -56,6 +52,22 @@ class SearchNode:
         assert(not self.reason is SearchReason.SOLVED)
         self.reason = SearchReason.SOLVED
 
+    def get_color(self) -> str:
+        assert(not self.reason is None)
+        if self.success:
+            assert(self.reason == SearchReason.SOLVED or self.reason == SearchReason.RECURSIVE)
+            return "#d5e8d4" # green
+        else:
+            match self.reason:
+                case SearchReason.RECURSIVE:
+                    return "#fff2cc" # yellow
+                case SearchReason.AC3:
+                    return "#f8cecc" # red
+                case SearchReason.DUPLICATE:
+                    return "#f5d6b0" # orange
+                case _:
+                    raise ValueError(f"Node with success={self.success} and reason={self.reason.value} has no valid color")
+
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
     assert('type' in data and data['type'] == "Total")
@@ -67,13 +79,13 @@ def gather_search_tree(data) -> SearchNode:
     search_root = children[1]
     assert('result' in search_root and 'success' in search_root['result'])
 
-    tree = SearchNode(0, search_root['result']['success'], SearchReason.from_string(search_root['result']['reason']))
+    tree = SearchNode(0, search_root['result']['success'], SearchReason(search_root['result']['reason']))
     next_id = 1
 
     def traverse(search_node, data_node):
         nonlocal next_id
         if data_node['type'] == "Try Assign":
-            node_child = search_node.add_child(next_id, data_node['result']['success'], SearchReason.from_string(data_node['result']['reason']))
+            node_child = search_node.add_child(next_id, data_node['result']['success'], SearchReason(data_node['result']['reason']))
             next_id += 1
 
             for child_data_node in data_node.get('children', []):
@@ -81,11 +93,7 @@ def gather_search_tree(data) -> SearchNode:
         else:
             if data_node['type'] == "Search Step":
                 if data_node['result']['success'] and data_node['result']['reason'] == "solved":
-                    # set reasons up to root to be "solved"
-                    current = search_node
-                    while not current is None:
-                        current.set_reason_solved()
-                        current = current.parent
+                    search_node.set_reason_solved()
 
                 search_node.set_jump_height(data_node['result']['jump_height'])
 
@@ -109,9 +117,10 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
         assert(not node.id in all_ids)
         all_ids.add(node.id)
 
-        dot.node(str(node.id), node.reason.string_value, color=node.reason.color)
+        dot.node(str(node.id), node.reason.value, color=node.get_color())
         for child in node.children:
             dot.edge(str(node.id), str(child.id))
+            # TODO: draw edge up to where it backtracked/backjumped
             add_node_edges(child)
 
     add_node_edges(search_tree)
