@@ -6,30 +6,35 @@ from graphviz import Digraph
 #################### data collection ####################
 
 class SearchReason(Enum):
-    RECURSIVE = "recursive"
-    AC3 = "ac3"
-    SOLVED = "solved"
-    DUPLICATE = "duplicate"
+    RECURSIVE = ("recursive", "#fff2cc") # yellow
+    AC3 = ("ac3", "#f8cecc") # red
+    SOLVED = ("solved", "#d5e8d4") # green
+    DUPLICATE = ("duplicate", "#f5d6b0") # orange
+
+    def __init__(self, string_value, color):
+        self.string_value = string_value
+        self.color = color
 
     @classmethod
-    def from_string(cls, status_str):
-        try:
-            return cls(status_str)
-        except ValueError:
-            raise ValueError(f"{status_str} is not a valid SearchReason")
+    def from_string(cls, value):
+        for member in cls:
+            if member.string_value == value:
+                return member
+        raise ValueError(f"{value} is not a valid SearchReason")
 
 class SearchNode:
-    def __init__(self, success:bool, reason:SearchReason, parent=None):
-        self.parent = parent
+    def __init__(self, id:int, success:bool, reason:SearchReason, parent=None):
+        self.id = id
         self.success = success
-        self.children = []
         self.reason = reason
+        self.parent = parent
+        self.children = []
 
         self.jump_height = None
         self.failed_subtree_size = None
 
-    def add_child(self, success:bool, reason:SearchReason):
-        child = SearchNode(success, reason, parent=self)
+    def add_child(self, id:int, success:bool, reason:SearchReason):
+        child = SearchNode(id, success, reason, parent=self)
         self.children.append(child)
         return child
 
@@ -62,13 +67,17 @@ def gather_search_tree(data) -> SearchNode:
     search_root = children[1]
     assert('result' in search_root and 'success' in search_root['result'])
 
-    tree = SearchNode(search_root['result']['success'], SearchReason(search_root['result']['reason']))
-    def traverse(self, search_node, data_node):
+    tree = SearchNode(0, search_root['result']['success'], SearchReason.from_string(search_root['result']['reason']))
+    next_id = 1
+
+    def traverse(search_node, data_node):
+        nonlocal next_id
         if data_node['type'] == "Try Assign":
-            node_child = search_node.add_child(data_node['result']['success'], SearchReason(data_node['result']['reason']))
+            node_child = search_node.add_child(next_id, data_node['result']['success'], SearchReason.from_string(data_node['result']['reason']))
+            next_id += 1
 
             for child_data_node in data_node.get('children', []):
-                self(self, node_child, child_data_node)
+                traverse(node_child, child_data_node)
         else:
             if data_node['type'] == "Search Step":
                 if data_node['result']['success'] and data_node['result']['reason'] == "solved":
@@ -81,12 +90,32 @@ def gather_search_tree(data) -> SearchNode:
                 search_node.set_jump_height(data_node['result']['jump_height'])
 
             for child_data_node in data_node.get('children', []):
-                self(self, search_node, child_data_node)
+                traverse(search_node, child_data_node)
 
-    traverse(traverse, tree, data)
+    traverse(tree, data)
     tree.set_failed_subtree_size()
 
     return tree
+
+#################### plotting ####################
+
+# draw search tree
+def plot_search_tree(output_dir, search_tree:SearchNode):
+    dot = Digraph(comment='Search Tree')
+    dot.attr('node', style='filled')
+
+    all_ids = set()
+    def add_node_edges(node:SearchNode):
+        assert(not node.id in all_ids)
+        all_ids.add(node.id)
+
+        dot.node(str(node.id), node.reason.string_value, color=node.reason.color)
+        for child in node.children:
+            dot.edge(str(node.id), str(child.id))
+            add_node_edges(child)
+
+    add_node_edges(search_tree)
+    dot.render(output_dir + 'search_tree.gv', view=False)
 
 #################### parent function ####################
 
@@ -94,6 +123,8 @@ def gather_search_tree(data) -> SearchNode:
 def analyze_search(data, output_dir) -> bool:
 
     search_tree = gather_search_tree(data)
+
+    plot_search_tree(output_dir, search_tree)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
