@@ -32,7 +32,7 @@ class SearchNode:
         self.parent = parent
         self.children = []
 
-        self.jump_height = None
+        self.jump_height = None # num nodes backtracked/backjumped after evaluating all children
         self.failed_subtree_size = None
 
     def add_child(self, success:bool, reason:SearchReason):
@@ -180,33 +180,25 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
         legend.attr(label='Legend', style='rounded', color='gray',
                    fontname='Helvetica', fontsize='12')
 
-        # Create invisible nodes to align the legend items
-        legend.node('legend_spacer', '', shape='none', style='invis')
+        legend.node('legend_label', 'jump height', fillcolor='gray', style='filled')
 
         colors = [
             [Color.GREEN, "Success"],
-            [Color.YELLOW, "Fail - recursive"],
-            [Color.ORANGE, "Fail - duplicate"],
-            [Color.RED, "Fail - ac3"]
+            [Color.YELLOW, "Fail: Recursive"],
+            [Color.ORANGE, "Fail: Duplicate"],
+            [Color.RED, "Fail: AC-3"]
         ]
         for i, [color, label] in enumerate(colors):
             legend.node(
                 f'legend_{i}',
                 label,
                 fillcolor=color.value,
-                # fontcolor="#333333",
                 style='filled'
             )
-            # Add invisible edges to align items vertically
-            if i > 0:
-                legend.edge(
-                    f'legend_{i-1}',
-                    f'legend_{i}',
-                    style='invis'
-                )
+            legend.edge('legend_label', f'legend_{i}', style='invis', minlen='1')
 
-    # Position the legend relative to the main graph
-    dot.edge('legend_spacer', str(id(search_tree)), style='invis')
+    # place legend over root node
+    dot.edge('legend_0', str(id(search_tree)), style='invis')
 
     dot.render(output_dir + 'search_tree.gv', view=False)
 
