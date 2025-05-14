@@ -155,25 +155,45 @@ def gather_search_tree(data) -> SearchNode:
 # draw search tree
 def plot_search_tree(output_dir, search_tree:SearchNode):
     dot = Digraph(comment='Search Tree')
-    dot.attr('node', style='filled', compound='true')
+    dot.attr('node', style='filled', compound='true', rankdir='TB')
 
-    def add_node_edges(node:SearchNode):
+    def add_nodes_and_record_edges(node:SearchNode, down_edges:set, up_edges:set):
+        # placeholder node text label
         jump_h = "None" if node.jump_height is None else str(node.jump_height)
         dot.node(str(id(node)), jump_h, color=node.get_color())
+
         for i, child in enumerate(node.children):
             # forward edge to child
-            dot.edge(str(id(node)), str(id(child)))
+            assert(not (str(id(node)), str(id(child))) in down_edges)
+            down_edges.add((str(id(node)), str(id(child))))
 
             # backjump edge from child
             if not child.jump_height is None:
                 if child.jump_height > 1:
                     assert(i == len(node.children) - 1)
 
-                dot.edge(str(id(child)), str(id(child.get_node_jumped_to())))
+                # upwards edge from child
+                assert(not (str(id(child)), str(id(child.get_node_jumped_to()))) in up_edges)
+                up_edges.add((str(id(child)), str(id(child.get_node_jumped_to()))))
 
-            add_node_edges(child)
+            add_nodes_and_record_edges(child, down_edges, up_edges)
 
-    add_node_edges(search_tree)
+    down_edges = set()
+    up_edges = set()
+    add_nodes_and_record_edges(search_tree, down_edges, up_edges)
+
+    # add downwards edges
+    for (lhs, rhs) in down_edges:
+        if (rhs, lhs) in up_edges:
+            # bidirectional case
+            dot.edge(lhs, rhs, dir='both')
+            up_edges.remove((rhs, lhs))
+        else:
+            dot.edge(lhs, rhs)
+
+    # leftover up edges must be backjumped edges
+    for (rhs, lhs) in up_edges:
+        dot.edge(lhs, rhs, color='red')
 
     # add legend
     with dot.subgraph(name='cluster_legend') as legend:
