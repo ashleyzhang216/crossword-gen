@@ -415,6 +415,12 @@ void cw_csp::initialize_csp() {
         }
     }
 
+    // record whether cycle constraints were included
+    stamper.result()["cycles"] = ordered_json::object();
+    stamper.result()["cycles"]["enabled"] = true;
+    stamper.result()["cycles"]["min_len"] = cw_cycle::MIN_CYCLE_LEN;
+    stamper.result()["cycles"]["max_len"] = cw_cycle::MAX_CYCLE_LEN;
+
     // record constraint dependencies for debugging
     stamper.result()["constr_deps"] = ordered_json::object();
     for(const auto& pair : constr_dependencies) {
