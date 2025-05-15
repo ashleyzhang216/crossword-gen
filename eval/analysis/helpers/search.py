@@ -97,6 +97,26 @@ class SearchNode:
                 case _:
                     raise ValueError(f"Node with success={self.success} and reason={self.reason.value} has no valid color")
 
+    # returns map of jump height -> freq
+    def gather_jump_height_data(self, result:dict=None):
+        if result is None:
+            data = {}
+            if not self.jump_height is None:
+                data.setdefault(self.jump_height, 0)
+                data[self.jump_height] += 1
+
+            for child in self.children:
+                child.gather_jump_height_data(data)
+
+            return data
+        else:
+            if not self.jump_height is None:
+                result.setdefault(self.jump_height, 0)
+                result[self.jump_height] += 1
+
+            for child in self.children:
+                child.gather_jump_height_data(result)
+
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
     assert('type' in data and data['type'] == "Total")
@@ -243,14 +263,33 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
     dot.render(output_dir + 'search_tree.gv', view=False, format='svg')
     dot.render(output_dir + 'search_tree.gv', view=False, format='png')
 
+# plot histogram of jump heights
+def plot_jump_height_freq(output_dir, jump_height_data):
+    all_heights = []
+    for height, freq in jump_height_data.items():
+        all_heights.extend([height] * freq)
+
+    plt.figure(figsize=(10, 6))
+
+    plt.hist(all_heights, edgecolor='black')
+    plt.xticks(sorted(jump_height_data.keys()))
+
+    plt.title('Histogram of Jump Heights')
+    plt.xlabel('Jump Height')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'jump_height_freq.png', bbox_inches='tight')
+
 #################### parent function ####################
 
 # run all child functions, returns true
 def analyze_search(data, output_dir) -> bool:
 
     search_tree = gather_search_tree(data)
+    jump_height_data = search_tree.gather_jump_height_data()
 
     plot_search_tree(output_dir, search_tree)
+    plot_jump_height_freq(output_dir, jump_height_data)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
