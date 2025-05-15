@@ -168,7 +168,7 @@ def gather_search_tree(data) -> SearchNode:
 # draw search tree
 def plot_search_tree(output_dir, search_tree:SearchNode):
     dot = Digraph(comment='Search Tree')
-    dot.attr('node', style='filled', compound='true')
+    dot.attr('node', style='filled')
 
     def add_nodes_and_record_edges(node:SearchNode, down_edges:set, up_edges:set):
         if node.get_var() is None:
@@ -211,10 +211,10 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
 
     # add legend
     with dot.subgraph(name='cluster_legend') as legend:
-        legend.attr(label='Legend', style='rounded', color='gray',
+        legend.attr(label='Legend', style='rounded',
                    fontname='Helvetica', fontsize='12')
 
-        legend.node('legend_label', 'Variable ID: Word', fillcolor='gray', style='filled')
+        legend.node('legend_label', 'Variable ID: Word', fillcolor='white', style='filled')
 
         colors = [
             [Color.GREEN, "Success"],
@@ -227,7 +227,8 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
                 f'legend_{i}',
                 label,
                 fillcolor=color.value,
-                style='filled'
+                style='filled',
+                penwidth='0'
             )
             legend.edge('legend_label', f'legend_{i}', style='invis', minlen='1')
 
