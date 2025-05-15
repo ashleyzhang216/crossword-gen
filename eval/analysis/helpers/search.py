@@ -101,7 +101,7 @@ def gather_search_tree(data) -> SearchNode:
     tree = SearchNode(search_root['result']['success'], SearchReason(search_root['result']['reason']))
     def traverse(search_node:SearchNode, data_node):
         if data_node['type'] == "Try Assign":
-            node_child = search_node.add_child(data_node['result']['success'], SearchReason(data_node['result']['reason']), data_node['name'])
+            node_child = search_node.add_child(data_node['result']['success'], SearchReason(data_node['result']['reason']), data_node['result']['word'])
 
             for child_data_node in data_node.get('children', []):
                 traverse(node_child, child_data_node)
