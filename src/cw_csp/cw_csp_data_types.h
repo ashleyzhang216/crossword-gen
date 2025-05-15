@@ -32,12 +32,12 @@ namespace cw_csp_data_types_ns {
 
     // to choose between variable selection method, when more are added in the future
     enum var_selection_method {
-        MIN_REMAINING_VALUES = 0,
+        MRV = 0,
     };
 
     // mapping from variable strategy to display name
     NLOHMANN_JSON_SERIALIZE_ENUM( var_selection_method, {
-        {MIN_REMAINING_VALUES, "Min Remaining Values"},
+        {MRV, "Minimum Remaining Values"},
     })
 
     // to choose words to try first for assignment

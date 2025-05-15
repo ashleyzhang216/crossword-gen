@@ -594,16 +594,13 @@ string cw_csp::result() const {
  * @brief selects one unassigned var ptr in variables
  * 
  * @param strategy the selection strategy to use
- * @return next unassigned shared_ptr<cw_variable> in variables to explore, nullptr if none remaining
- * 
- * TODO: currently always selects empty/single-valued vars first due to MIN_REMAINING_VALUES being only strategy, 
- *       this helps backtracking detect invalid assignments asap but this method needs to change if new strategy added
+ * @return next unassigned var id in variables to explore, UINT_MAX if none remaining
 */
 size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
     size_t result = id_obj_manager<cw_variable>::INVALID_ID;
 
     switch(strategy) {
-        case MIN_REMAINING_VALUES: {
+        case MRV: {
                 size_t min_num_values = UINT_MAX;
                 for(unique_ptr<cw_variable>& var : variables) {
                     // if this variable is unassigned AND has fewer remaining values in domain
@@ -612,9 +609,6 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
                         result = var->id;
                     }
                 }
-            } break;
-        default: {
-                utils.log(ERROR, "select_unassigned_var() got unknown var_selection_method: ", strategy);
             } break;
     }
 
