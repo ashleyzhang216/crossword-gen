@@ -368,6 +368,8 @@ cw_cycle::cw_cycle(size_t id, const id_obj_manager<cw_constraint>& constrs, cons
     : cw_constraint(id),
       cycle_len(arcs.size()) {
 
+    cw_assert(cycle_len >= MIN_CYCLE_LEN && cycle_len <= MAX_CYCLE_LEN);
+
     // for checking invariant
     unordered_set<size_t> visited;
 
@@ -414,8 +416,8 @@ cw_cycle::cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair
       cycle_len(var_cycle.size()),
       var_cycle(var_cycle),
       intersections(intersections) {
-    cw_assert(var_cycle.size() == cycle_len); // complete cycle
-    cw_assert(intersections.size() == cycle_len); // one intersection per step between vars
+    cw_assert(cycle_len >= MIN_CYCLE_LEN && cycle_len <= MAX_CYCLE_LEN); // legal length
+    cw_assert(var_cycle.size() == intersections.size()); // one intersection per step between vars
     cw_assert(var_cycle.size() == unordered_set<size_t>(var_cycle.begin(), var_cycle.end()).size()); // no duplicate vars
 }
 

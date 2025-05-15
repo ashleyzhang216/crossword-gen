@@ -224,7 +224,7 @@ namespace cw_csp_data_types_ns {
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
 
-        // returns true iff lhs domain is now empty
+        // returns true iff any domain is now empty
         virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
 
         // all elements in var_cycle are dependencies
