@@ -123,6 +123,10 @@ def gather_search_tree(data) -> SearchNode:
                 node_child.set_jump_height(1)
         else:
             if data_node['type'] == "Search Step":
+                # temporarily enforce only backtracking since this is the only thing tested so far
+                # TODO: remove this once other methods are supported
+                assert(data_node['name'] == "Backtracking")
+
                 if data_node['result']['success'] and data_node['result']['reason'] == "solved":
                     search_node.set_reason_solved()
 
