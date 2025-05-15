@@ -717,7 +717,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
-        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
+        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, "");
+        word_stamper.result()["word"] = word.word;
 
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
