@@ -31,6 +31,8 @@
 #include <functional>
 #include <numeric>
 
+#include "../lib/src/json.hpp"
+
 #define MIN_WORD_LEN 2         // max length for a single word
 #define MAX_WORD_LEN 20        // max length for a single word
 #define WILDCARD '?'           // tile/pattern where any letter can go
@@ -76,6 +78,10 @@ using std::unique_ptr;
 using std::weak_ptr;
 using std::make_shared;
 using std::make_unique;
+
+// JSON
+using basic_json   = nlohmann::json;         // unordered json
+using ordered_json = nlohmann::ordered_json; // for ordering timetracker output json fields for easier reading
 
 namespace common_data_types_ns {
     /**

@@ -9,14 +9,9 @@
 
 #include "../common/common_data_types.h"
 #include "../utils/cw_utils.h"
-#include "../lib/src/json.hpp"
 
 using namespace common_data_types_ns;
 using namespace cw;
-
-// need to use ordered_json to have children as the last key for each timestep
-// otherwise, output json files become very tricky to debug
-using ordered_json = nlohmann::ordered_json;
 
 #define TIMETRACKER_TRACK_AC3
 

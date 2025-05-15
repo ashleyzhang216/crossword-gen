@@ -11,13 +11,11 @@
 #include "../../src/common/common_parent.h"
 #include "../../src/word_domain/word_domain_data_types.h"
 #include "../../src/word_domain/word_domain.h"
-#include "../../src/lib/src/json.hpp"
 
 using namespace common_data_types_ns;
 using namespace common_parent_ns;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
-using json = nlohmann::json;
 
 namespace word_domain_test_driver_ns {
     class word_domain_test_driver : public common_parent {

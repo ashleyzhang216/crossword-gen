@@ -96,7 +96,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             // open word file, parse data
             ifstream word_file(filepath);
             cw_assert_m(word_file.is_open(), "could not open json file " + filepath);
-            json j = json::parse(word_file);
+            basic_json j = basic_json::parse(word_file);
             
             // create progress bar, now that denominator (j.size()) is known
             if(print_progress_bar) {
