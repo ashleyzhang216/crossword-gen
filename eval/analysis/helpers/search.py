@@ -222,9 +222,9 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
 
         colors = [
             [Color.GREEN, "Success"],
-            [Color.YELLOW, "Fail: Recursive"],
-            [Color.ORANGE, "Fail: Duplicate"],
-            [Color.RED, "Fail: AC-3"]
+            [Color.YELLOW, "Fail (recursive)"],
+            [Color.ORANGE, "Fail (duplicate)"],
+            [Color.RED, "Fail (AC-3)"]
         ]
         for i, [color, label] in enumerate(colors):
             legend.node(
@@ -239,7 +239,9 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
     # place legend over root node
     dot.edge('legend_0', str(id(search_tree)), style='invis')
 
-    dot.render(output_dir + 'search_tree.gv', view=False)
+    dot.render(output_dir + 'search_tree.gv', view=False, format='pdf')
+    dot.render(output_dir + 'search_tree.gv', view=False, format='svg')
+    dot.render(output_dir + 'search_tree.gv', view=False, format='png')
 
 #################### parent function ####################
 
