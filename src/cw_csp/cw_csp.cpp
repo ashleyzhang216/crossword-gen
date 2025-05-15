@@ -626,9 +626,10 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
  * 
  * @param csp_strategy strategy to solve this CSP
  * @param var_strategy strategy to select next unassigned variable
+ * @param word_strategy strategy to select next word to try to assign
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, word_selection_method word_strategy) {
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
 
     // base case for initially invalid crosswords
@@ -640,7 +641,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
     switch(csp_strategy) {
         case BACKTRACKING: {
-                if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
+                if(solve_backtracking(var_strategy, word_strategy, print_progress_bar, 0)) {
                     stamper.result()["success"] = true;
                     stamper.result()["reason"]  = "recursive";
                     return true;
@@ -651,7 +652,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
                 }
             } break;
         default: {
-                utils.log(ERROR, "solve() got unknown strategy: ", var_strategy);
+                utils.log(ERROR, "solve() got unknown strategy: ", csp_strategy);
                 return false;
             } break;
     }
@@ -662,12 +663,13 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 /**
  * @brief use backtracking strategy to solve CSP
  * 
- * @param var_strategy strategy to use to select next unassigned variable 
+ * @param var_strategy strategy to use to select next unassigned variable
+ * @param word_strategy strategy to select next word to try to assign
  * @param do_progress_bar true for top level call in prod to avoid printing during testing
  * @param depth the depth of recursive calls, for analysis
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
+bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selection_method word_strategy, bool do_progress_bar, uint depth) {
     cw_timestamper stamper(tracker, TS_CSP_SEARCH_STEP, "Backtracking");
     stamper.result()["depth"] = depth;
 
@@ -692,6 +694,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     vector<word_t> domain_copy{variables[next_var]->domain.get_cur_domain()};
 
     // sort candidates by word score, tiebroken by frequency
+    // TODO: implement other strategies
+    cw_assert_m(word_strategy == HIGHEST_SCORE_AND_FREQ, "Word strategies other than HIGHEST_SCORE_AND_FREQ not currently supported by solve_backtracking()");
     auto compare = [](const word_t& lhs, const word_t& rhs) {
         if(lhs.score != rhs.score) return lhs.score > rhs.score;
         if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
@@ -745,7 +749,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 word_stamper.result()["reason"]  = "recursive";
 
                 // recurse
-                if(solve_backtracking(var_strategy, false, depth + 1)) {
+                if(solve_backtracking(var_strategy, word_strategy, false, depth + 1)) {
                     stamper.result()["success"]     = true;
                     stamper.result()["reason"]      = "recursive";
                     stamper.result()["jump_height"] = nullptr;

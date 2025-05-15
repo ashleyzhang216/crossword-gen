@@ -42,7 +42,7 @@ namespace cw_csp_ns {
             unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_constr_dependencies() const;
 
             // solve CSP
-            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
+            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, word_selection_method word_strategy);
 
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
@@ -81,7 +81,7 @@ namespace cw_csp_ns {
             void undo_ac3();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth);
+            bool solve_backtracking(var_selection_method var_strategy, word_selection_method word_strategy, bool do_progress_bar, uint depth);
 
         private:
             // timetracker object for analysis

@@ -46,7 +46,7 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
         cw_csp csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, profile_header.has_value());
         
         // find single solution
-        if(csp.solve(BACKTRACKING, MIN_REMAINING_VALUES)) {
+        if(csp.solve(BACKTRACKING, MIN_REMAINING_VALUES, HIGHEST_SCORE_AND_FREQ)) {
             cw_assert(csp.solved());
             result.push_back(csp.result());
         }
@@ -72,7 +72,7 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
         while(num_solutions > 0 && cur_layer.size()) {
             if(cur_idx < cur_layer.size()) {
                 // still have more csps to process in current layer
-                if(cur_layer.at(cur_idx).solve(BACKTRACKING, MIN_REMAINING_VALUES)) {
+                if(cur_layer.at(cur_idx).solve(BACKTRACKING, MIN_REMAINING_VALUES, HIGHEST_SCORE_AND_FREQ)) {
                     cw_assert(cur_layer.at(cur_idx).solved());
                     result.push_back(cur_layer.at(cur_idx).result());
                     --num_solutions;

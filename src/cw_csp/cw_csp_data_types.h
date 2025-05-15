@@ -30,6 +30,11 @@ namespace cw_csp_data_types_ns {
         MIN_REMAINING_VALUES = 0,
     };
 
+    // to choose words to try first for assignment
+    enum word_selection_method {
+        HIGHEST_SCORE_AND_FREQ = 0,
+    };
+
     // a variable in a constraint satisfaction problem
     struct cw_variable {
         size_t id;             // for indexing in id_obj_manager
