@@ -30,23 +30,23 @@ namespace cw_csp_data_types_ns {
         {BACKTRACKING, "Backtracking"},
     })
 
-    // to choose between variable selection method, when more are added in the future
-    enum var_selection_method {
+    // criteria for selecting next variable to assign a value to
+    enum var_ordering {
         MRV = 0,
     };
 
     // mapping from variable strategy to display name
-    NLOHMANN_JSON_SERIALIZE_ENUM( var_selection_method, {
+    NLOHMANN_JSON_SERIALIZE_ENUM( var_ordering, {
         {MRV, "Minimum Remaining Values"},
     })
 
-    // to choose words to try first for assignment
-    enum word_selection_method {
+    // criteria for selecting next word value to try to assign
+    enum val_ordering {
         HIGH_SCORE_AND_FREQ = 0,
     };
 
     // mapping from word strategy to display name
-    NLOHMANN_JSON_SERIALIZE_ENUM( word_selection_method, {
+    NLOHMANN_JSON_SERIALIZE_ENUM( val_ordering, {
         {HIGH_SCORE_AND_FREQ, "Highest Score, Frequency"},
     })
 

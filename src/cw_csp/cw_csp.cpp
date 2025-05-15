@@ -593,13 +593,13 @@ string cw_csp::result() const {
 /**
  * @brief selects one unassigned var ptr in variables
  * 
- * @param strategy the selection strategy to use
+ * @param var_order the ordering to use
  * @return next unassigned var id in variables to explore, UINT_MAX if none remaining
 */
-size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
+size_t cw_csp::select_unassigned_var(var_ordering var_order) {
     size_t result = id_obj_manager<cw_variable>::INVALID_ID;
 
-    switch(strategy) {
+    switch(var_order) {
         case MRV: {
                 size_t min_num_values = UINT_MAX;
                 for(unique_ptr<cw_variable>& var : variables) {
@@ -619,15 +619,15 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
  * @brief solves this CSP using the given strategy
  * 
  * @param csp_strategy strategy to solve this CSP
- * @param var_strategy strategy to select next unassigned variable
- * @param word_strategy strategy to select next word to try to assign
+ * @param var_order variable ordering to use to select next unassigned variable
+ * @param val_order value ordering to use to select next word value to try
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, word_selection_method word_strategy) {
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, val_ordering val_order) {
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
     stamper.result()["csp_strategy"] = csp_strategy;
-    stamper.result()["var_strategy"] = var_strategy;
-    stamper.result()["word_strategy"] = word_strategy;
+    stamper.result()["var_ordering"] = var_order;
+    stamper.result()["val_ordering"] = val_order;
 
     // base case for initially invalid crosswords
     if(!ac3()) {
@@ -638,7 +638,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
     switch(csp_strategy) {
         case BACKTRACKING: {
-                if(solve_backtracking(var_strategy, word_strategy, print_progress_bar, 0)) {
+                if(solve_backtracking(var_order, val_order, print_progress_bar, 0)) {
                     stamper.result()["success"] = true;
                     stamper.result()["reason"]  = "recursive";
                     return true;
@@ -648,10 +648,6 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
                     return false;
                 }
             } break;
-        default: {
-                utils.log(ERROR, "solve() got unknown strategy: ", csp_strategy);
-                return false;
-            } break;
     }
 
     return false;
@@ -659,14 +655,14 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
 /**
  * @brief use backtracking strategy to solve CSP
- * 
- * @param var_strategy strategy to use to select next unassigned variable
- * @param word_strategy strategy to select next word to try to assign
+ *
+ * @param var_order variable ordering to use to select next unassigned variable
+ * @param val_order value ordering to use to select next word value to try
  * @param do_progress_bar true for top level call in prod to avoid printing during testing
  * @param depth the depth of recursive calls, for analysis
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selection_method word_strategy, bool do_progress_bar, uint depth) {
+bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth) {
     cw_timestamper stamper(tracker, TS_CSP_SEARCH_STEP, "Backtracking");
     stamper.result()["depth"] = depth;
 
@@ -682,7 +678,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selectio
     }
 
     // select next variable
-    size_t next_var = select_unassigned_var(var_strategy);
+    size_t next_var = select_unassigned_var(var_order);
     cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
@@ -692,7 +688,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selectio
 
     // sort candidates by word score, tiebroken by frequency
     // TODO: implement other strategies
-    cw_assert_m(word_strategy == HIGH_SCORE_AND_FREQ, "Word strategies other than HIGH_SCORE_AND_FREQ not currently supported by solve_backtracking()");
+    cw_assert_m(val_order == HIGH_SCORE_AND_FREQ, "Value orderings other than HIGH_SCORE_AND_FREQ not currently supported by solve_backtracking()");
     auto compare = [](const word_t& lhs, const word_t& rhs) {
         if(lhs.score != rhs.score) return lhs.score > rhs.score;
         if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
@@ -746,7 +742,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selectio
                 word_stamper.result()["reason"]  = "recursive";
 
                 // recurse
-                if(solve_backtracking(var_strategy, word_strategy, false, depth + 1)) {
+                if(solve_backtracking(var_order, val_order, false, depth + 1)) {
                     stamper.result()["success"]     = true;
                     stamper.result()["reason"]      = "recursive";
                     stamper.result()["jump_height"] = nullptr;
