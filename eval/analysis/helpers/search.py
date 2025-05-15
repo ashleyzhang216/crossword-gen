@@ -168,12 +168,13 @@ def gather_search_tree(data) -> SearchNode:
 # draw search tree
 def plot_search_tree(output_dir, search_tree:SearchNode):
     dot = Digraph(comment='Search Tree')
-    dot.attr('node', style='filled', compound='true', rankdir='TB')
+    dot.attr('node', style='filled', compound='true')
 
     def add_nodes_and_record_edges(node:SearchNode, down_edges:set, up_edges:set):
-        # node text label
-        label = "" if node.get_var() is None else f"{node.get_var()}: {node.word}"
-        dot.node(str(id(node)), label, color=node.get_color())
+        if node.get_var() is None:
+            dot.node(str(id(node)), "root", fontname="bold", color=node.get_color())
+        else:
+            dot.node(str(id(node)), f"{node.get_var()}: {node.word}", color=node.get_color())
 
         for i, child in enumerate(node.children):
             # forward edge to child
