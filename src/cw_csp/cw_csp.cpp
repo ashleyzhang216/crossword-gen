@@ -631,6 +631,9 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy, word_selection_method word_strategy) {
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
+    stamper.result()["csp_strategy"] = csp_strategy;
+    stamper.result()["var_strategy"] = var_strategy;
+    stamper.result()["word_strategy"] = word_strategy;
 
     // base case for initially invalid crosswords
     if(!ac3()) {
@@ -695,7 +698,7 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, word_selectio
 
     // sort candidates by word score, tiebroken by frequency
     // TODO: implement other strategies
-    cw_assert_m(word_strategy == HIGHEST_SCORE_AND_FREQ, "Word strategies other than HIGHEST_SCORE_AND_FREQ not currently supported by solve_backtracking()");
+    cw_assert_m(word_strategy == HIGH_SCORE_AND_FREQ, "Word strategies other than HIGH_SCORE_AND_FREQ not currently supported by solve_backtracking()");
     auto compare = [](const word_t& lhs, const word_t& rhs) {
         if(lhs.score != rhs.score) return lhs.score > rhs.score;
         if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;

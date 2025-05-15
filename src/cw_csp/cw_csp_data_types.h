@@ -25,15 +25,30 @@ namespace cw_csp_data_types_ns {
         BACKTRACKING = 0,
     };
 
+    // mapping from csp solve strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( csp_solving_strategy, {
+        {BACKTRACKING, "Backtracking"},
+    })
+
     // to choose between variable selection method, when more are added in the future
     enum var_selection_method {
         MIN_REMAINING_VALUES = 0,
     };
 
+    // mapping from variable strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( var_selection_method, {
+        {MIN_REMAINING_VALUES, "Min Remaining Values"},
+    })
+
     // to choose words to try first for assignment
     enum word_selection_method {
-        HIGHEST_SCORE_AND_FREQ = 0,
+        HIGH_SCORE_AND_FREQ = 0,
     };
+
+    // mapping from word strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( word_selection_method, {
+        {HIGH_SCORE_AND_FREQ, "Highest Score, Frequency"},
+    })
 
     // a variable in a constraint satisfaction problem
     struct cw_variable {
