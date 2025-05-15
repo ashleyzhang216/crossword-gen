@@ -34,6 +34,7 @@ class SearchNode:
         self.children = []
 
         self.jump_height = None # num nodes backtracked/backjumped after evaluating all children
+        self.var_of_children = None # variable that child nodes are trying to assign a word to (not this node)
         self.failed_subtree_size = None
 
     def add_child(self, success:bool, reason:SearchReason, word:str):
@@ -56,6 +57,10 @@ class SearchNode:
             assert(jump_height is None)
         self.jump_height = jump_height
 
+    def set_var_of_children(self, var_of_children:int):
+        assert(not var_of_children is None)
+        self.var_of_children = var_of_children
+
     def set_reason_solved(self):
         assert(not self.reason is None)
         assert(not self.reason is SearchReason.SOLVED)
@@ -70,6 +75,11 @@ class SearchNode:
             if not i == self.jump_height - 1:
                 assert(current.jump_height is None)
         return current
+
+    def get_var(self):
+        if self.parent is None:
+            return None
+        return self.parent.var_of_children
 
     def get_color(self) -> str:
         assert(not self.reason is None)
@@ -117,6 +127,8 @@ def gather_search_tree(data) -> SearchNode:
                     search_node.set_reason_solved()
 
                 search_node.set_jump_height(data_node['result']['jump_height'])
+                if not data_node['result']['variable'] is None:
+                    search_node.set_var_of_children(data_node['result']['variable']['id'])
 
             for child_data_node in data_node.get('children', []):
                 traverse(search_node, child_data_node)
@@ -160,7 +172,7 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
 
     def add_nodes_and_record_edges(node:SearchNode, down_edges:set, up_edges:set):
         # node text label
-        label = "" if node.word is None else node.word
+        label = "" if node.get_var() is None else f"{node.get_var()}: {node.word}"
         dot.node(str(id(node)), label, color=node.get_color())
 
         for i, child in enumerate(node.children):
@@ -201,7 +213,7 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
         legend.attr(label='Legend', style='rounded', color='gray',
                    fontname='Helvetica', fontsize='12')
 
-        legend.node('legend_label', 'word', fillcolor='gray', style='filled')
+        legend.node('legend_label', 'Variable ID: Word', fillcolor='gray', style='filled')
 
         colors = [
             [Color.GREEN, "Success"],
