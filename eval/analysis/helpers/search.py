@@ -453,7 +453,7 @@ def analyze_search(data, output_dir) -> bool:
         for height, freq in jump_height_data.items():
             all_heights.extend([height] * freq)
         if len(all_heights) > 0:
-            file.write(f"| {min(all_heights)} | {max(all_heights)} | {sum(all_heights)/len(all_heights):.2f} | {np.median(all_heights):.1f}|\n")
+            file.write(f"| {min(all_heights)} | {max(all_heights)} | {sum(all_heights)/len(all_heights):.2f} | {np.median(all_heights):.1f} |\n")
         else:
             file.write("| N/A | N/A | N/A | N/A |\n")
 
@@ -466,6 +466,14 @@ def analyze_search(data, output_dir) -> bool:
         for length in sorted(jump_height_data.keys()):
             file.write(' ' + str(jump_height_data[length]) + ' |')
         file.write('\n')
+
+        file.write("### Dead end subtree size (DESS)\n")
+        file.write("| Count | Min | Max | Average | Median |\n")
+        file.write("|-------|-----|-----|---------|--------|\n")
+        if len(dess_data) > 0:
+            file.write(f"| {len(dess_data)} | {min(dess_data)} | {max(dess_data)} | {sum(dess_data)/len(dess_data):.2f} | {np.median(dess_data):.1f}|\n")
+        else:
+            file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
 
         file.write('\n')
 
