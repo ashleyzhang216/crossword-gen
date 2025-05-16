@@ -174,6 +174,7 @@ class SearchNode:
     def gather_exclusive_ccde_data(self, result:list[int]=None):
         def gather_recursive_ccde(node:SearchNode):
             assert(not node.success)
+            assert(not node.num_constrs_checked is None)
             total_constrs_checked = node.num_constrs_checked
             for child in node.children:
                 total_constrs_checked += gather_recursive_ccde(child)
@@ -187,7 +188,7 @@ class SearchNode:
                 return data
             else:
                 total_constrs_checked = gather_recursive_ccde(self)
-                assert(total_constrs_checked > 0)
+                assert(total_constrs_checked > 0 or self.reason == SearchReason.DUPLICATE)
                 return [total_constrs_checked]
         else:
             if self.success:
@@ -195,13 +196,14 @@ class SearchNode:
                     child.gather_exclusive_ccde_data(result)
             else:
                 total_constrs_checked = gather_recursive_ccde(self)
-                assert(total_constrs_checked > 0)
+                assert(total_constrs_checked > 0 or self.reason == SearchReason.DUPLICATE)
                 result.append(total_constrs_checked)
 
     # returns list of exclusive pairs pruned per dead end (PPDE), i.e. hierarchical counting, avoiding nested subtrees
     def gather_exclusive_ppde_data(self, result:list[int]=None):
         def gather_recursive_ppde(node:SearchNode):
             assert(not node.success)
+            assert(not node.num_pairs_pruned is None)
             total_pairs_pruned = node.num_pairs_pruned
             for child in node.children:
                 total_pairs_pruned += gather_recursive_ppde(child)
@@ -215,7 +217,7 @@ class SearchNode:
                 return data
             else:
                 total_pairs_pruned = gather_recursive_ppde(self)
-                assert(total_pairs_pruned > 0)
+                assert(total_pairs_pruned > 0 or self.reason == SearchReason.DUPLICATE)
                 return [total_pairs_pruned]
         else:
             if self.success:
@@ -223,7 +225,7 @@ class SearchNode:
                     child.gather_exclusive_ppde_data(result)
             else:
                 total_pairs_pruned = gather_recursive_ppde(self)
-                assert(total_pairs_pruned > 0)
+                assert(total_pairs_pruned > 0 or self.reason == SearchReason.DUPLICATE)
                 result.append(total_pairs_pruned)
 
     # returns number of nodes in subtree, including this node
@@ -288,6 +290,13 @@ def gather_search_tree(data) -> SearchNode:
                 assert(node_child.reason == SearchReason.AC3 or node_child.reason == SearchReason.DUPLICATE)
                 assert(node_child.jump_height is None)
                 node_child.set_jump_height(1)
+
+            # annotate duplicate nodes with prune data since no AC-3 was performed underneath
+            if node_child.reason == SearchReason.DUPLICATE:
+                assert(len(node_child.children) == 0)
+                assert(not node_child.success)
+                node_child.set_num_constrs(0, 0)
+
         elif data_node['type'] == "AC3":
             num_pairs_pruned = 0
             for child_data_node in data_node['children']:
@@ -505,7 +514,8 @@ def plot_exclusive_dess_freq(output_dir, dess_data):
     plt.figure(figsize=(10, 6))
 
     # set binwidth to smallest non-zero gap between any two DESS values
-    binwidth = min([abs(dess_data[i]-dess_data[j]) for i in range(len(dess_data)) for j in range(i+1, len(dess_data)) if abs(dess_data[i]-dess_data[j]) > 0])
+    diffs = [abs(dess_data[i]-dess_data[j]) for i in range(len(dess_data)) for j in range(i+1, len(dess_data)) if abs(dess_data[i]-dess_data[j]) > 0]
+    binwidth = min(diffs) if len(diffs) > 0 else 1
     bins = range(min(dess_data) - binwidth, max(dess_data) + binwidth, binwidth)
 
     plt.hist(dess_data, bins=bins, edgecolor='black')
