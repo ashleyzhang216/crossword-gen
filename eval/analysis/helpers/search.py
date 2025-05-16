@@ -37,7 +37,7 @@ class SearchNode:
 
         self.failed_subtree_size = None # number of nodes with success=False in this subtree, including itself
         self.num_constrs_checked = None # number of constraints checked during AC-3 for this specific node (not recursive)
-        self.num_pairs_prunes = None # number of prunes during AC-3 for this specific node (not recursive)
+        self.num_pairs_pruned = None # number of prunes during AC-3 for this specific node (not recursive)
         self.jump_height = None # num nodes backtracked/backjumped after evaluating all children
         self.var_of_children = None # variable that child nodes are trying to assign a word to (not this node)
 
@@ -55,11 +55,11 @@ class SearchNode:
             assert(not child.failed_subtree_size is None)
             self.failed_subtree_size += child.failed_subtree_size
 
-    def set_num_constrs(self, num_constrs_checked, num_pairs_prunes):
+    def set_num_constrs(self, num_constrs_checked, num_pairs_pruned):
         assert(self.num_constrs_checked is None)
-        assert(self.num_pairs_prunes is None)
+        assert(self.num_pairs_pruned is None)
         self.num_constrs_checked = num_constrs_checked
-        self.num_pairs_prunes = num_pairs_prunes
+        self.num_pairs_pruned = num_pairs_pruned
 
     def set_jump_height(self, jump_height):
         assert(self.jump_height is None)
@@ -172,11 +172,59 @@ class SearchNode:
 
     # returns list of exclusive constraints checked per dead end (CCDE), i.e. hierarchical counting, avoiding nested subtrees
     def gather_exclusive_ccde_data(self, result:list[int]=None):
-        return None
+        def gather_recursive_ccde(node:SearchNode):
+            assert(not node.success)
+            total_constrs_checked = node.num_constrs_checked
+            for child in node.children:
+                total_constrs_checked += gather_recursive_ccde(child)
+            return total_constrs_checked
+
+        if result is None:
+            if self.success:
+                data = []
+                for child in self.children:
+                    child.gather_exclusive_ccde_data(data)
+                return data
+            else:
+                total_constrs_checked = gather_recursive_ccde(self)
+                assert(total_constrs_checked > 0)
+                return [total_constrs_checked]
+        else:
+            if self.success:
+                for child in self.children:
+                    child.gather_exclusive_ccde_data(result)
+            else:
+                total_constrs_checked = gather_recursive_ccde(self)
+                assert(total_constrs_checked > 0)
+                result.append(total_constrs_checked)
 
     # returns list of exclusive pairs pruned per dead end (PPDE), i.e. hierarchical counting, avoiding nested subtrees
     def gather_exclusive_ppde_data(self, result:list[int]=None):
-        return None
+        def gather_recursive_ppde(node:SearchNode):
+            assert(not node.success)
+            total_pairs_pruned = node.num_pairs_pruned
+            for child in node.children:
+                total_pairs_pruned += gather_recursive_ppde(child)
+            return total_pairs_pruned
+
+        if result is None:
+            if self.success:
+                data = []
+                for child in self.children:
+                    child.gather_exclusive_ppde_data(data)
+                return data
+            else:
+                total_pairs_pruned = gather_recursive_ppde(self)
+                assert(total_pairs_pruned > 0)
+                return [total_pairs_pruned]
+        else:
+            if self.success:
+                for child in self.children:
+                    child.gather_exclusive_ppde_data(result)
+            else:
+                total_pairs_pruned = gather_recursive_ppde(self)
+                assert(total_pairs_pruned > 0)
+                result.append(total_pairs_pruned)
 
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
@@ -203,14 +251,14 @@ def gather_search_tree(data) -> SearchNode:
                 assert(node_child.jump_height is None)
                 node_child.set_jump_height(1)
         elif data_node['type'] == "AC3":
-            num_pairs_prunes = 0
+            num_pairs_pruned = 0
             for child_data_node in data_node['children']:
                 assert(child_data_node['type'] == "AC3 Prune" or child_data_node['type'] == "Undo AC3")
                 if child_data_node['type'] == "AC3 Prune":
                     assert(len(child_data_node['children']) == 0)
-                    num_pairs_prunes += sum(child_data_node['result']['vars_pruned'].values())
+                    num_pairs_pruned += sum(child_data_node['result']['vars_pruned'].values())
 
-            search_node.set_num_constrs(len(data_node.get('children', [])), num_pairs_prunes)
+            search_node.set_num_constrs(len(data_node.get('children', [])), num_pairs_pruned)
         else:
             if data_node['type'] == "Search Step":
                 # temporarily enforce only backtracking since this is the only thing tested so far
