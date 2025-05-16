@@ -97,6 +97,27 @@ class SearchNode:
                 case _:
                     raise ValueError(f"Node with success={self.success} and reason={self.reason.value} has no valid color")
 
+    # returns map of success bool to (map of SearchReason to freq)
+    def gather_reason_data(self, result:dict=None):
+        if result is None:
+            data = {
+                True: {},
+                False: {}
+            }
+            data[self.success].setdefault(self.reason, 0)
+            data[self.success][self.reason] += 1
+
+            for child in self.children:
+                child.gather_reason_data(data)
+
+            return data
+        else:
+            result[self.success].setdefault(self.reason, 0)
+            result[self.success][self.reason] += 1
+
+            for child in self.children:
+                child.gather_reason_data(result)
+
     # returns map of jump height -> freq
     def gather_jump_height_data(self, result:dict=None):
         if result is None:
@@ -280,6 +301,33 @@ def plot_jump_height_freq(output_dir, jump_height_data):
 
     plt.savefig(output_dir + 'jump_height_freq.png', bbox_inches='tight')
 
+# plot bar graph of reason frequencies
+def plot_reason_freq(output_dir, reason_data):
+    plt.figure(figsize=(10, 6))
+
+    freq_sum = sum([sum(data.values()) for _, data in reason_data.items()])
+
+    for success, data in reason_data.items():
+        reasons = np.asarray(sorted([k.value for k in data.keys()]))
+        labels = np.asarray([f"{r} ({'success' if success else 'fail'})" for r in reasons])
+        freqs = np.asarray([data[SearchReason(r)] for r in reasons])
+        percents = np.array([100 * freqs[i] / freq_sum for i in range(len(freqs))])
+
+        bars = plt.bar(labels, freqs, color='green' if success else 'red', edgecolor='black')
+        plt.bar_label(bars,
+              labels=[f'{p:.2f}%\n({f} nodes)' for p, f in zip(percents, freqs)],
+              padding=3,
+              fontsize=9)
+
+    max_freq = max([max(data.values()) for _, data in reason_data.items()])
+    plt.ylim(0, 1.1 * max_freq)
+
+    plt.title('Search Node Reason Frequencies by Success')
+    plt.xlabel('Reason')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'reason_freq.png', bbox_inches='tight')
+
 #################### parent function ####################
 
 # run all child functions, returns true
@@ -287,9 +335,11 @@ def analyze_search(data, output_dir) -> bool:
 
     search_tree = gather_search_tree(data)
     jump_height_data = search_tree.gather_jump_height_data()
+    reason_data = search_tree.gather_reason_data()
 
     plot_search_tree(output_dir, search_tree)
     plot_jump_height_freq(output_dir, jump_height_data)
+    plot_reason_freq(output_dir, reason_data)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
