@@ -397,6 +397,7 @@ def plot_jump_height_freq(output_dir, jump_height_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'jump_height_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot bar graph of reason frequencies
 def plot_reason_freq(output_dir, reason_data):
@@ -424,6 +425,7 @@ def plot_reason_freq(output_dir, reason_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'reason_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot histogram of exclusive dead end subtree sizes (DESS)
 def plot_exclusive_dess_freq(output_dir, dess_data):
@@ -441,6 +443,7 @@ def plot_exclusive_dess_freq(output_dir, dess_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'exclusive_dess_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot histogram of exclusive constraints checked per dead end (CCDE)
 def plot_exclusive_ccde_freq(output_dir, ccde_data):
@@ -453,6 +456,7 @@ def plot_exclusive_ccde_freq(output_dir, ccde_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'exclusive_ccde_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot histogram of exclusive pruned per dead end (PPDE)
 def plot_exclusive_ppde_freq(output_dir, ppde_data):
@@ -465,6 +469,7 @@ def plot_exclusive_ppde_freq(output_dir, ppde_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'exclusive_ppde_freq.png', bbox_inches='tight')
+    plt.close()
 
 #################### parent function ####################
 

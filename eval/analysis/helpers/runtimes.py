@@ -38,6 +38,7 @@ def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     plt.ylabel('Total Duration (s)')
 
     plt.savefig(output_dir + 'init_search_runtimes.png', bbox_inches='tight')
+    plt.close()
 
 #################### parent function ####################
 

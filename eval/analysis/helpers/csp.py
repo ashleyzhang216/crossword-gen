@@ -61,6 +61,7 @@ def plot_var_len_freq(output_dir, var_len_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'var_len_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot histogram of constraint lengths
 def plot_constr_len_freq(output_dir, constr_len_data):
@@ -84,6 +85,7 @@ def plot_constr_len_freq(output_dir, constr_len_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'constr_len_freq.png', bbox_inches='tight')
+    plt.close()
 
 # plot histogram of variable domain sizes
 def plot_dom_size_freq(output_dir, dom_size_data):
@@ -96,6 +98,7 @@ def plot_dom_size_freq(output_dir, dom_size_data):
     plt.ylabel('Frequency')
 
     plt.savefig(output_dir + 'dom_size_freq.png', bbox_inches='tight')
+    plt.close()
 
 #################### parent function ####################
 
