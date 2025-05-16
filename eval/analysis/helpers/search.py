@@ -35,9 +35,11 @@ class SearchNode:
         self.parent = parent
         self.children = []
 
+        self.failed_subtree_size = None # number of nodes with success=False in this subtree, including itself
+        self.num_constrs_checked = None # number of constraints checked during AC-3 for this specific node (not recursive)
+        self.num_pairs_prunes = None # number of prunes during AC-3 for this specific node (not recursive)
         self.jump_height = None # num nodes backtracked/backjumped after evaluating all children
         self.var_of_children = None # variable that child nodes are trying to assign a word to (not this node)
-        self.failed_subtree_size = None
 
     def add_child(self, success:bool, reason:SearchReason, word:str):
         child = SearchNode(success, reason, word=word, parent=self)
@@ -52,6 +54,12 @@ class SearchNode:
             child.set_failed_subtree_size()
             assert(not child.failed_subtree_size is None)
             self.failed_subtree_size += child.failed_subtree_size
+
+    def set_num_constrs(self, num_constrs_checked, num_pairs_prunes):
+        assert(self.num_constrs_checked is None)
+        assert(self.num_pairs_prunes is None)
+        self.num_constrs_checked = num_constrs_checked
+        self.num_pairs_prunes = num_pairs_prunes
 
     def set_jump_height(self, jump_height):
         assert(self.jump_height is None)
@@ -166,6 +174,10 @@ class SearchNode:
     def gather_exclusive_ccde_data(self, result:list[int]=None):
         return None
 
+    # returns list of exclusive pairs pruned per dead end (PPDE), i.e. hierarchical counting, avoiding nested subtrees
+    def gather_exclusive_ppde_data(self, result:list[int]=None):
+        return None
+
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
     assert('type' in data and data['type'] == "Total")
@@ -190,6 +202,15 @@ def gather_search_tree(data) -> SearchNode:
                 assert(node_child.reason == SearchReason.AC3 or node_child.reason == SearchReason.DUPLICATE)
                 assert(node_child.jump_height is None)
                 node_child.set_jump_height(1)
+        elif data_node['type'] == "AC3":
+            num_pairs_prunes = 0
+            for child_data_node in data_node['children']:
+                assert(child_data_node['type'] == "AC3 Prune" or child_data_node['type'] == "Undo AC3")
+                if child_data_node['type'] == "AC3 Prune":
+                    assert(len(child_data_node['children']) == 0)
+                    num_pairs_prunes += sum(child_data_node['result']['vars_pruned'].values())
+
+            search_node.set_num_constrs(len(data_node.get('children', [])), num_pairs_prunes)
         else:
             if data_node['type'] == "Search Step":
                 # temporarily enforce only backtracking since this is the only thing tested so far
@@ -369,6 +390,7 @@ def analyze_search(data, output_dir) -> bool:
     jump_height_data = search_tree.gather_jump_height_data()
     dess_data = search_tree.gather_exclusive_dess_data()
     ccde_data = search_tree.gather_exclusive_ccde_data()
+    ppde_data = search_tree.gather_exclusive_ppde_data()
 
     # sum of all exclusive failed subtrees equal to total # of failed nodes
     assert(sum(dess_data) == sum(reason_data[False].values()))
@@ -379,6 +401,7 @@ def analyze_search(data, output_dir) -> bool:
 
     # TODO: dead end subtree size (DESS)
     # TODO: constraints checked per dead end (CCDE)
+    # TODO: pairs pruned per dead end (PPDE)
     # TODO: effective branching factor (EBF)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
