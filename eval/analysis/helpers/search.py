@@ -442,6 +442,30 @@ def plot_exclusive_dess_freq(output_dir, dess_data):
 
     plt.savefig(output_dir + 'exclusive_dess_freq.png', bbox_inches='tight')
 
+# plot histogram of exclusive constraints checked per dead end (CCDE)
+def plot_exclusive_ccde_freq(output_dir, ccde_data):
+    plt.figure(figsize=(10, 6))
+
+    plt.hist(ccde_data, edgecolor='black')
+
+    plt.title('Histogram of Constraints Checked per Dead End (CCDE)')
+    plt.xlabel('Constraints Checked')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'exclusive_ccde_freq.png', bbox_inches='tight')
+
+# plot histogram of exclusive pruned per dead end (PPDE)
+def plot_exclusive_ppde_freq(output_dir, ppde_data):
+    plt.figure(figsize=(10, 6))
+
+    plt.hist(ppde_data, edgecolor='black')
+
+    plt.title('Histogram of Pairs Pruned per Dead End (PPDE)')
+    plt.xlabel('Pairs Pruned')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'exclusive_ppde_freq.png', bbox_inches='tight')
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -464,9 +488,9 @@ def analyze_search(data, output_dir) -> bool:
     plot_reason_freq(output_dir, reason_data)
     plot_jump_height_freq(output_dir, jump_height_data)
     plot_exclusive_dess_freq(output_dir, dess_data)
+    plot_exclusive_ccde_freq(output_dir, ccde_data)
+    plot_exclusive_ppde_freq(output_dir, ppde_data)
 
-    # TODO: constraints checked per dead end (CCDE)
-    # TODO: pairs pruned per dead end (PPDE)
     # TODO: effective branching factor (EBF)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
