@@ -4,6 +4,8 @@ from enum import Enum
 from graphviz import Digraph
 from typing import Callable
 
+from helpers.utils import get_track_ac3
+
 #################### data collection ####################
 
 class SearchReason(Enum):
@@ -137,6 +139,32 @@ class SearchNode:
 
             for child in self.children:
                 child.gather_jump_height_data(result)
+
+    # returns list of exclusive dead end subtree sizes (DESS), i.e. hierarchical counting, avoiding nested subtrees
+    def gather_exclusive_dess_data(self, result:list[int]=None):
+        if result is None:
+            if self.success:
+                data = []
+                assert(self.failed_subtree_size == sum([c.failed_subtree_size for c in self.children]))
+                for child in self.children:
+                    child.gather_exclusive_dess_data(data)
+
+                return data
+            else:
+                assert(self.failed_subtree_size > 0)
+                return [self.failed_subtree_size]
+        else:
+            if self.success:
+                assert(self.failed_subtree_size == sum([c.failed_subtree_size for c in self.children]))
+                for child in self.children:
+                    child.gather_exclusive_dess_data(result)
+            else:
+                assert(self.failed_subtree_size > 0)
+                result.append(self.failed_subtree_size)
+
+    # returns list of exclusive constraints checked per dead end (CCDE), i.e. hierarchical counting, avoiding nested subtrees
+    def gather_exclusive_ccde_data(self, result:list[int]=None):
+        return None
 
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
@@ -330,16 +358,28 @@ def plot_reason_freq(output_dir, reason_data):
 
 #################### parent function ####################
 
-# run all child functions, returns true
+# run all child functions, return true iff ac3 pruning was tracked
 def analyze_search(data, output_dir) -> bool:
+    if not get_track_ac3(data):
+        print("Warning: AC-3 not tracked in provided file, skipping analysis of search")
+        return False
 
     search_tree = gather_search_tree(data)
-    jump_height_data = search_tree.gather_jump_height_data()
     reason_data = search_tree.gather_reason_data()
+    jump_height_data = search_tree.gather_jump_height_data()
+    dess_data = search_tree.gather_exclusive_dess_data()
+    ccde_data = search_tree.gather_exclusive_ccde_data()
+
+    # sum of all exclusive failed subtrees equal to total # of failed nodes
+    assert(sum(dess_data) == sum(reason_data[False].values()))
 
     plot_search_tree(output_dir, search_tree)
-    plot_jump_height_freq(output_dir, jump_height_data)
     plot_reason_freq(output_dir, reason_data)
+    plot_jump_height_freq(output_dir, jump_height_data)
+
+    # TODO: dead end subtree size (DESS)
+    # TODO: constraints checked per dead end (CCDE)
+    # TODO: effective branching factor (EBF)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
