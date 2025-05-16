@@ -377,6 +377,23 @@ def plot_reason_freq(output_dir, reason_data):
 
     plt.savefig(output_dir + 'reason_freq.png', bbox_inches='tight')
 
+# plot histogram of exclusive dead end subtree sizes (DESS)
+def plot_exclusive_dess_freq(output_dir, dess_data):
+    plt.figure(figsize=(10, 6))
+
+    # set binwidth to smallest non-zero gap between any two DESS values
+    binwidth = min([abs(dess_data[i]-dess_data[j]) for i in range(len(dess_data)) for j in range(i+1, len(dess_data)) if abs(dess_data[i]-dess_data[j]) > 0])
+    bins = range(min(dess_data) - binwidth, max(dess_data) + binwidth, binwidth)
+
+    plt.hist(dess_data, bins=bins, edgecolor='black')
+    plt.xticks(sorted(list(set(dess_data))))
+
+    plt.title('Histogram of Exclusive Dead End Subtree Sizes (DESS)')
+    plt.xlabel('Dead End Subtree Size')
+    plt.ylabel('Frequency')
+
+    plt.savefig(output_dir + 'exclusive_dess_freq.png', bbox_inches='tight')
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -398,8 +415,8 @@ def analyze_search(data, output_dir) -> bool:
     plot_search_tree(output_dir, search_tree)
     plot_reason_freq(output_dir, reason_data)
     plot_jump_height_freq(output_dir, jump_height_data)
+    plot_exclusive_dess_freq(output_dir, dess_data)
 
-    # TODO: dead end subtree size (DESS)
     # TODO: constraints checked per dead end (CCDE)
     # TODO: pairs pruned per dead end (PPDE)
     # TODO: effective branching factor (EBF)
