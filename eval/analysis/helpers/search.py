@@ -552,6 +552,22 @@ def analyze_search(data, output_dir) -> bool:
         else:
             file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
 
+        file.write("### Constraints checked per dead end (CCDE)\n")
+        file.write("| Count | Min | Max | Average | Median |\n")
+        file.write("|-------|-----|-----|---------|--------|\n")
+        if len(ccde_data) > 0:
+            file.write(f"| {len(ccde_data)} | {min(ccde_data)} | {max(ccde_data)} | {sum(ccde_data)/len(ccde_data):.2f} | {np.median(ccde_data):.1f}|\n")
+        else:
+            file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
+
+        file.write("### Pairs pruned per dead end (PPDE)\n")
+        file.write("| Count | Min | Max | Average | Median |\n")
+        file.write("|-------|-----|-----|---------|--------|\n")
+        if len(ppde_data) > 0:
+            file.write(f"| {len(ppde_data)} | {min(ppde_data)} | {max(ppde_data)} | {sum(ppde_data)/len(ppde_data):.2f} | {np.median(ppde_data):.1f}|\n")
+        else:
+            file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
+
         file.write('\n')
 
     return True
