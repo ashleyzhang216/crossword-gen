@@ -15,7 +15,7 @@ class SearchReason(Enum):
     @classmethod
     def from_string(cls, value):
         try:
-            return cls(value)
+            return cls(value.lower())
         except ValueError:
             raise ValueError(f"{value} is not a valid SearchReason")
 
@@ -322,7 +322,7 @@ def plot_reason_freq(output_dir, reason_data):
     max_freq = max([max(data.values()) for _, data in reason_data.items()])
     plt.ylim(0, 1.1 * max_freq)
 
-    plt.title('Search Node Reason Frequencies by Success')
+    plt.title('Search Node Reason Frequencies by Success Result')
     plt.xlabel('Reason')
     plt.ylabel('Frequency')
 
@@ -343,6 +343,28 @@ def analyze_search(data, output_dir) -> bool:
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
+
+        file.write("### Search node reasons\n")
+        file.write("| Result | Total | Solved | Recursive | AC3 | Duplicate |\n")
+        file.write("|--------|-------|--------|-----------|-----|-----------|\n")
+        success_reasons = [
+            sum(reason_data[True].values()),
+            reason_data[True].get(SearchReason.SOLVED, 0),
+            reason_data[True].get(SearchReason.RECURSIVE, 0),
+            reason_data[True].get(SearchReason.AC3, 0),
+            reason_data[True].get(SearchReason.DUPLICATE, 0)
+        ]
+        fail_reasons = [
+            sum(reason_data[False].values()),
+            reason_data[False].get(SearchReason.SOLVED, 0),
+            reason_data[False].get(SearchReason.RECURSIVE, 0),
+            reason_data[False].get(SearchReason.AC3, 0),
+            reason_data[False].get(SearchReason.DUPLICATE, 0)
+        ]
+        all_reasons = [sum(x) for x in zip(success_reasons, fail_reasons)]
+        file.write(f"| All | {all_reasons[0]} | {all_reasons[1]} | {all_reasons[2]} | {all_reasons[3]} | {all_reasons[4]} |\n")
+        file.write(f"| Success | {success_reasons[0]} | {success_reasons[1]} | {success_reasons[2]} | {success_reasons[3]} | {success_reasons[4]} |\n")
+        file.write(f"| Fail | {fail_reasons[0]} | {fail_reasons[1]} | {fail_reasons[2]} | {fail_reasons[3]} | {fail_reasons[4]} |\n")
 
         file.write("### Jump heights\n")
         file.write("| Min | Max | Average | Median |\n")
