@@ -187,16 +187,6 @@ def gather_search_tree(data) -> SearchNode:
 
     return tree
 
-#################### data parsers ####################
-
-# get average jump height
-def get_avg_jump_height(jump_height_data):
-    all_heights = []
-    for height, freq in jump_height_data.items():
-        all_heights.extend([height] * freq)
-
-    return sum(all_heights) / len(all_heights)
-
 #################### plotting ####################
 
 # draw search tree
@@ -304,8 +294,26 @@ def analyze_search(data, output_dir) -> bool:
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
 
-        file.write("### Average jump height\n")
-        file.write(f'{get_avg_jump_height(jump_height_data):.2f}\n')
+        file.write("### Jump heights\n")
+        file.write("| Min | Max | Average | Median |\n")
+        file.write("|-----|-----|---------|--------|\n")
+        all_heights = []
+        for height, freq in jump_height_data.items():
+            all_heights.extend([height] * freq)
+        if len(all_heights) > 0:
+            file.write(f"| {min(all_heights)} | {max(all_heights)} | {sum(all_heights)/len(all_heights):.2f} | {np.median(all_heights):.1f}|\n")
+        else:
+            file.write("| N/A | N/A | N/A | N/A |\n")
+
+        file.write("### All jump heights\n")
+        file.write('| Height |')
+        for length in sorted(jump_height_data.keys()):
+            file.write(' ' + str(length) + ' |')
+        file.write('\n|' + ("---|" * (len(jump_height_data.keys()) + 1)) + '\n')
+        file.write('| Count |')
+        for length in sorted(jump_height_data.keys()):
+            file.write(' ' + str(jump_height_data[length]) + ' |')
+        file.write('\n')
 
         file.write('\n')
 
