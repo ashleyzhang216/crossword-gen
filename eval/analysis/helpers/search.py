@@ -226,6 +226,44 @@ class SearchNode:
                 assert(total_pairs_pruned > 0)
                 result.append(total_pairs_pruned)
 
+    # returns number of nodes in subtree, including this node
+    def get_tree_size(self, exclude_leaves=False) -> int:
+        if exclude_leaves and len(self.children) == 0:
+            return 0
+
+        size = 1
+        for child in self.children:
+            size += child.get_tree_size(exclude_leaves=exclude_leaves)
+        return size
+
+    # returns num solutions, depth of solutions or largest node depth if no solution exists
+    def get_solution_depths(self):
+        if self.reason == SearchReason.SOLVED:
+            assert(self.success)
+            assert(len(self.children) == 0)
+            return 1, 0
+
+        total_solutions = 0
+        max_depth = 0
+        for child in self.children:
+            num_sols, depth = child.get_solution_depths()
+
+            if total_solutions > 0:
+                if num_sols > 0:
+                    assert(max_depth == depth)
+                    total_solutions += num_sols
+                else:
+                    assert(max_depth >= depth)
+            else:
+                if num_sols > 0:
+                    assert(depth >= max_depth)
+                    total_solutions += num_sols
+                    max_depth = depth
+                else:
+                    max_depth = max(max_depth, depth)
+
+        return total_solutions, max_depth + 1
+
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
     assert('type' in data and data['type'] == "Total")
@@ -304,6 +342,41 @@ def gather_search_tree(data) -> SearchNode:
     verify_jump_heights(tree)
 
     return tree
+
+#################### data parsers ####################
+
+# returns effective branching factor (EBF)
+def get_ebf(search_tree:SearchNode):
+    def compute_ebf(N, d, epsilon=1e-6, max_iter=1000):
+        if N == 1:
+            return 0.0
+        if d == 0:
+            return float('inf')
+
+        low, high = 1.0, float(N)
+
+        for _ in range(max_iter):
+            mid = (low + high) / 2
+            if mid == 1.0:
+                estimated = d + 1
+            else:
+                estimated = (mid**(d + 1) - 1) / (mid - 1)
+
+            if abs(estimated - N) < epsilon:
+                return mid
+            elif estimated < N:
+                low = mid
+            else:
+                high = mid
+
+        return (low + high) / 2
+
+    num_solutions, depth = search_tree.get_solution_depths()
+    return compute_ebf(search_tree.get_tree_size() / num_solutions, depth)
+
+# returns average branching factor (ABF)
+def get_abf(search_tree:SearchNode):
+    return (search_tree.get_tree_size() - 1) / search_tree.get_tree_size(exclude_leaves=True)
 
 #################### plotting ####################
 
@@ -567,6 +640,12 @@ def analyze_search(data, output_dir) -> bool:
             file.write(f"| {len(ppde_data)} | {min(ppde_data)} | {max(ppde_data)} | {sum(ppde_data)/len(ppde_data):.2f} | {np.median(ppde_data):.1f}|\n")
         else:
             file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
+
+        file.write("### Effective branching factor (EBF)\n")
+        file.write(f'{get_ebf(search_tree):.4f}\n')
+
+        file.write("### Average branching factor (ABF)\n")
+        file.write(f'{get_abf(search_tree):.4f}\n')
 
         file.write('\n')
 
