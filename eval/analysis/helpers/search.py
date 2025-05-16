@@ -187,6 +187,16 @@ def gather_search_tree(data) -> SearchNode:
 
     return tree
 
+#################### data parsers ####################
+
+# get average jump height
+def get_avg_jump_height(jump_height_data):
+    all_heights = []
+    for height, freq in jump_height_data.items():
+        all_heights.extend([height] * freq)
+
+    return sum(all_heights) / len(all_heights)
+
 #################### plotting ####################
 
 # draw search tree
@@ -293,6 +303,9 @@ def analyze_search(data, output_dir) -> bool:
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
+
+        file.write("### Average jump height\n")
+        file.write(f'{get_avg_jump_height(jump_height_data):.2f}\n')
 
         file.write('\n')
 
