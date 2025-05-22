@@ -772,11 +772,17 @@ def analyze_search(data, output_dir) -> bool:
         else:
             file.write(f"| N/A | N/A | N/A | N/A | N/A |\n")
 
-        file.write("### Effective branching factor (EBF)\n")
+        file.write("### Overall effective branching factor (EBF)\n")
         file.write(f'{ebf_data[max(ebf_data.keys())]:.4f}\n')
 
-        file.write("### Average branching factor (ABF)\n")
+        file.write("### Max effective branching factor (EBF)\n")
+        file.write(f'{ebf_data[max(ebf_data, key=ebf_data.get)]:.4f} @ depth {max(ebf_data, key=ebf_data.get)}\n')
+
+        file.write("### Overall average branching factor (ABF)\n")
         file.write(f'{abf_data[max(abf_data.keys())]:.4f}\n')
+
+        file.write("### Max average branching factor (ABF)\n")
+        file.write(f'{abf_data[max(abf_data, key=abf_data.get)]:.4f} @ depth {max(abf_data, key=abf_data.get)}\n')
 
         file.write('\n')
 
