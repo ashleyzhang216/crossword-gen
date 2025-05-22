@@ -228,8 +228,8 @@ class SearchNode:
                 assert(total_pairs_pruned > 0 or self.reason == SearchReason.DUPLICATE)
                 result.append(total_pairs_pruned)
 
-    # returns two lists of tree size at each max depth: {"no_leaves": without leaves, "leaves": with leaves}
-    def gather_tree_size_data(self):
+    # returns two list of number of nodes at each depth: {"no_leaves": without leaves, "leaves": with leaves}
+    def gather_node_depth_data(self):
         # gets list of number of nodes at each depth
         def traverse(node:SearchNode, sizes:list[int], depth:int, exclude_leaves:bool=False):
             if len(sizes) <= depth:
@@ -250,12 +250,10 @@ class SearchNode:
         traverse(self, leaves_sizes, 0, exclude_leaves=False)
 
         data = {
-            "no_leaves": [sum(no_leaves_sizes[0:i]) for i in range(len(no_leaves_sizes))],
-            "leaves": [sum(leaves_sizes[0:i+1]) for i in range(len(leaves_sizes))]
+            "no_leaves": no_leaves_sizes,
+            "leaves": leaves_sizes
         }
-        assert(len(no_leaves_sizes) == len(leaves_sizes))
         assert(len(data['no_leaves']) == len(data['leaves']))
-
         return data
 
     # returns num solutions, depth of solutions or largest node depth if no solution exists
@@ -374,6 +372,19 @@ def gather_search_tree(data) -> SearchNode:
     return tree
 
 #################### data parsers ####################
+
+# returns two lists of tree size at each max depth: {"no_leaves": without leaves, "leaves": with leaves}
+def get_tree_size_data(node_depth_data):
+    no_leaves_sizes = node_depth_data['no_leaves']
+    leaves_sizes = node_depth_data['leaves']
+
+    data = {
+        "no_leaves": [sum(no_leaves_sizes[0:i]) for i in range(len(no_leaves_sizes))],
+        "leaves": [sum(leaves_sizes[0:i+1]) for i in range(len(leaves_sizes))]
+    }
+    assert(len(data['no_leaves']) == len(data['leaves']))
+
+    return data
 
 # returns map of max depth -> effective branching factor (EBF)
 def get_ebf_data(search_tree:SearchNode, tree_size_data):
@@ -588,6 +599,30 @@ def plot_exclusive_ppde_freq(output_dir, ppde_data):
     plt.savefig(output_dir + 'exclusive_ppde_freq.png', bbox_inches='tight')
     plt.close()
 
+# plot number of nodes at each depth
+def plot_num_nodes_by_depth(output_dir, node_depth_data):
+    depths = np.asarray(range(len(node_depth_data['leaves'])))
+    sizes = np.asarray([node_depth_data['leaves'][i] for i in depths])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(depths, sizes, marker='o', linestyle='-')
+
+    plt.title('Number of Nodes vs Search Tree Depth')
+    plt.xlabel('Depth')
+    plt.ylabel('Number of Nodes')
+
+    plt.savefig(output_dir + 'num_nodes_by_depth.png', bbox_inches='tight')
+    plt.close()
+
+# plot effective branching factor (EBF) vs depth
+def plot_ebf_by_depth(output_dir, ebf_data):
+    pass
+
+# plot average branching factor (ABF) vs depth
+def plot_abf_by_depth(output_dir, abf_data):
+    pass
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -602,7 +637,8 @@ def analyze_search(data, output_dir) -> bool:
     dess_data = search_tree.gather_exclusive_dess_data()
     ccde_data = search_tree.gather_exclusive_ccde_data()
     ppde_data = search_tree.gather_exclusive_ppde_data()
-    tree_size_data = search_tree.gather_tree_size_data()
+    node_depth_data = search_tree.gather_node_depth_data()
+    tree_size_data = get_tree_size_data(node_depth_data)
     ebf_data = get_ebf_data(search_tree, tree_size_data)
     abf_data = get_abf_data(tree_size_data)
 
@@ -615,6 +651,9 @@ def analyze_search(data, output_dir) -> bool:
     plot_exclusive_dess_freq(output_dir, dess_data)
     plot_exclusive_ccde_freq(output_dir, ccde_data)
     plot_exclusive_ppde_freq(output_dir, ppde_data)
+    plot_num_nodes_by_depth(output_dir, node_depth_data)
+    plot_ebf_by_depth(output_dir, ebf_data)
+    plot_abf_by_depth(output_dir, abf_data)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
