@@ -287,7 +287,7 @@ class SearchNode:
 
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
-    assert('type' in data and data['type'] == "Total")
+    assert('type' in data and data['type'] == "CSP")
     assert('children' in data)
     children = data['children']
     assert(len(children) >= 2)

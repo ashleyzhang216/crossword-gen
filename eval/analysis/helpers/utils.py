@@ -6,14 +6,14 @@ import os
 
 # getter for track_ac3 flag
 def get_track_ac3(data) -> bool:
-    assert('type' in data and data.get('type') == "Total")
+    assert('type' in data and data.get('type') == "CSP")
     assert('result' in data)
     assert('track_ac3' in data.get('result'))
     return data.get('result').get('track_ac3')
 
 # getter for subfields in the result field of the initialize node
 def get_initialize_field(data, field_name):
-    assert('type' in data and data.get('type') == "Total")
+    assert('type' in data and data.get('type') == "CSP")
     assert('children' in data)
     children = data.get('children', [])
     assert(len(children) > 0)

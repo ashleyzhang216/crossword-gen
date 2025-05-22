@@ -7,7 +7,7 @@ from helpers.utils import get_track_ac3
 
 # returns {"init": initialization time in sec, "search": solving time in sec}
 def gather_init_search_runtime_data(data):
-    assert('type' in data and data.get('type') == "Total")
+    assert('type' in data and data.get('type') == "CSP")
     assert('children' in data)
     children = data.get('children', [])
     assert(len(children) >= 2)
