@@ -36,7 +36,7 @@ namespace cw_timetracker_data_types_ns {
 
     // mapping from timestep type to display name
     NLOHMANN_JSON_SERIALIZE_ENUM( ts_type_t, {
-        {TS_CSP_TOTAL,       "Total"},
+        {TS_CSP_TOTAL,       "CSP"},
         {TS_CSP_INITIALIZE,  "Initialize"},
         {TS_CSP_SOLVE,       "Solve"},
         {TS_CSP_SEARCH_STEP, "Search Step"},
