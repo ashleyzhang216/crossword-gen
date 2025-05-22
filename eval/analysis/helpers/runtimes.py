@@ -119,10 +119,21 @@ def analyze_runtimes(data, output_dir) -> bool:
     with open(output_dir + 'runtimes_metrics.md', 'w') as file:
         file.write("## Runtimes Metrics\n\n")
 
-        file.write("### Runtime Breakdown\n")
+        file.write("### Runtime breakdown\n")
         file.write("| Total (s) | Initialization (s) | Search (s) |\n")
         file.write("|-----------|--------------------|------------|\n")
         file.write(f"| {init_search_runtime_data['init']+init_search_runtime_data['search']:.3f} | {init_search_runtime_data['init']:.2f} | {init_search_runtime_data['search']:.2f} |\n")
+
+        if get_track_ac3(data):
+            file.write("### Timestep type durations\n")
+
+            ts_types = sorted(ts_runtime_data, key=lambda k: sum(ts_runtime_data[k]), reverse=True)
+            file.write("| Timestep | Count | Total (s) | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
+            file.write("|----------|-------|-----------|----------|----------|--------------|-------------|\n")
+            for t in ts_types:
+                d = ts_runtime_data[t]
+                assert(len(d) > 0)
+                file.write(f"| {t} | {len(d)} | {sum(d)*1e-6:.2f} | {min(d)} | {max(d)} | {sum(d)/len(d):.2f} | {np.median(d):.1f} |\n")
 
         file.write('\n')
 
