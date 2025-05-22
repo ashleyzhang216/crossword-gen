@@ -49,7 +49,7 @@ class SearchNode:
     def set_failed_subtree_size(self):
         assert(self.failed_subtree_size is None)
 
-        self.failed_subtree_size = 0 if self.success or self.parent is None else 1
+        self.failed_subtree_size = 0 if self.success else 1
         for child in self.children:
             child.set_failed_subtree_size()
             assert(not child.failed_subtree_size is None)
@@ -229,6 +229,7 @@ class SearchNode:
                 result.append(total_pairs_pruned)
 
     # returns number of nodes in subtree, including this node
+    # TODO: remove
     def get_tree_size(self, exclude_leaves=False) -> int:
         if exclude_leaves and len(self.children) == 0:
             return 0
@@ -237,6 +238,36 @@ class SearchNode:
         for child in self.children:
             size += child.get_tree_size(exclude_leaves=exclude_leaves)
         return size
+
+    # returns two lists of tree size at each max depth: {"no_leaves": without leaves, "leaves": with leaves}
+    def gather_tree_size_data(self):
+        # gets list of number of nodes at each depth
+        def traverse(node:SearchNode, sizes:list[int], depth:int, exclude_leaves:bool=False):
+            if len(sizes) <= depth:
+                assert(len(sizes) == depth)
+                sizes.append(0)
+
+            if exclude_leaves and len(node.children) == 0:
+                return
+
+            sizes[depth] += 1
+            for child in node.children:
+                traverse(child, sizes, depth + 1, exclude_leaves)
+
+        no_leaves_sizes = []
+        traverse(self, no_leaves_sizes, 0, exclude_leaves=True)
+
+        leaves_sizes = []
+        traverse(self, leaves_sizes, 0, exclude_leaves=False)
+
+        data = {
+            "no_leaves": [sum(no_leaves_sizes[0:i]) for i in range(len(no_leaves_sizes))],
+            "leaves": [sum(leaves_sizes[0:i+1]) for i in range(len(leaves_sizes))]
+        }
+        assert(len(no_leaves_sizes) == len(leaves_sizes))
+        assert(len(data['no_leaves']) == len(data['leaves']))
+
+        return data
 
     # returns num solutions, depth of solutions or largest node depth if no solution exists
     def get_solution_depths(self):
@@ -314,6 +345,7 @@ def gather_search_tree(data) -> SearchNode:
 
                 if data_node['result']['success'] and data_node['result']['reason'] == "solved":
                     search_node.set_reason_solved()
+                    assert(len(data_node.get('children', [])) == 0)
 
                 search_node.set_jump_height(data_node['result']['jump_height'])
                 if not data_node['result']['variable'] is None:
@@ -381,11 +413,57 @@ def get_ebf(search_tree:SearchNode):
         return (low + high) / 2
 
     num_solutions, depth = search_tree.get_solution_depths()
-    return compute_ebf(search_tree.get_tree_size() / num_solutions, depth)
+    return compute_ebf(search_tree.get_tree_size() / (num_solutions if num_solutions > 0 else 1), depth)
 
 # returns average branching factor (ABF)
 def get_abf(search_tree:SearchNode):
     return (search_tree.get_tree_size() - 1) / search_tree.get_tree_size(exclude_leaves=True)
+
+# returns map of max depth -> effective branching factor (EBF)
+def get_ebf_data(search_tree:SearchNode, tree_size_data):
+    def compute_ebf(N, d, epsilon=1e-6, max_iter=1000):
+        if N == 1:
+            return 0.0
+        if d == 0:
+            return float('inf')
+
+        low, high = 1.0, float(N)
+
+        for _ in range(max_iter):
+            mid = (low + high) / 2
+            if mid == 1.0:
+                estimated = d + 1
+            else:
+                estimated = (mid**(d + 1) - 1) / (mid - 1)
+
+            if abs(estimated - N) < epsilon:
+                return mid
+            elif estimated < N:
+                low = mid
+            else:
+                high = mid
+
+        return (low + high) / 2
+
+    ebf_data = {}
+    num_solutions, max_depth = search_tree.get_solution_depths()
+    assert(len(tree_size_data['no_leaves']) == len(tree_size_data['leaves']))
+    assert(max_depth == len(tree_size_data['no_leaves']) - 1)
+
+    for i in range(1, len(tree_size_data['leaves'])):
+        ebf_data[i] = compute_ebf(tree_size_data['leaves'][i] / (num_solutions if num_solutions > 0 else 1), i)
+
+    return ebf_data
+
+# returns map of max depth -> average branching factor (ABF)
+def get_abf_data(tree_size_data):
+    abf_data = {}
+    assert(len(tree_size_data['no_leaves']) == len(tree_size_data['leaves']))
+
+    for i in range(1, len(tree_size_data['leaves'])):
+        abf_data[i] = (tree_size_data['leaves'][i] - 1) / tree_size_data['no_leaves'][i]
+
+    return abf_data
 
 #################### plotting ####################
 
@@ -499,7 +577,7 @@ def plot_reason_freq(output_dir, reason_data):
               padding=3,
               fontsize=9)
 
-    max_freq = max([max(data.values()) for _, data in reason_data.items()])
+    max_freq = max([(max(data.values()) if len(data.values()) > 0 else 0) for _, data in reason_data.items()])
     plt.ylim(0, 1.1 * max_freq)
 
     plt.title('Search Node Reason Frequencies by Success Result')
@@ -568,6 +646,9 @@ def analyze_search(data, output_dir) -> bool:
     dess_data = search_tree.gather_exclusive_dess_data()
     ccde_data = search_tree.gather_exclusive_ccde_data()
     ppde_data = search_tree.gather_exclusive_ppde_data()
+    tree_size_data = search_tree.gather_tree_size_data()
+    ebf_data = get_ebf_data(search_tree, tree_size_data)
+    abf_data = get_abf_data(tree_size_data)
 
     # sum of all exclusive failed subtrees equal to total # of failed nodes
     assert(sum(dess_data) == sum(reason_data[False].values()))
@@ -578,8 +659,6 @@ def analyze_search(data, output_dir) -> bool:
     plot_exclusive_dess_freq(output_dir, dess_data)
     plot_exclusive_ccde_freq(output_dir, ccde_data)
     plot_exclusive_ppde_freq(output_dir, ppde_data)
-
-    # TODO: effective branching factor (EBF)
 
     with open(output_dir + 'search_metrics.md', 'w') as file:
         file.write("## Search Metrics\n\n")
