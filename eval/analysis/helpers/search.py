@@ -608,20 +608,67 @@ def plot_num_nodes_by_depth(output_dir, node_depth_data):
 
     plt.plot(depths, sizes, marker='o', linestyle='-')
 
-    plt.title('Number of Nodes vs Search Tree Depth')
+    plt.title('Number of Nodes vs Depth')
     plt.xlabel('Depth')
     plt.ylabel('Number of Nodes')
+    plt.grid(True, alpha=0.3)
 
     plt.savefig(output_dir + 'num_nodes_by_depth.png', bbox_inches='tight')
     plt.close()
 
 # plot effective branching factor (EBF) vs depth
 def plot_ebf_by_depth(output_dir, ebf_data):
-    pass
+    depths = np.asarray(sorted(ebf_data.keys()))
+    ebfs = np.asarray([ebf_data[i] for i in depths])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(depths, ebfs, marker='o', linestyle='-')
+
+    plt.title('Effective Branching Factor (EBF) vs Max Depth')
+    plt.xlabel('Depth')
+    plt.ylabel('Effective Branching Factor (EBF)')
+    plt.grid(True, alpha=0.3)
+
+    max_idx = max(ebf_data, key=ebf_data.get)
+    plt.annotate(
+        f"Max EBF: {ebf_data[max_idx]:.4f} @ depth {depths[max_idx]}\nOverall EBF: {ebf_data[max(ebf_data.keys())]:.4f} @ depth {max(ebf_data.keys())}",
+        xy=(0.98, 0.98),
+        xycoords='axes fraction',
+        ha='right',
+        va='top',
+        bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
+    )
+
+    plt.savefig(output_dir + 'ebf_by_depth.png', bbox_inches='tight')
+    plt.close()
 
 # plot average branching factor (ABF) vs depth
 def plot_abf_by_depth(output_dir, abf_data):
-    pass
+    depths = np.asarray(sorted(abf_data.keys()))
+    abfs = np.asarray([abf_data[i] for i in depths])
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(depths, abfs, marker='o', linestyle='-')
+
+    plt.title('Average Branching Factor (ABF) vs Max Depth')
+    plt.xlabel('Depth')
+    plt.ylabel('Average Branching Factor (ABF)')
+    plt.grid(True, alpha=0.3)
+
+    max_idx = max(abf_data, key=abf_data.get)
+    plt.annotate(
+        f"Max ABF: {abf_data[max_idx]:.4f} @ depth {depths[max_idx]}\nOverall ABF: {abf_data[max(abf_data.keys())]:.4f} @ depth {max(abf_data.keys())}",
+        xy=(0.98, 0.98),
+        xycoords='axes fraction',
+        ha='right',
+        va='top',
+        bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
+    )
+
+    plt.savefig(output_dir + 'abf_by_depth.png', bbox_inches='tight')
+    plt.close()
 
 #################### parent function ####################
 
