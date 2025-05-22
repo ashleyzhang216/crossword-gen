@@ -2,6 +2,7 @@ import json
 import argparse
 import sys
 import os
+from datetime import datetime
 
 from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
@@ -20,25 +21,29 @@ def main():
     # parse cli args
     parser = argparse.ArgumentParser(description='Analyze profiling JSON output files')
     parser.add_argument('data_path', help='Path to the JSON data file')
-    parser.add_argument('output_dir', help='Name of output directory')
     args = parser.parse_args()
 
     # create output dir
-    if not args.output_dir:
-        print(f"Error: Output directory name cannot be empty.")
-        sys.exit(1)
-    else:
+    data_name, _ = os.path.splitext(os.path.basename(args.data_path))
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+    output_dir = f"{data_name}_{timestamp}"
+    attempts = 10
+    for i in range(attempts):
         try:
-            os.makedirs(args.output_dir)
-        except FileExistsError:
-            raise FileExistsError(f"Directory '{args.output_dir}' already exists!")
+            os.makedirs(output_dir)
+        except FileExistsError as e:
+            if i < attempts - 1:
+                continue
+            else:
+                raise FileExistsError("Failed to create output directory")
+        break
 
     # create subdirs
-    ac3_pruning_path = args.output_dir + '/' + AC3_PRUNING_DIR + '/'
-    ac3_calls_path = args.output_dir + '/' + AC3_CALLS_DIR + '/'
-    runtimes_path = args.output_dir + '/' + RUNTIMES_DIR + '/'
-    csp_path = args.output_dir + '/' + CSP_DIR + '/'
-    search_path = args.output_dir + '/' + SEARCH_DIR + '/'
+    ac3_pruning_path = output_dir + '/' + AC3_PRUNING_DIR + '/'
+    ac3_calls_path = output_dir + '/' + AC3_CALLS_DIR + '/'
+    runtimes_path = output_dir + '/' + RUNTIMES_DIR + '/'
+    csp_path = output_dir + '/' + CSP_DIR + '/'
+    search_path = output_dir + '/' + SEARCH_DIR + '/'
     os.makedirs(ac3_pruning_path)
     os.makedirs(ac3_calls_path)
     os.makedirs(runtimes_path)
@@ -62,8 +67,8 @@ def main():
     analyze_csp(data, csp_path)
     analyze_search(data, search_path)
 
-    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path, csp_path, search_path], args.output_dir + '/' + "metrics.md")
-    print(f"Results for {args.data_path} written to new directory {args.output_dir}")
+    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path, csp_path, search_path], output_dir + '/' + "metrics.md")
+    print(f"Results for {args.data_path} written to new directory {output_dir}")
 
 if __name__ == "__main__":
     main()
