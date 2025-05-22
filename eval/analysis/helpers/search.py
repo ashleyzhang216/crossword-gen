@@ -267,6 +267,7 @@ class SearchNode:
         max_depth = 0
         for child in self.children:
             num_sols, depth = child.get_solution_depths()
+            depth += 1
 
             if total_solutions > 0:
                 if num_sols > 0:
@@ -282,7 +283,7 @@ class SearchNode:
                 else:
                     max_depth = max(max_depth, depth)
 
-        return total_solutions, max_depth + 1
+        return total_solutions, max_depth
 
 # returns tree of SearchNode
 def gather_search_tree(data) -> SearchNode:
@@ -630,9 +631,9 @@ def plot_ebf_by_depth(output_dir, ebf_data):
     plt.ylabel('Effective Branching Factor (EBF)')
     plt.grid(True, alpha=0.3)
 
-    max_idx = max(ebf_data, key=ebf_data.get)
+    max_depth = max(ebf_data, key=ebf_data.get)
     plt.annotate(
-        f"Max EBF: {ebf_data[max_idx]:.4f} @ depth {depths[max_idx]}\nOverall EBF: {ebf_data[max(ebf_data.keys())]:.4f} @ depth {max(ebf_data.keys())}",
+        f"Max EBF: {ebf_data[max_depth]:.4f} @ depth {max_depth}\nOverall EBF: {ebf_data[max(ebf_data.keys())]:.4f} @ depth {max(ebf_data.keys())}",
         xy=(0.98, 0.98),
         xycoords='axes fraction',
         ha='right',
@@ -657,9 +658,9 @@ def plot_abf_by_depth(output_dir, abf_data):
     plt.ylabel('Average Branching Factor (ABF)')
     plt.grid(True, alpha=0.3)
 
-    max_idx = max(abf_data, key=abf_data.get)
+    max_depth = max(abf_data, key=abf_data.get)
     plt.annotate(
-        f"Max ABF: {abf_data[max_idx]:.4f} @ depth {depths[max_idx]}\nOverall ABF: {abf_data[max(abf_data.keys())]:.4f} @ depth {max(abf_data.keys())}",
+        f"Max ABF: {abf_data[max_depth]:.4f} @ depth {max_depth}\nOverall ABF: {abf_data[max(abf_data.keys())]:.4f} @ depth {max(abf_data.keys())}",
         xy=(0.98, 0.98),
         xycoords='axes fraction',
         ha='right',
