@@ -49,6 +49,7 @@ def gather_ts_runtime_data(data):
 
 #################### plotting ####################
 
+# plot runtime distribution between initialization and search
 def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     steps = np.asarray(['Init', 'Search'])
     durations = np.asarray([init_search_runtime_data.get('init'), init_search_runtime_data.get('search')])
@@ -65,6 +66,43 @@ def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     plt.savefig(output_dir + 'init_search_runtimes.png', bbox_inches='tight')
     plt.close()
 
+# plot total runtime distribution by timestep type
+def plot_total_runtime_by_timestep_type(output_dir, ts_runtime_data):
+    if ts_runtime_data is None:
+        return
+
+    ts_types = np.asarray(sorted(ts_runtime_data, key=lambda k: sum(ts_runtime_data[k]), reverse=True))
+    durations_us = np.asarray([sum(ts_runtime_data[t]) for t in ts_types])
+    durations_s = np.asarray([durations_us[i] * 1e-6 for i in range(len(ts_types))])
+    percents = np.asarray([100 * sum(ts_runtime_data[t]) / sum(durations_us) for t in ts_types])
+
+    plt.figure(figsize=(10, 6))
+
+    bars = plt.bar(ts_types, durations_s, edgecolor='black')
+    plt.bar_label(bars,
+              labels=[f'{p:.2f}%\n({s:.2f} sec)\n' for p, s in zip(percents, durations_s)],
+              padding=3,
+              fontsize=9)
+
+    plt.ylim(0, 1.2 * max(durations_s))
+    plt.xticks(ts_types)
+
+    plt.annotate(
+        "Total time for each timestep type\nexcluding total duration of children",
+        xy=(0.98, 0.98),
+        xycoords='axes fraction',
+        ha='right',
+        va='top',
+        bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
+    )
+
+    plt.title('Total Duration vs Timestep Type')
+    plt.xlabel('Timestep Type')
+    plt.ylabel('Total Duration (s)')
+
+    plt.savefig(output_dir + 'total_runtime_by_timestep_type.png', bbox_inches='tight')
+    plt.close()
+
 #################### parent function ####################
 
 # run all child functions, return true iff ac3 pruning was tracked
@@ -76,6 +114,7 @@ def analyze_runtimes(data, output_dir) -> bool:
     ts_runtime_data = gather_ts_runtime_data(data) if get_track_ac3(data) else None
 
     plot_init_search_runtimes(output_dir, init_search_runtime_data)
+    plot_total_runtime_by_timestep_type(output_dir, ts_runtime_data)
 
     with open(output_dir + 'runtimes_metrics.md', 'w') as file:
         file.write("## Runtimes Metrics\n\n")
