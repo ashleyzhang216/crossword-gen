@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from helpers.utils import get_track_ac3
+
 #################### data collection ####################
 
 # returns {"init": initialization time in sec, "search": solving time in sec}
@@ -22,6 +24,29 @@ def gather_init_search_runtime_data(data):
         "search": search_node.get('duration_us') * 1e-6
     }
 
+# returns map of timestep name -> list of durations
+def gather_ts_runtime_data(data):
+    result = {}
+
+    def traverse(node, result:dict) -> int:
+        assert('type' in data)
+        assert('duration_us' in data)
+
+        total_child_duration = sum([traverse(child, result) for child in node.get('children', [])])
+        assert(total_child_duration <= node['duration_us'])
+
+        result.setdefault(node['type'], [])
+        result[node['type']].append(node['duration_us'] - total_child_duration)
+        return node['duration_us']
+
+    total_duration = traverse(data, result)
+
+    assert('duration_us' in data)
+    assert(data['duration_us'] == total_duration)
+    assert(data['duration_us'] == sum([sum(v) for v in result.values()]))
+
+    return result
+
 #################### plotting ####################
 
 def plot_init_search_runtimes(output_dir, init_search_runtime_data):
@@ -42,9 +67,13 @@ def plot_init_search_runtimes(output_dir, init_search_runtime_data):
 
 #################### parent function ####################
 
-# run all child functions, returns true
+# run all child functions, return true iff ac3 pruning was tracked
 def analyze_runtimes(data, output_dir) -> bool:
+    if not get_track_ac3(data):
+        print("Warning: AC-3 not tracked in provided file, skipping some analysis of runtimes")
+
     init_search_runtime_data = gather_init_search_runtime_data(data)
+    ts_runtime_data = gather_ts_runtime_data(data) if get_track_ac3(data) else None
 
     plot_init_search_runtimes(output_dir, init_search_runtime_data)
 
@@ -58,4 +87,4 @@ def analyze_runtimes(data, output_dir) -> bool:
 
         file.write('\n')
 
-    return True
+    return get_track_ac3(data)
