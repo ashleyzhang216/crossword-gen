@@ -559,13 +559,7 @@ def plot_reason_freq(output_dir, reason_data):
 def plot_exclusive_dess_freq(output_dir, dess_data):
     plt.figure(figsize=(10, 6))
 
-    # set binwidth to smallest non-zero gap between any two DESS values
-    diffs = [abs(dess_data[i]-dess_data[j]) for i in range(len(dess_data)) for j in range(i+1, len(dess_data)) if abs(dess_data[i]-dess_data[j]) > 0]
-    binwidth = min(diffs) if len(diffs) > 0 else 1
-    bins = range(min(dess_data) - binwidth, max(dess_data) + binwidth, binwidth)
-
-    plt.hist(dess_data, bins=bins, edgecolor='black')
-    plt.xticks(sorted(list(set(dess_data))))
+    plt.hist(dess_data, edgecolor='black')
 
     plt.title('Histogram of Exclusive Dead End Subtree Sizes (DESS)')
     plt.xlabel('Dead End Subtree Size')
