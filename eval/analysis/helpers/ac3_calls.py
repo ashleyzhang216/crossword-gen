@@ -68,14 +68,14 @@ def analyze_ac3_calls(data, output_dir) -> bool:
         file.write(f'{num_success+num_fail} ({100*num_success/(num_success + num_fail):.2f}% successful)\n')
 
         file.write("### AC-3 call durations\n")
-        file.write("| Result | Count | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
-        file.write("|--------|-------|----------|----------|--------------|-------------|\n")
+        file.write("| Result | Count | Total (s) | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
+        file.write("|--------|-------|-----------|----------|----------|--------------|-------------|\n")
         s = ac3_success_data['success']
         f = ac3_success_data['fail']
         a = s + f
-        file.write(f"| All | {len(a)} | {min(a)} | {max(a)} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n" if len(a) > 0 else "| All | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Success | {len(s)} | {min(s)} | {max(s)} | {sum(s)/len(s):.2f} | {np.median(s):.1f} |\n" if len(s) > 0 else "| Success | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Fail | {len(f)} | {min(f)} | {max(f)} | {sum(f)/len(f):.2f} | {np.median(f):.1f} |\n" if len(f) > 0 else "| Fail | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| All | {len(a)} | {sum(a)*1e-6:.2f} | {min(a)} | {max(a)} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n" if len(a) > 0 else "| All | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Success | {len(s)} | {sum(s)*1e-6:.2f} | {min(s)} | {max(s)} | {sum(s)/len(s):.2f} | {np.median(s):.1f} |\n" if len(s) > 0 else "| Success | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Fail | {len(f)} | {sum(f)*1e-6:.2f} | {min(f)} | {max(f)} | {sum(f)/len(f):.2f} | {np.median(f):.1f} |\n" if len(f) > 0 else "| Fail | 0 | 0 | N/A | N/A | N/A | N/A |\n")
 
         file.write('\n')
 

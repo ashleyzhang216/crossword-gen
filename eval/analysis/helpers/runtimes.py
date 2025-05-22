@@ -125,7 +125,7 @@ def analyze_runtimes(data, output_dir) -> bool:
         file.write(f"| {init_search_runtime_data['init']+init_search_runtime_data['search']:.3f} | {init_search_runtime_data['init']:.2f} | {init_search_runtime_data['search']:.2f} |\n")
 
         if get_track_ac3(data):
-            file.write("### Timestep type durations\n")
+            file.write("### Timestep type durations (excluding children)\n")
 
             ts_types = sorted(ts_runtime_data, key=lambda k: sum(ts_runtime_data[k]), reverse=True)
             file.write("| Timestep | Count | Total (s) | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
