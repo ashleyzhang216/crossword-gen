@@ -160,19 +160,6 @@ def gather_ac3_constr_data(data):
 
 #################### data parsers ####################
 
-# get average microseconds per pair pruned
-def get_avg_prune_duration(constr_prune_data):
-    total_duration = 0
-    total_pairs_pruned = 0
-
-    for _, data in constr_prune_data.items():
-        for pairs_pruned, durations in data["pairs_pruned"].items():
-            if pairs_pruned > 0:
-                total_duration += sum(durations)
-                total_pairs_pruned += pairs_pruned * len(durations)
-
-    return total_duration / total_pairs_pruned
-
 # get average pairs pruned per ac3 call
 def get_avg_pairs_pruned_per_ac3(ac3_prune_data):
     all_prunes = []
@@ -715,9 +702,6 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
 
     with open(output_dir + 'ac3_pruning_metrics.md', 'w') as file:
         file.write("## AC-3 Pruning Metrics\n\n")
-
-        file.write("### Overall average time per pair pruned\n")
-        file.write(f'{get_avg_prune_duration(constr_data):.2f} μs\n')
 
         file.write("### Time per pair pruned (successful prunes weighted equally)\n")
         file.write("| Constraint length | Count | Average (μs) | Median (μs) |\n")
