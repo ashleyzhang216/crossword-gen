@@ -308,6 +308,45 @@ def plot_avg_pair_prune_durations(output_dir, constr_prune_data, constr_lens, fi
     plt.savefig(output_dir + 'avg_pair_prune_durations.png', bbox_inches='tight')
     plt.close()
 
+# plot histogram of microseconds per pair pruned
+def plot_duration_per_pair_prune_freq(output_dir, constr_prune_data, constr_lens):
+    # map of constr len -> (map of # pairs pruned -> [list of all durations])
+    all_durations = {}
+
+    for constr_id, data in constr_prune_data.items():
+        constr_len = constr_lens.get(str(constr_id))
+        all_durations.setdefault(constr_len, {})
+
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+
+        for pairs_pruned, durations in pairs_data.items():
+            all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
+
+    plt.figure(figsize=(10, 6))
+    plt.yscale('log')
+
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    for i, constr_len in enumerate(sorted(all_durations.keys())):
+        times_per_prune = []
+        for num_pairs, durations in all_durations[constr_len].items():
+            if not num_pairs == 0:
+                times_per_prune.extend([duration / num_pairs for duration in durations])
+
+        binwidth = 100
+        bins = range(int(min(times_per_prune)) - binwidth, int(max(times_per_prune)) + binwidth, binwidth)
+
+        plt.hist(times_per_prune, bins=bins, alpha=0.5, label=f'Length {constr_len} Constraints', color=colors[i % len(colors)], edgecolor='black')
+
+    plt.title('Histogram of Durations per Pair Pruned During Successful Prunes (Log Scale)')
+    plt.xlabel('Duration per Pair Pruned (μs)')
+    plt.ylabel('Frequency (log scale)')
+
+    plt.legend()
+
+    plt.savefig(output_dir + 'duration_per_pair_prune_freq.png', bbox_inches='tight')
+    plt.close()
+
 # plot histogram of number of pairs pruned per ac3 prune
 def plot_prune_size_freqs(output_dir, constr_prune_data):
     num_pairs_pruned = []
@@ -643,6 +682,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     ac3_constr_data = gather_ac3_constr_data(data)
 
     plot_avg_pair_prune_durations(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
+    plot_duration_per_pair_prune_freq(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_prune_size_freqs(output_dir, constr_data)
     plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
