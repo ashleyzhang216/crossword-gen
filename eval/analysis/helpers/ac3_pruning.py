@@ -41,6 +41,22 @@ def gather_constr_prune_data(data):
     traverse(traverse, data, prune_data)
     return prune_data
 
+# returns map of constr len -> (map of # pairs pruned -> [list of all durations])
+def gather_constr_len_prune_data(constr_prune_data, constr_lens):
+    all_durations = {}
+
+    for constr_id, data in constr_prune_data.items():
+        constr_len = constr_lens.get(str(constr_id))
+        all_durations.setdefault(constr_len, {})
+
+        assert("pairs_pruned" in data)
+        pairs_data = data["pairs_pruned"]
+
+        for pairs_pruned, durations in pairs_data.items():
+            all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
+
+    return all_durations
+
 # returns map of variable id -> (map of # of pairs pruned -> list of durations)
 def gather_var_prune_data(data):
     constr_dependent_vars = get_initialize_field(data, "constr_dependent_vars")
@@ -239,20 +255,7 @@ def get_total_prune_durations(constr_prune_data):
 #################### plotting ####################
 
 # plot average microseconds per prune vs # of pairs pruned in a single pass, and weighted least squares fit
-def plot_avg_pair_prune_durations(output_dir, constr_prune_data, constr_lens, filter=True, max_error=1.0, confidence=0.95):
-    # map of constr len -> (map of # pairs pruned -> [list of all durations])
-    all_durations = {}
-
-    for constr_id, data in constr_prune_data.items():
-        constr_len = constr_lens.get(str(constr_id))
-        all_durations.setdefault(constr_len, {})
-
-        assert("pairs_pruned" in data)
-        pairs_data = data["pairs_pruned"]
-
-        for pairs_pruned, durations in pairs_data.items():
-            all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
-
+def plot_avg_pair_prune_durations(output_dir, constr_len_prune_data, filter=True, max_error=1.0, confidence=0.95):
     # returns minimum number of samples given max acceptable uncertainty given a confidence level
     def get_min_samples(durations, max_error, confidence):
         if len(durations) < 2:
@@ -266,20 +269,20 @@ def plot_avg_pair_prune_durations(output_dir, constr_prune_data, constr_lens, fi
 
     # filter datapoints to those within a max uncertainty
     if filter:
-        for constr_len, data in all_durations.items():
-            all_durations[constr_len] = {
-                pairs_pruned: durations for pairs_pruned, durations in all_durations[constr_len].items()
+        for constr_len, data in constr_len_prune_data.items():
+            constr_len_prune_data[constr_len] = {
+                pairs_pruned: durations for pairs_pruned, durations in constr_len_prune_data[constr_len].items()
                 if len(durations) >= get_min_samples(durations, max_error, confidence)
             }
 
     plt.figure(figsize=(10, 6))
 
     colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-    for i, constr_len in enumerate(sorted(all_durations.keys())):
-        num_pairs = np.asarray(sorted(all_durations[constr_len].keys()))
-        avg_durations = np.asarray([np.mean(all_durations[constr_len][p]) for p in num_pairs])
+    for i, constr_len in enumerate(sorted(constr_len_prune_data.keys())):
+        num_pairs = np.asarray(sorted(constr_len_prune_data[constr_len].keys()))
+        avg_durations = np.asarray([np.mean(constr_len_prune_data[constr_len][p]) for p in num_pairs])
 
-        sample_sizes = [len(d) for d in all_durations[constr_len].values()]
+        sample_sizes = [len(d) for d in constr_len_prune_data[constr_len].values()]
         weights = np.sqrt(sample_sizes)
         results = weighted_linear_regression(num_pairs, avg_durations, weights=weights)
 
@@ -309,27 +312,14 @@ def plot_avg_pair_prune_durations(output_dir, constr_prune_data, constr_lens, fi
     plt.close()
 
 # plot histogram of microseconds per pair pruned
-def plot_duration_per_pair_prune_freq(output_dir, constr_prune_data, constr_lens):
-    # map of constr len -> (map of # pairs pruned -> [list of all durations])
-    all_durations = {}
-
-    for constr_id, data in constr_prune_data.items():
-        constr_len = constr_lens.get(str(constr_id))
-        all_durations.setdefault(constr_len, {})
-
-        assert("pairs_pruned" in data)
-        pairs_data = data["pairs_pruned"]
-
-        for pairs_pruned, durations in pairs_data.items():
-            all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
-
+def plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data):
     plt.figure(figsize=(10, 6))
     plt.yscale('log')
 
     colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-    for i, constr_len in enumerate(sorted(all_durations.keys())):
+    for i, constr_len in enumerate(sorted(constr_len_prune_data.keys())):
         times_per_prune = []
-        for num_pairs, durations in all_durations[constr_len].items():
+        for num_pairs, durations in constr_len_prune_data[constr_len].items():
             if not num_pairs == 0:
                 times_per_prune.extend([duration / num_pairs for duration in durations])
 
@@ -678,11 +668,12 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
 
     constr_data = gather_constr_prune_data(data)
     var_data = gather_var_prune_data(data)
+    constr_len_prune_data = gather_constr_len_prune_data(constr_data, get_initialize_field(data, "constr_lens"))
     ac3_prune_data = gather_ac3_prune_data(data)
     ac3_constr_data = gather_ac3_constr_data(data)
 
-    plot_avg_pair_prune_durations(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
-    plot_duration_per_pair_prune_freq(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
+    plot_avg_pair_prune_durations(output_dir, constr_len_prune_data)
+    plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data)
     plot_prune_size_freqs(output_dir, constr_data)
     plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
