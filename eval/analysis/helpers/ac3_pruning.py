@@ -46,13 +46,10 @@ def gather_constr_len_prune_data(constr_prune_data, constr_lens):
     all_durations = {}
 
     for constr_id, data in constr_prune_data.items():
-        constr_len = constr_lens.get(str(constr_id))
+        constr_len = constr_lens[str(constr_id)]
         all_durations.setdefault(constr_len, {})
 
-        assert("pairs_pruned" in data)
-        pairs_data = data["pairs_pruned"]
-
-        for pairs_pruned, durations in pairs_data.items():
+        for pairs_pruned, durations in data["pairs_pruned"].items():
             all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
 
     return all_durations
@@ -169,10 +166,7 @@ def get_avg_prune_duration(constr_prune_data):
     total_pairs_pruned = 0
 
     for _, data in constr_prune_data.items():
-        assert("pairs_pruned" in data)
-        pairs_data = data["pairs_pruned"]
-
-        for pairs_pruned, durations in pairs_data.items():
+        for pairs_pruned, durations in data["pairs_pruned"].items():
             if pairs_pruned > 0:
                 total_duration += sum(durations)
                 total_pairs_pruned += pairs_pruned * len(durations)
@@ -268,21 +262,24 @@ def plot_avg_pair_prune_durations(output_dir, constr_len_prune_data, filter=True
         return int(np.ceil((t_crit * coeff_var / max_error)**2))
 
     # filter datapoints to those within a max uncertainty
-    if filter:
+    def get_filtered_data():
+        filtered_data = {}
         for constr_len, data in constr_len_prune_data.items():
-            constr_len_prune_data[constr_len] = {
-                pairs_pruned: durations for pairs_pruned, durations in constr_len_prune_data[constr_len].items()
+            filtered_data[constr_len] = {
+                pairs_pruned: durations for pairs_pruned, durations in data.items()
                 if len(durations) >= get_min_samples(durations, max_error, confidence)
             }
+        return filtered_data
+    filtered_data = get_filtered_data() if filter else constr_len_prune_data
 
     plt.figure(figsize=(10, 6))
 
     colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-    for i, constr_len in enumerate(sorted(constr_len_prune_data.keys())):
-        num_pairs = np.asarray(sorted(constr_len_prune_data[constr_len].keys()))
-        avg_durations = np.asarray([np.mean(constr_len_prune_data[constr_len][p]) for p in num_pairs])
+    for i, constr_len in enumerate(sorted(filtered_data.keys())):
+        num_pairs = np.asarray(sorted(filtered_data[constr_len].keys()))
+        avg_durations = np.asarray([np.mean(filtered_data[constr_len][p]) for p in num_pairs])
 
-        sample_sizes = [len(d) for d in constr_len_prune_data[constr_len].values()]
+        sample_sizes = [len(d) for d in filtered_data[constr_len].values()]
         weights = np.sqrt(sample_sizes)
         results = weighted_linear_regression(num_pairs, avg_durations, weights=weights)
 
@@ -722,21 +719,39 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write("### Overall average time per pair pruned\n")
         file.write(f'{get_avg_prune_duration(constr_data):.2f} μs\n')
 
-        file.write("### Time per pair pruned\n")
-        file.write("| Constraint length | Count | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
-        file.write("|-------------------|-------|----------|----------|--------------|-------------|\n")
-        a = []
-        for _, data in constr_len_prune_data.items():
-            for num_pairs, durations in data.items():
-                if not num_pairs == 0:
-                    a.extend([duration / num_pairs for duration in durations])
-        file.write(f"| All | {len(a)} |  {min(a):.2f} | {max(a):.2f} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n")
+        file.write("### Time per pair pruned (successful prunes weighted equally)\n")
+        file.write("| Constraint length | Count | Average (μs) | Median (μs) |\n")
+        file.write("|-------------------|-------|--------------|-------------|\n")
+        a_u = []
+        for _, d in constr_len_prune_data.items():
+            for num_pairs, durations in d.items():
+                if num_pairs > 0:
+                    a_u.extend([duration / num_pairs for duration in durations])
+        file.write(f"| All | {len(a_u)} | {sum(a_u)/len(a_u):.2f} | {np.median(a_u):.1f} |\n")
         for constr_len, data in constr_len_prune_data.items():
-            t = []
+            t_u = []
             for num_pairs, durations in data.items():
                 if not num_pairs == 0:
-                    t.extend([duration / num_pairs for duration in durations])
-            file.write(f"| {constr_len} | {len(t)} |  {min(t):.2f} | {max(t):.2f} | {sum(t)/len(t):.2f} | {np.median(t):.1f} |\n")
+                    t_u.extend([duration / num_pairs for duration in durations])
+            file.write(f"| {constr_len} | {len(t_u)} | {sum(t_u)/len(t_u):.2f} | {np.median(t_u):.1f} |\n")
+
+        file.write("### Time per pair pruned (weighted by num pairs pruned)\n")
+        file.write("| Constraint length | Count | Average (μs) | Median (μs) |\n")
+        file.write("|-------------------|-------|--------------|-------------|\n")
+        a_w = []
+        for _, d in constr_len_prune_data.items():
+            for num_pairs, durations in d.items():
+                if num_pairs > 0:
+                    a_w.extend([duration / num_pairs for duration in durations] * num_pairs)
+        num_prunes = sum([sum([len(durations) for num_pairs, durations in v.items() if num_pairs > 0]) for v in constr_len_prune_data.values()])
+        file.write(f"| All | {num_prunes} | {sum(a_w)/len(a_w):.2f} | {np.median(a_w):.1f} |\n")
+        for constr_len, data in constr_len_prune_data.items():
+            t_w = []
+            for num_pairs, durations in data.items():
+                if not num_pairs == 0:
+                    t_w.extend([duration / num_pairs for duration in durations] * num_pairs)
+            num_prunes_subset = sum([len(durations) for num_pairs, durations in data.items() if num_pairs > 0])
+            file.write(f"| {constr_len} | {num_prunes_subset} | {sum(t_w)/len(t_w):.2f} | {np.median(t_w):.1f} |\n")
 
         num_success, num_fail = get_num_prunes_by_success(constr_data)
         file.write("### Total number of prune calls\n")
