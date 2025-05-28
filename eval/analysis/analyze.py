@@ -26,7 +26,7 @@ def main():
     # create output dir
     data_name, _ = os.path.splitext(os.path.basename(args.data_path))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
-    output_dir = f"{data_name}_{timestamp}"
+    output_dir = f"analysis_report-{data_name}-{timestamp}"
     attempts = 10
     for i in range(attempts):
         try:
