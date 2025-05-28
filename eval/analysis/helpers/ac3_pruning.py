@@ -239,21 +239,24 @@ def get_total_prune_durations(constr_prune_data):
 #################### plotting ####################
 
 # plot average microseconds per prune vs # of pairs pruned in a single pass, and weighted least squares fit
-def plot_avg_pair_prune_durations(output_dir, constr_prune_data, max_error=1.0, confidence=0.95):
-    # map of # pairs pruned -> [list of all durations]
+def plot_avg_pair_prune_durations(output_dir, constr_prune_data, constr_lens, filter=True, max_error=1.0, confidence=0.95):
+    # map of constr len -> (map of # pairs pruned -> [list of all durations])
     all_durations = {}
 
-    for _, data in constr_prune_data.items():
+    for constr_id, data in constr_prune_data.items():
+        constr_len = constr_lens.get(str(constr_id))
+        all_durations.setdefault(constr_len, {})
+
         assert("pairs_pruned" in data)
         pairs_data = data["pairs_pruned"]
 
         for pairs_pruned, durations in pairs_data.items():
-            all_durations.setdefault(pairs_pruned, []).extend(durations)
+            all_durations[constr_len].setdefault(pairs_pruned, []).extend(durations)
 
     # returns minimum number of samples given max acceptable uncertainty given a confidence level
     def get_min_samples(durations, max_error, confidence):
         if len(durations) < 2:
-            return float('inf')  # Undefined for single samples
+            return float('inf')
 
         mean = np.mean(durations)
         std = np.std(durations, ddof=1)
@@ -262,34 +265,39 @@ def plot_avg_pair_prune_durations(output_dir, constr_prune_data, max_error=1.0, 
         return int(np.ceil((t_crit * coeff_var / max_error)**2))
 
     # filter datapoints to those within a max uncertainty
-    all_durations = {
-        pairs_pruned: durations for pairs_pruned, durations in all_durations.items()
-        if len(durations) >= get_min_samples(durations, max_error, confidence)
-    }
-
-    num_pairs = np.asarray(sorted(all_durations.keys()))
-    avg_durations = np.asarray([np.mean(all_durations[p]) for p in num_pairs])
-
-    sample_sizes = [len(d) for d in all_durations.values()]
-    weights = np.sqrt(sample_sizes)
-    results = weighted_linear_regression(num_pairs, avg_durations, weights=weights)
+    if filter:
+        for constr_len, data in all_durations.items():
+            all_durations[constr_len] = {
+                pairs_pruned: durations for pairs_pruned, durations in all_durations[constr_len].items()
+                if len(durations) >= get_min_samples(durations, max_error, confidence)
+            }
 
     plt.figure(figsize=(10, 6))
 
-    plt.scatter(num_pairs, avg_durations, alpha=0.6, label='Average duration per distinct number of pairs pruned')
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    for i, constr_len in enumerate(sorted(all_durations.keys())):
+        num_pairs = np.asarray(sorted(all_durations[constr_len].keys()))
+        avg_durations = np.asarray([np.mean(all_durations[constr_len][p]) for p in num_pairs])
 
-    plt.plot(num_pairs, results['intercept'] + results['slope']*num_pairs, 'r--',
-             label=f'Weighted fit: y={results["slope"]:.1f}x + {results["intercept"]:.1f}\n'
-                   f'R²={results["r_squared"]:.2f}, p={results["p_value"]:.2e}')
+        sample_sizes = [len(d) for d in all_durations[constr_len].values()]
+        weights = np.sqrt(sample_sizes)
+        results = weighted_linear_regression(num_pairs, avg_durations, weights=weights)
 
-    plt.annotate(
-        f"Excluded points with insufficient samples at {max_error*100:.0f}% error, {confidence*100:.0f}% CI)",
-        xy=(0.98, 0.02),
-        xycoords='axes fraction',
-        ha='right',
-        va='bottom',
-        bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
-    )
+        plt.scatter(num_pairs, avg_durations, alpha=0.6, color=colors[i % len(colors)], label=f'Length {constr_len} Constraints')
+
+        plt.plot(num_pairs, results['intercept'] + results['slope']*num_pairs, '--',
+                label=f'Length {constr_len} Weighted fit: y={results["slope"]:.1f}x + {results["intercept"]:.1f}\n'
+                    f'R²={results["r_squared"]:.2f}, p={results["p_value"]:.2e}', color=colors[i % len(colors)])
+
+    if filter:
+        plt.annotate(
+            f"Excluded points with insufficient samples at {max_error*100:.0f}% error, {confidence*100:.0f}% CI)",
+            xy=(0.98, 0.02),
+            xycoords='axes fraction',
+            ha='right',
+            va='bottom',
+            bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
+        )
 
     plt.title('Average AC-3 Pruning Durations vs Num Pairs Pruned')
     plt.xlabel('Number of Pairs Pruned in Pass')
@@ -634,7 +642,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     ac3_prune_data = gather_ac3_prune_data(data)
     ac3_constr_data = gather_ac3_constr_data(data)
 
-    plot_avg_pair_prune_durations(output_dir, constr_data)
+    plot_avg_pair_prune_durations(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_prune_size_freqs(output_dir, constr_data)
     plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
