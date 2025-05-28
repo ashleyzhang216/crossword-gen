@@ -311,7 +311,7 @@ def plot_avg_pair_prune_durations(output_dir, constr_len_prune_data, filter=True
     plt.savefig(output_dir + 'avg_pair_prune_durations.png', bbox_inches='tight')
     plt.close()
 
-# plot histogram of microseconds per pair pruned
+# plot unweighted histogram of microseconds per pair pruned
 def plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data):
     plt.figure(figsize=(10, 6))
     plt.yscale('log')
@@ -335,6 +335,32 @@ def plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data):
     plt.legend()
 
     plt.savefig(output_dir + 'duration_per_pair_prune_freq.png', bbox_inches='tight')
+    plt.close()
+
+# plot weighted histogram of microseconds per pair pruned
+def plot_weighted_duration_per_pair_prune_freq(output_dir, constr_len_prune_data):
+    plt.figure(figsize=(10, 6))
+    plt.yscale('log')
+
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    for i, constr_len in enumerate(sorted(constr_len_prune_data.keys())):
+        times_per_prune = []
+        for num_pairs, durations in constr_len_prune_data[constr_len].items():
+            if not num_pairs == 0:
+                times_per_prune.extend([duration / num_pairs for duration in durations] * num_pairs)
+
+        binwidth = 100
+        bins = range(int(min(times_per_prune)) - binwidth, int(max(times_per_prune)) + binwidth, binwidth)
+
+        plt.hist(times_per_prune, bins=bins, alpha=0.5, label=f'Length {constr_len} Constraints', color=colors[i % len(colors)], edgecolor='black')
+
+    plt.title('Weighted Histogram of Durations per Pair Pruned During Successful Prunes (Log Scale)')
+    plt.xlabel('Duration per Pair Pruned (μs)')
+    plt.ylabel('Weighted Frequency (log scale)')
+
+    plt.legend(title='Frequencies Weighted by Num Pairs Pruned')
+
+    plt.savefig(output_dir + 'weighted_duration_per_pair_prune_freq.png', bbox_inches='tight')
     plt.close()
 
 # plot histogram of number of pairs pruned per ac3 prune
@@ -674,6 +700,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
 
     plot_avg_pair_prune_durations(output_dir, constr_len_prune_data)
     plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data)
+    plot_weighted_duration_per_pair_prune_freq(output_dir, constr_len_prune_data)
     plot_prune_size_freqs(output_dir, constr_data)
     plot_pairs_pruned_freq_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
@@ -692,8 +719,24 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     with open(output_dir + 'ac3_pruning_metrics.md', 'w') as file:
         file.write("## AC-3 Pruning Metrics\n\n")
 
-        file.write("### Average time per pair pruned\n")
-        file.write(f'{get_avg_prune_duration(constr_data):.2f} us\n')
+        file.write("### Overall average time per pair pruned\n")
+        file.write(f'{get_avg_prune_duration(constr_data):.2f} μs\n')
+
+        file.write("### Time per pair pruned\n")
+        file.write("| Constraint length | Count | Min (μs) | Max (μs) | Average (μs) | Median (μs) |\n")
+        file.write("|-------------------|-------|----------|----------|--------------|-------------|\n")
+        a = []
+        for _, data in constr_len_prune_data.items():
+            for num_pairs, durations in data.items():
+                if not num_pairs == 0:
+                    a.extend([duration / num_pairs for duration in durations])
+        file.write(f"| All | {len(a)} |  {min(a):.2f} | {max(a):.2f} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n")
+        for constr_len, data in constr_len_prune_data.items():
+            t = []
+            for num_pairs, durations in data.items():
+                if not num_pairs == 0:
+                    t.extend([duration / num_pairs for duration in durations])
+            file.write(f"| {constr_len} | {len(t)} |  {min(t):.2f} | {max(t):.2f} | {sum(t)/len(t):.2f} | {np.median(t):.1f} |\n")
 
         num_success, num_fail = get_num_prunes_by_success(constr_data)
         file.write("### Total number of prune calls\n")
