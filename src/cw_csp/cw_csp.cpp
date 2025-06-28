@@ -437,8 +437,9 @@ void cw_csp::initialize_csp() {
 
     // record constraint dependencies for debugging
     stamper.result()["constr_deps"] = ordered_json::object();
-    for(const auto& pair : constr_dependencies) {
-        stamper.result()["constr_deps"][std::to_string(pair.first)] = pair.second;
+    cw_assert(variables.size() == constr_dependencies.size());
+    for(size_t var_id : variables.ids()) {
+        stamper.result()["constr_deps"][std::to_string(var_id)] = constr_dependencies.at(var_id);
     }
 
     // record variable dependencies for debugging
