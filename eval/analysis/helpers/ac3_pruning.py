@@ -831,6 +831,25 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write("### Average number of pairs pruned per AC-3 call\n")
         file.write(f'{get_avg_pairs_pruned_per_ac3(ac3_prune_data):.2f} pairs\n')
 
+        file.write("### Prune call durations (success)\n")
+        file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
+        file.write("|-------------------|-------|--------------|-------------|---------|\n")
+        for constr_len, data in constr_len_success_prune_data.items():
+            file.write(f"| {constr_len} | {len(data['success'])} | {sum(data['success'])/len(data['success']):.2f} | {np.median(data['success']):.1f} | {sum(data['success'])*1e-6:.2f} |\n")
+
+        file.write("### Prune call durations (fail)\n")
+        file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
+        file.write("|-------------------|-------|--------------|-------------|---------|\n")
+        for constr_len, data in constr_len_success_prune_data.items():
+            file.write(f"| {constr_len} | {len(data['fail'])} | {sum(data['fail'])/len(data['fail']):.2f} | {np.median(data['fail']):.1f} | {sum(data['fail'])*1e-6:.2f} |\n")
+
+        file.write("### Prune call durations (all)\n")
+        file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
+        file.write("|-------------------|-------|--------------|-------------|---------|\n")
+        for constr_len, data in constr_len_success_prune_data.items():
+            combined = data['success'] + data['fail']
+            file.write(f"| {constr_len} | {len(combined)} | {(sum(combined))/(len(combined)):.2f} | {np.median(combined):.1f} | {sum(combined)*1e-6:.2f} |\n")
+
         avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
         avg_total_prunes_all, avg_total_prunes_success, avg_total_prunes_fail = get_avg_total_prunes_per_ac3(ac3_constr_data)
 
