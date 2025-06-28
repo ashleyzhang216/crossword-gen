@@ -54,6 +54,20 @@ def gather_constr_len_prune_data(constr_prune_data, constr_lens):
 
     return all_durations
 
+# returns map of constr len -> {"success": [list of all durations], "fail": [list of all durations]}
+def gather_constr_len_success_prune_data(constr_len_prune_data):
+    all_durations = {}
+
+    for constr_len, data in constr_len_prune_data.items():
+        all_durations.setdefault(constr_len, {
+            "success": [],
+            "fail": []
+        })
+        for pairs_pruned, durations in data.items():
+            all_durations[constr_len]["success" if pairs_pruned > 0 else "fail"].extend(durations)
+
+    return all_durations
+
 # returns map of variable id -> (map of # of pairs pruned -> list of durations)
 def gather_var_prune_data(data):
     constr_dependent_vars = get_initialize_field(data, "constr_dependent_vars")
@@ -488,7 +502,7 @@ def plot_total_durations_by_constr_len(output_dir, constr_len_prune_data):
 
     bars = plt.bar(lengths, totals, edgecolor='black')
     plt.bar_label(bars,
-              labels=[f'avg {t/f*1e6:.2f} us\n(out of {f} calls)' for t, f in zip(totals, freqs)],
+              labels=[f'avg {t/f*1e6:.2f} us\n({f} calls)' for t, f in zip(totals, freqs)],
               padding=3,
               fontsize=9)
 
@@ -500,6 +514,40 @@ def plot_total_durations_by_constr_len(output_dir, constr_len_prune_data):
     plt.ylabel('Total Duration (s)')
 
     plt.savefig(output_dir + 'total_durations_by_constr_len.png', bbox_inches='tight')
+    plt.close()
+
+# plot bar graph of total time spent by constraint length AND success
+def plot_total_durations_by_constr_len_success(output_dir, constr_len_success_prune_data):
+    lengths = np.asarray(sorted(constr_len_success_prune_data.keys()))
+    results = {"success": 'g', "fail": 'r'}
+
+    # {"success": [list of duration sums for each constr len], "fail": [list of duration sums for each constr len]}
+    total_durations = {}
+    for r in results.keys():
+        total_durations.setdefault(r, [])
+        for l in lengths:
+            total_durations[r].append(constr_len_success_prune_data[l][r])
+
+    x = np.arange(len(lengths))
+    width = 0.25
+    multiplier = 0
+
+    fig, ax = plt.subplots(layout='constrained')
+
+    for result, data in total_durations.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, [sum(d)*1e-6 for d in data], width, label=result, color=results[result])
+        ax.bar_label(rects, padding=3, labels=[f"avg {sum(data[i])/len(data[i]):.2f} us\n({len(data[i])} calls)" for i in range(len(data))])
+        multiplier += 1
+
+    ax.set_ylabel('Constraint Length')
+    ax.set_ylabel('Total Duration (s)')
+    ax.set_title('Total Duration of Prunes vs Constraint Length by Success')
+    ax.set_xticks(x + width * (len(lengths) - 1)/2, lengths)
+    ax.legend(loc='upper right', ncols=len(lengths))
+    ax.set_ylim(0, 1.1 * max([max([sum(d)*1e-6 for d in total_durations[r]]) for r in results.keys()]))
+
+    plt.savefig(output_dir + 'total_durations_by_constr_len_success.png', bbox_inches='tight')
     plt.close()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
@@ -711,6 +759,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     constr_data = gather_constr_prune_data(data)
     var_data = gather_var_prune_data(data)
     constr_len_prune_data = gather_constr_len_prune_data(constr_data, get_initialize_field(data, "constr_lens"))
+    constr_len_success_prune_data = gather_constr_len_success_prune_data(constr_len_prune_data)
     ac3_prune_data = gather_ac3_prune_data(data)
     ac3_constr_data = gather_ac3_constr_data(data)
 
@@ -722,6 +771,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     plot_total_pairs_pruned_by_constr_len(output_dir, constr_data, get_initialize_field(data, "constr_lens"))
     plot_total_durations_by_num_pairs_pruned(output_dir, constr_data)
     plot_total_durations_by_constr_len(output_dir, constr_len_prune_data)
+    plot_total_durations_by_constr_len_success(output_dir, constr_len_success_prune_data)
 
     plot_success_prune_ratio_vs_var_domain_size(output_dir, var_data, get_initialize_field(data, "var_domain_sizes"))
     plot_success_prune_ratio_vs_var_lens(output_dir, var_data, get_initialize_field(data, "var_lens"))
