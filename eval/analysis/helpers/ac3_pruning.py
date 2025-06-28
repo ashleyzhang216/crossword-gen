@@ -795,9 +795,9 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
                 if num_pairs > 0:
                     a_u.extend([duration / num_pairs for duration in durations])
         file.write(f"| All | {len(a_u)} | {sum(a_u)/len(a_u):.2f} | {np.median(a_u):.1f} |\n")
-        for constr_len, data in constr_len_prune_data.items():
+        for constr_len, d in constr_len_prune_data.items():
             t_u = []
-            for num_pairs, durations in data.items():
+            for num_pairs, durations in d.items():
                 if not num_pairs == 0:
                     t_u.extend([duration / num_pairs for duration in durations])
             file.write(f"| {constr_len} | {len(t_u)} | {sum(t_u)/len(t_u):.2f} | {np.median(t_u):.1f} |\n")
@@ -812,12 +812,12 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
                     a_w.extend([duration / num_pairs for duration in durations] * num_pairs)
         num_prunes = sum([sum([len(durations) for num_pairs, durations in v.items() if num_pairs > 0]) for v in constr_len_prune_data.values()])
         file.write(f"| All | {num_prunes} | {sum(a_w)/len(a_w):.2f} | {np.median(a_w):.1f} |\n")
-        for constr_len, data in constr_len_prune_data.items():
+        for constr_len, d in constr_len_prune_data.items():
             t_w = []
-            for num_pairs, durations in data.items():
+            for num_pairs, durations in d.items():
                 if not num_pairs == 0:
                     t_w.extend([duration / num_pairs for duration in durations] * num_pairs)
-            num_prunes_subset = sum([len(durations) for num_pairs, durations in data.items() if num_pairs > 0])
+            num_prunes_subset = sum([len(durations) for num_pairs, durations in d.items() if num_pairs > 0])
             file.write(f"| {constr_len} | {num_prunes_subset} | {sum(t_w)/len(t_w):.2f} | {np.median(t_w):.1f} |\n")
 
         num_success, num_fail = get_num_prunes_by_success(constr_data)
@@ -834,20 +834,20 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write("### Prune call durations (success)\n")
         file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
         file.write("|-------------------|-------|--------------|-------------|---------|\n")
-        for constr_len, data in constr_len_success_prune_data.items():
-            file.write(f"| {constr_len} | {len(data['success'])} | {sum(data['success'])/len(data['success']):.2f} | {np.median(data['success']):.1f} | {sum(data['success'])*1e-6:.2f} |\n")
+        for constr_len, d in constr_len_success_prune_data.items():
+            file.write(f"| {constr_len} | {len(d['success'])} | {sum(d['success'])/len(d['success']):.2f} | {np.median(d['success']):.1f} | {sum(d['success'])*1e-6:.2f} |\n")
 
         file.write("### Prune call durations (fail)\n")
         file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
         file.write("|-------------------|-------|--------------|-------------|---------|\n")
-        for constr_len, data in constr_len_success_prune_data.items():
-            file.write(f"| {constr_len} | {len(data['fail'])} | {sum(data['fail'])/len(data['fail']):.2f} | {np.median(data['fail']):.1f} | {sum(data['fail'])*1e-6:.2f} |\n")
+        for constr_len, d in constr_len_success_prune_data.items():
+            file.write(f"| {constr_len} | {len(d['fail'])} | {sum(d['fail'])/len(d['fail']):.2f} | {np.median(d['fail']):.1f} | {sum(d['fail'])*1e-6:.2f} |\n")
 
         file.write("### Prune call durations (all)\n")
         file.write("| Constraint length | Count | Average (μs) | Median (μs) | Sum (s) |\n")
         file.write("|-------------------|-------|--------------|-------------|---------|\n")
-        for constr_len, data in constr_len_success_prune_data.items():
-            combined = data['success'] + data['fail']
+        for constr_len, d in constr_len_success_prune_data.items():
+            combined = d['success'] + d['fail']
             file.write(f"| {constr_len} | {len(combined)} | {(sum(combined))/(len(combined)):.2f} | {np.median(combined):.1f} | {sum(combined)*1e-6:.2f} |\n")
 
         avg_unique_prunes_all, avg_unique_prunes_success, avg_unique_prunes_fail = get_avg_unique_prunes_per_ac3(ac3_constr_data)
@@ -858,6 +858,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
         file.write("|-------------|-----|-----------------|------------|\n")
         file.write(f"| Unique | {avg_unique_prunes_all:.2f} | {avg_unique_prunes_success:.2f} | {avg_unique_prunes_fail:.2f} |\n")
         file.write(f"| Total | {avg_total_prunes_all:.2f} | {avg_total_prunes_success:.2f} | {avg_total_prunes_fail:.2f} |\n")
+        file.write(f"Out of {len(get_initialize_field(data, 'constr_lens').keys())} constraints available\n")
 
         file.write('\n')
 
