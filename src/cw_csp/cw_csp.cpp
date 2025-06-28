@@ -415,6 +415,20 @@ void cw_csp::initialize_csp() {
         }
     }
 
+    // calculate all neighbor vars connected to each var by a constraint
+    // map of var id -> set of ids of connected vars
+    map<size_t, set<size_t> > var_deps;
+    for(const auto& [var_id, constr_dep] : constr_dependencies) {
+        for(size_t constr_id : constr_dep) {
+            cw_assert(constraints[constr_id]->dependencies().count(var_id));
+            for(size_t dep_var_id : constraints[constr_id]->dependents()) {
+                if(dep_var_id != var_id) {
+                    var_deps[var_id].insert(dep_var_id);
+                }
+            }
+        }
+    }
+
     // record whether cycle constraints were included
     stamper.result()["cycles"] = ordered_json::object();
     stamper.result()["cycles"]["enabled"] = true;
@@ -425,6 +439,12 @@ void cw_csp::initialize_csp() {
     stamper.result()["constr_deps"] = ordered_json::object();
     for(const auto& pair : constr_dependencies) {
         stamper.result()["constr_deps"][std::to_string(pair.first)] = pair.second;
+    }
+
+    // record variable dependencies for debugging
+    stamper.result()["var_deps"] = ordered_json::object();
+    for(const auto& [var, deps] : var_deps) {
+        stamper.result()["var_deps"][std::to_string(var)] = deps;
     }
 
     // record sizes of each variable's domain
