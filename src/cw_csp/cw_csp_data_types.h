@@ -25,10 +25,30 @@ namespace cw_csp_data_types_ns {
         BACKTRACKING = 0,
     };
 
-    // to choose between variable selection method, when more are added in the future
-    enum var_selection_method {
-        MIN_REMAINING_VALUES = 0,
+    // mapping from csp solve strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( csp_solving_strategy, {
+        {BACKTRACKING, "Backtracking"},
+    })
+
+    // criteria for selecting next variable to assign a value to
+    enum var_ordering {
+        MRV = 0,
     };
+
+    // mapping from variable strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( var_ordering, {
+        {MRV, "Minimum Remaining Values"},
+    })
+
+    // criteria for selecting next word value to try to assign
+    enum val_ordering {
+        HIGH_SCORE_AND_FREQ = 0,
+    };
+
+    // mapping from word strategy to display name
+    NLOHMANN_JSON_SERIALIZE_ENUM( val_ordering, {
+        {HIGH_SCORE_AND_FREQ, "Highest Score, Frequency"},
+    })
 
     // a variable in a constraint satisfaction problem
     struct cw_variable {
@@ -79,7 +99,7 @@ namespace cw_csp_data_types_ns {
             size_t id;
 
             // constraint operations
-            virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) = 0;
+            virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) = 0;
             virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const = 0;
             virtual bool invalid(const id_obj_manager<cw_variable>& vars) const = 0;
 
@@ -87,8 +107,11 @@ namespace cw_csp_data_types_ns {
             // used to build constr_dependencies table in cw_csp
             virtual unordered_set<size_t> dependencies() const = 0;
 
-            // ids of var which may be modified in prune_domain() which can affect dependent constraints
+            // ids of var which may be modified in prune_domain(), possibly affecting dependent constraints
             virtual unordered_set<size_t> dependents() const = 0;
+
+            // number of variables traversed over
+            virtual size_t size() const = 0;
 
             // for each pair of intersecting variables, their lhs/rhs index values
             virtual vector<pair<uint, uint> > intersection_indices() const = 0;
@@ -134,7 +157,7 @@ namespace cw_csp_data_types_ns {
         cw_arc(size_t id, uint lhs_index, uint rhs_index, size_t lhs, size_t rhs);
 
         // AC-3 step; remove all words in lhs domain that don't have a corresponding rhs word in its domain
-        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
@@ -147,6 +170,9 @@ namespace cw_csp_data_types_ns {
 
         // only dependent is lhs
         virtual unordered_set<size_t> dependents() const override;
+
+        // always traverses over exactly 2 variables
+        virtual size_t size() const override;
 
         // only pair of intersections is (lhs_index, rhs_index)
         virtual vector<pair<uint, uint> > intersection_indices() const override;
@@ -183,7 +209,7 @@ namespace cw_csp_data_types_ns {
         // must have exact length of cycle_len
         vector<size_t> var_cycle;
 
-        // must have same len of vars, i.e. cycle_len, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
+        // must have same len of var_cycle, i.e. cycle_len, intersections[i] describes var_cycle[i] and var_cycle[i+1], with wraparound
         vector<pair<uint, uint> > intersections;
 
         // construct using existing arcs 
@@ -193,19 +219,22 @@ namespace cw_csp_data_types_ns {
         cw_cycle(size_t id, const vector<size_t>& var_cycle, const vector<pair<uint, uint> >& intersections);
 
         // AC-N step; remove all words in first var's domain that don't have a path to the last var
-        virtual unordered_set<size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
+        virtual unordered_map<size_t, size_t> prune_domain(id_obj_manager<cw_variable>& vars) override;
 
         // used by solved() in cw_csp to check that this constraint is satisfied
         virtual bool satisfied(const id_obj_manager<cw_variable>& vars) const override;
 
-        // returns true iff lhs domain is now empty
+        // returns true iff any domain is now empty
         virtual bool invalid(const id_obj_manager<cw_variable>& vars) const override;
 
-        // all elements in vars are dependencies
+        // all elements in var_cycle are dependencies
         virtual unordered_set<size_t> dependencies() const override;
 
-        // all elements in vars are dependents
+        // all elements in var_cycle are dependents
         virtual unordered_set<size_t> dependents() const override;
+
+        // traverses over one variable per element in var_cycle
+        virtual size_t size() const override;
 
         // equivalent to getter for intersections
         virtual vector<pair<uint, uint> > intersection_indices() const override;

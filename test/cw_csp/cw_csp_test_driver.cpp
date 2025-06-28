@@ -237,7 +237,8 @@ bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, st
     crossword cw(cw_name.str(), length, height, contents);
     dut = make_unique<cw_csp>(dut_name.str(), std::move(cw), filepath, false, false);
 
-    bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MIN_REMAINING_VALUES) == expected_result);
+    // TODO: test other solving, variable selection, and word selection strategies
+    bool result = check_condition(dut_name.str() + " backtracking validity", dut->solve(BACKTRACKING, MRV, HIGH_SCORE_AND_FREQ) == expected_result);
     if(result && expected_result && do_print) {
         utils.log(DEBUG, dut->result());
     }

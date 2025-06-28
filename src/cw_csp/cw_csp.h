@@ -34,7 +34,7 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // base constructor, agnostic to grid layout
-            cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker);
+            cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool use_timetracker);
 
             // read-only getters for testing
             unordered_set<unique_ptr<cw_variable > >                                           get_variables()           const;
@@ -42,7 +42,7 @@ namespace cw_csp_ns {
             unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > > get_constr_dependencies() const;
 
             // solve CSP
-            bool solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy);
+            bool solve(csp_solving_strategy csp_strategy, var_ordering var_order, val_ordering val_order);
 
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
@@ -53,8 +53,8 @@ namespace cw_csp_ns {
             // get string representation of solved cw for printing when solved() == true
             string result() const;
 
-            // save timetracker results for analysis
-            void save_timetracker_result(string filepath) const { tracker.save_results(filepath); }
+            // save profiling results
+            void save_timetracker_result(string filepath) const;
 
             // returns permutations of csp, i.e. csp with a permutated crossword grid
             vector<cw_csp> permutations(unordered_set<string>& explored_grids) const;
@@ -75,20 +75,20 @@ namespace cw_csp_ns {
             void initialize_csp();
 
             // select next unassigned variable to explore
-            size_t select_unassigned_var(var_selection_method strategy);
+            size_t select_unassigned_var(var_ordering strategy);
 
             // undo previous call of ac3() due to invalid CSP or backtracking
             void undo_ac3();
 
             // use backtracking to solve CSP
-            bool solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth);
+            bool solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth);
 
         private:
             // timetracker object for analysis
             mutable cw_timetracker tracker;
 
             // original word dictionary filepath
-            string filepath;
+            string dict_filepath;
 
             // original tracker enabling input param
             bool use_timetracker;

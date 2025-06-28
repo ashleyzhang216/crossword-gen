@@ -13,17 +13,17 @@ using namespace cw_csp_ns;
  * 
  * @param name name of this object
  * @param grid rvalue crossword grid to solve and assume ownership of, can have or not have contents
- * @param filepath relative filepath to dictionary of words file
+ * @param dict_filepath relative filepath to dictionary of words file
  * @param print_progress_bar displays progress bar iff true
  * @param use_timetracker enables cw_timetracker iff true
 */
-cw_csp::cw_csp(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, bool use_timetracker) 
+cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool use_timetracker) 
         : common_parent(name, VERBOSITY),
           tracker("cw_csp", use_timetracker),
-          filepath(filepath),
+          dict_filepath(dict_filepath),
           use_timetracker(use_timetracker),
           cw(std::move(grid)),
-          total_domain(name + " total_domain", filepath, print_progress_bar),
+          total_domain(name + " total_domain", dict_filepath, print_progress_bar),
           print_progress_bar(print_progress_bar) {
     initialize_csp();
 }
@@ -70,6 +70,31 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
 }
 
 /**
+ * @brief save profiling result from cw_timetracker
+ *
+ * @param filepath the filepath to save the result to, as a json file
+ */
+void cw_csp::save_timetracker_result(string filepath) const {
+    tracker.save_results(filepath, ordered_json::object({
+        {"success", solved()},
+        {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},
+        {"grid", ordered_json::object({
+            {"rows", cw.rows()},
+            {"cols", cw.cols()},
+            {"dict", dict_filepath},
+            {"contents", cw.init_contents()}
+        })},
+        {"track_ac3",
+            #ifdef TIMETRACKER_TRACK_AC3
+            true
+            #else
+            false
+            #endif
+        }
+    }));
+}
+
+/**
  * @brief constructor helper method to populate all csp variables/constraints based on cw
 */
 void cw_csp::initialize_csp() {
@@ -81,6 +106,9 @@ void cw_csp::initialize_csp() {
     bool traversing_word; // currently iterating through variable
     stringstream word_pattern; // pattern formed by word so far
     uint cur_var_row = 0ul, cur_var_col = 0ul, cur_var_len = 0ul; // valid iff traversing_word
+    
+    // track initial sizes of each variable's domain
+    map<size_t, size_t> var_domain_sizes;
 
     utils.log(DEBUG, "cw_csp searching for vertical variables");
 
@@ -117,9 +145,13 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
+                        // gather new var domain and record its size
+                        unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+                        var_domain_sizes[variables.size()] = domain.size();
+
                         // save new variable
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), std::move(domain)
                         ));
                     }
 
@@ -135,10 +167,15 @@ void cw_csp::initialize_csp() {
             }
         }
 
+        // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
+            // gather new var domain and record its size
+            unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+            var_domain_sizes[variables.size()] = domain.size();
+
+            // save new variable
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, DOWN, word_pattern.str(), std::move(domain)
             ));
         }
     }
@@ -178,8 +215,13 @@ void cw_csp::initialize_csp() {
 
                     // single letters are not full words
                     if(cur_var_len >= MIN_WORD_LEN) {
+                        // gather new var domain and record its size
+                        unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+                        var_domain_sizes[variables.size()] = domain.size();
+
+                        // save new variable
                         variables.push_back(make_unique<cw_variable>(
-                            variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                            variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), std::move(domain)
                         ));
                     }
 
@@ -195,10 +237,15 @@ void cw_csp::initialize_csp() {
             }
         }
 
+        // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
         if(traversing_word && cur_var_len >= MIN_WORD_LEN) {
-            // applicable if the last MIN_WORD_LEN+ spaces in a row are blank
+            // gather new var domain and record its size
+            unordered_set<word_t> domain = total_domain.find_matches(word_pattern.str());
+            var_domain_sizes[variables.size()] = domain.size();
+
+            // save new variable
             variables.push_back(make_unique<cw_variable>(
-                variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), total_domain.find_matches(word_pattern.str())
+                variables.size(), cur_var_row, cur_var_col, cur_var_len, ACROSS, word_pattern.str(), std::move(domain)
             ));
         }
     }
@@ -367,6 +414,66 @@ void cw_csp::initialize_csp() {
             constr_dependencies[var].insert(i);
         }
     }
+
+    // calculate all neighbor vars connected to each var by a constraint
+    // map of var id -> set of ids of connected vars
+    map<size_t, set<size_t> > var_deps;
+    for(const auto& [var_id, constr_dep] : constr_dependencies) {
+        for(size_t constr_id : constr_dep) {
+            cw_assert(constraints[constr_id]->dependencies().count(var_id));
+            for(size_t dep_var_id : constraints[constr_id]->dependents()) {
+                if(dep_var_id != var_id) {
+                    var_deps[var_id].insert(dep_var_id);
+                }
+            }
+        }
+    }
+
+    // record whether cycle constraints were included
+    stamper.result()["cycles"] = ordered_json::object();
+    stamper.result()["cycles"]["enabled"] = true;
+    stamper.result()["cycles"]["min_len"] = cw_cycle::MIN_CYCLE_LEN;
+    stamper.result()["cycles"]["max_len"] = cw_cycle::MAX_CYCLE_LEN;
+
+    // record constraint dependencies for debugging
+    stamper.result()["constr_deps"] = ordered_json::object();
+    cw_assert(variables.size() >= constr_dependencies.size());
+    for(size_t var_id : variables.ids()) {
+        if(constr_dependencies.count(var_id)) {
+            stamper.result()["constr_deps"][std::to_string(var_id)] = constr_dependencies.at(var_id);
+        }
+    }
+
+    // record variable dependencies for debugging
+    stamper.result()["var_deps"] = ordered_json::object();
+    for(const auto& [var, deps] : var_deps) {
+        stamper.result()["var_deps"][std::to_string(var)] = deps;
+    }
+
+    // record sizes of each variable's domain
+    cw_assert(var_domain_sizes.size() == variables.size());
+    stamper.result()["var_domain_sizes"] = ordered_json::object();
+    for(const auto& [var, size] : var_domain_sizes) {
+        stamper.result()["var_domain_sizes"][std::to_string(var)] = size;
+    }
+
+    // record dependent variables of each constraint
+    stamper.result()["constr_dependent_vars"] = ordered_json::object();
+    for(size_t id : constraints.ids()) {
+        stamper.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
+    }
+
+    // record length of each variable
+    stamper.result()["var_lens"] = ordered_json::object();
+    for(size_t id : variables.ids()) {
+        stamper.result()["var_lens"][std::to_string(id)] = variables[id]->length;
+    }
+
+    // record lengths of each constraint
+    stamper.result()["constr_lens"] = ordered_json::object();
+    for(size_t id : constraints.ids()) {
+        stamper.result()["constr_lens"][std::to_string(id)] = constraints[id]->size();
+    }
 }
 
 /**
@@ -409,7 +516,20 @@ bool cw_csp::ac3() {
         constraints_in_queue.erase(constr_id);
 
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
-        unordered_set<size_t> modified = constraints[constr_id]->prune_domain(variables);
+        unordered_map<size_t, size_t> modified;
+        {
+            #ifdef TIMETRACKER_TRACK_AC3
+            cw_timestamper stamper(tracker, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
+            #endif
+
+            modified = constraints[constr_id]->prune_domain(variables);
+            #ifdef TIMETRACKER_TRACK_AC3
+            stamper.result()["vars_pruned"] = ordered_json::object();
+            for(const auto& [var_id, pairs_removed] : modified) {
+                stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
+            }
+            #endif
+        }
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
@@ -421,13 +541,13 @@ bool cw_csp::ac3() {
                 // undo pruning
                 undo_ac3();
                 #ifdef TIMETRACKER_TRACK_AC3
-                stamper.set_result("fail");
+                stamper.result()["success"] = false;
                 #endif // TIMETRACKER_TRACK_AC3
                 return false;
             }
 
             // add dependent constraints to queue
-            for(size_t dep : modified) {
+            for(const auto& [dep, _] : modified) {
                 for(size_t dep_constr : constr_dependencies.at(dep)) {
                     if(constraints_in_queue.count(dep_constr) == 0) {
                         constraint_queue.push(dep_constr);
@@ -440,7 +560,7 @@ bool cw_csp::ac3() {
 
     // running AC-3 to completion does not make CSP invalid
     #ifdef TIMETRACKER_TRACK_AC3
-    stamper.set_result("pass");
+    stamper.result()["success"] = true;
     #endif // TIMETRACKER_TRACK_AC3
     return true;
 }
@@ -502,17 +622,14 @@ string cw_csp::result() const {
 /**
  * @brief selects one unassigned var ptr in variables
  * 
- * @param strategy the selection strategy to use
- * @return next unassigned shared_ptr<cw_variable> in variables to explore, nullptr if none remaining
- * 
- * TODO: currently always selects empty/single-valued vars first due to MIN_REMAINING_VALUES being only strategy, 
- *       this helps backtracking detect invalid assignments asap but this method needs to change if new strategy added
+ * @param var_order the ordering to use
+ * @return next unassigned var id in variables to explore, UINT_MAX if none remaining
 */
-size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
+size_t cw_csp::select_unassigned_var(var_ordering var_order) {
     size_t result = id_obj_manager<cw_variable>::INVALID_ID;
 
-    switch(strategy) {
-        case MIN_REMAINING_VALUES: {
+    switch(var_order) {
+        case MRV: {
                 size_t min_num_values = UINT_MAX;
                 for(unique_ptr<cw_variable>& var : variables) {
                     // if this variable is unassigned AND has fewer remaining values in domain
@@ -521,9 +638,6 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
                         result = var->id;
                     }
                 }
-            } break;
-        default: {
-                utils.log(ERROR, "select_unassigned_var() got unknown var_selection_method: ", strategy);
             } break;
     }
 
@@ -534,31 +648,34 @@ size_t cw_csp::select_unassigned_var(var_selection_method strategy) {
  * @brief solves this CSP using the given strategy
  * 
  * @param csp_strategy strategy to solve this CSP
- * @param var_strategy strategy to select next unassigned variable
+ * @param var_order variable ordering to use to select next unassigned variable
+ * @param val_order value ordering to use to select next word value to try
  * @return true iff successful
 */
-bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_strategy) {
+bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, val_ordering val_order) {
     cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
+    stamper.result()["csp_strategy"] = csp_strategy;
+    stamper.result()["var_ordering"] = var_order;
+    stamper.result()["val_ordering"] = val_order;
 
     // base case for initially invalid crosswords
     if(!ac3()) {
-        stamper.set_result("fail: initial ac3");
+        stamper.result()["success"] = false;
+        stamper.result()["reason"]  = "ac3";
         return false;
     }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
-                if(solve_backtracking(var_strategy, print_progress_bar, 0)) {
-                    stamper.set_result("success");
+                if(solve_backtracking(var_order, val_order, print_progress_bar, 0)) {
+                    stamper.result()["success"] = true;
+                    stamper.result()["reason"]  = "recursive";
                     return true;
                 } else {
-                    stamper.set_result("fail: exhausted domain");
+                    stamper.result()["success"] = false;
+                    stamper.result()["reason"]  = "recursive";
                     return false;
                 }
-            } break;
-        default: {
-                utils.log(ERROR, "solve() got unknown strategy: ", var_strategy);
-                return false;
             } break;
     }
 
@@ -567,25 +684,30 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_selection_method var_s
 
 /**
  * @brief use backtracking strategy to solve CSP
- * 
- * @param var_strategy strategy to use to select next unassigned variable 
+ *
+ * @param var_order variable ordering to use to select next unassigned variable
+ * @param val_order value ordering to use to select next word value to try
  * @param do_progress_bar true for top level call in prod to avoid printing during testing
  * @param depth the depth of recursive calls, for analysis
  * @return true iff successful
 */
-bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progress_bar, uint depth) {
-    cw_timestamper stamper(tracker, TS_CSP_BACKTRACK_STEP, "depth: " + std::to_string(depth));
+bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth) {
+    cw_timestamper stamper(tracker, TS_CSP_SEARCH_STEP, "Backtracking");
+    stamper.result()["depth"] = depth;
 
     utils.log(DEBUG, "entering solve_backtracking() with depth ", depth);
 
     // base case
     if(solved()) {
-        stamper.set_result("success: solved");
+        stamper.result()["variable"]    = nullptr;
+        stamper.result()["success"]     = true;
+        stamper.result()["reason"]      = "solved";
+        stamper.result()["jump_height"] = nullptr;
         return true;
     }
 
     // select next variable
-    size_t next_var = select_unassigned_var(var_strategy);
+    size_t next_var = select_unassigned_var(var_order);
     cw_assert(next_var != id_obj_manager<cw_variable>::INVALID_ID);
 
     utils.log(DEBUG, "selected next var: ", *variables[next_var]);
@@ -594,12 +716,24 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     vector<word_t> domain_copy{variables[next_var]->domain.get_cur_domain()};
 
     // sort candidates by word score, tiebroken by frequency
+    // TODO: implement other strategies
+    cw_assert_m(val_order == HIGH_SCORE_AND_FREQ, "Value orderings other than HIGH_SCORE_AND_FREQ not currently supported by solve_backtracking()");
     auto compare = [](const word_t& lhs, const word_t& rhs) {
         if(lhs.score != rhs.score) return lhs.score > rhs.score;
         if(lhs.freq != rhs.freq) return lhs.freq > rhs.freq;
         return lhs.word > rhs.word;
     };
     sort(domain_copy.begin(), domain_copy.end(), compare);
+
+    // record variable chosen
+    stamper.result()["variable"] = ordered_json::object({
+        {"origin_row",  variables[next_var]->origin_row},
+        {"origin_col",  variables[next_var]->origin_col},
+        {"direction",   word_dir_name.at(variables[next_var]->dir)},
+        {"length",      variables[next_var]->length},
+        {"id",          next_var},
+        {"domain_size", domain_copy.size()}
+    });
 
     // only initialize if this is top level solve_backtracking() call in prod
     unique_ptr<progress_bar> bar = nullptr;
@@ -609,7 +743,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
-        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, word.word);
+        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, "");
+        word_stamper.result()["word"] = word.word;
 
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
@@ -627,16 +762,19 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 cw.write({
                     .origin_row = variables[next_var]->origin_row,
                     .origin_col = variables[next_var]->origin_col,
-                    .word = word.word,
-                    .dir = variables[next_var]->dir
+                    .word       = word.word,
+                    .dir        = variables[next_var]->dir
                 });
 
                 // will be overwritten if fails recurisively
-                word_stamper.set_result("success: recursive");
+                word_stamper.result()["success"] = true;
+                word_stamper.result()["reason"]  = "recursive";
 
                 // recurse
-                if(solve_backtracking(var_strategy, false, depth + 1)) {
-                    stamper.set_result("success: recursive");
+                if(solve_backtracking(var_order, val_order, false, depth + 1)) {
+                    stamper.result()["success"]     = true;
+                    stamper.result()["reason"]      = "recursive";
+                    stamper.result()["jump_height"] = nullptr;
                     return true;
                 }
                 
@@ -644,9 +782,11 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
                 cw_assert(cw.undo_prev_write() == word.word);
 
                 undo_ac3(); // AC-3 undo automatic iff ac3() returns false
-                word_stamper.set_result("fail: recursive");
+                word_stamper.result()["success"] = false;
+                word_stamper.result()["reason"]  = "recursive";
             } else {
-                word_stamper.set_result("fail: ac3");
+                word_stamper.result()["success"] = false;
+                word_stamper.result()["reason"]  = "ac3";
             }
 
             utils.log(DEBUG, "word failed: ", word);
@@ -655,7 +795,8 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
             variables[next_var]->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
-            word_stamper.set_result("fail: duplicate");
+            word_stamper.result()["success"] = false;
+            word_stamper.result()["reason"]  = "duplicate";
             utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
@@ -664,7 +805,9 @@ bool cw_csp::solve_backtracking(var_selection_method var_strategy, bool do_progr
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
-    stamper.set_result("fail: exhausted domain");
+    stamper.result()["success"]     = false;
+    stamper.result()["reason"]      = "domain exhausted";
+    stamper.result()["jump_height"] = 1; // upon failure, backtracking always goes up only one search step
     return false;
 }
 
@@ -678,7 +821,7 @@ vector<cw_csp> cw_csp::permutations(unordered_set<string>& explored_grids) const
     vector<cw_csp> res;
 
     for(size_t i = 0; i < p.size(); ++i) {
-        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), filepath, print_progress_bar, use_timetracker));
+        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), dict_filepath, print_progress_bar, use_timetracker));
     }
 
     return res;

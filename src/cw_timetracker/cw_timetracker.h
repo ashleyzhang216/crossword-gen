@@ -26,7 +26,7 @@ namespace cw_timetracker_ns {
         cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev);
 
         // ends timestep measurement
-        void resolve(size_t expected_id, const optional<string>& r);
+        void resolve(size_t expected_id, ordered_json&& r);
 
         // returns true iff timestep has been resolved
         bool resolved() { return end.has_value(); }
@@ -53,7 +53,7 @@ namespace cw_timetracker_ns {
         optional<time_point<high_resolution_clock> > end;
 
         // context as to how or why this timestep ended
-        optional<string> result;
+        ordered_json result;
     }; // cw_timestep
 
     /**
@@ -65,10 +65,10 @@ namespace cw_timetracker_ns {
             size_t start_timestep(ts_type_t type, const string& name);
             
             // end previous timestep
-            void end_timestep(size_t id, const optional<string>& result);
+            void end_timestep(size_t id, ordered_json&& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(const string& filepath);
+            void save_results(const string& filepath, ordered_json&& result = ordered_json::object());
 
             // basic constructor, initializes root timestep
             cw_timetracker(const string& init_name, bool enabled);
@@ -99,9 +99,8 @@ namespace cw_timetracker_ns {
             // constructor to initialize new timestep
             cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name);
 
-            // set result string to attach to timestep upon completion
-            // overrides previous result, if set
-            void set_result(const string& r);
+            // returns ref to json object for modification
+            ordered_json& result();
 
             // desctructor to resolve the timestep this object was created to manage
             ~cw_timestamper();
@@ -121,8 +120,8 @@ namespace cw_timetracker_ns {
             // id of timestep this object manages
             size_t id;
 
-            // optional result string to attach to timestep upon completion
-            optional<string> result;
+            // result attached to timestep, format specific to each timestep type
+            ordered_json _result;
     }; // cw_timestamper
 }; // cw_timetracker_ns
 
