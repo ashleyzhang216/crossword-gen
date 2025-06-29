@@ -47,6 +47,9 @@ namespace cw_csp_ns {
             // execute AC-3 algorithm to reduce CSP
             bool ac3();
 
+            // undo previous call of ac3() due to invalid CSP or backtracking
+            void undo_ac3();
+
             // check if CSP is solved
             bool solved() const;
 
@@ -76,9 +79,6 @@ namespace cw_csp_ns {
 
             // select next unassigned variable to explore
             size_t select_unassigned_var(var_ordering strategy);
-
-            // undo previous call of ac3() due to invalid CSP or backtracking
-            void undo_ac3();
 
             // use backtracking to solve CSP
             bool solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth);

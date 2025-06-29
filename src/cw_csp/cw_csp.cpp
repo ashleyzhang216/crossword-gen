@@ -477,7 +477,7 @@ void cw_csp::initialize_csp() {
 }
 
 /**
- * @brief AC-3 algorithm to reduce CSP; calls undo_ac3() iff running AC-3 to completion would result in an invalid CSP automatically
+ * @brief AC-3 algorithm to reduce CSP, stops early if CSP becomes invalid
  * 
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
@@ -533,13 +533,12 @@ bool cw_csp::ac3() {
         if(modified.size() > 0) {
             if(constraints[constr_id]->invalid(variables)) {
                 // CSP is now invalid, i.e. var has empty domain
-                utils.log(DEBUG, "CSP became invalid, undo-ing pruning");
+                utils.log(DEBUG, "CSP became invalid");
 
                 // report violating tiles that caused this to become invalid to the crossword grid
                 cw.report_invalidating_tiles(constraints[constr_id]->intersection_tiles(variables));
 
-                // undo pruning
-                undo_ac3();
+                // early stopping upon invalid CSP
                 #ifdef TIMETRACKER_TRACK_AC3
                 stamper.result()["success"] = false;
                 #endif // TIMETRACKER_TRACK_AC3
@@ -781,13 +780,13 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
                 // undo adding to crossword asignment
                 cw_assert(cw.undo_prev_write() == word.word);
 
-                undo_ac3(); // AC-3 undo automatic iff ac3() returns false
                 word_stamper.result()["success"] = false;
                 word_stamper.result()["reason"]  = "recursive";
             } else {
                 word_stamper.result()["success"] = false;
                 word_stamper.result()["reason"]  = "ac3";
             }
+            undo_ac3(); // undo AC-3 regardless of if CSP invalid or failed recursively
 
             utils.log(DEBUG, "word failed: ", word);
 

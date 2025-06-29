@@ -135,23 +135,36 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
     unordered_set<unique_ptr<cw_variable> > original_variables = dut->get_variables();
 
     result &= check_condition(dut_name.str() + " ac3 validity", expected_result == dut->ac3());
-    if(!expected_result) {
-        // check var equality
-        unordered_set<unique_ptr<cw_variable> > unchanged_variables = dut->get_variables();
-        result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(original_variables, unchanged_variables, true));
 
-        // check var domain equality
-        unordered_map<unique_ptr<cw_variable>, unordered_set<word_t> > result_var_domains;
-        unordered_map<unique_ptr<cw_variable>, unordered_set<word_t> > expected_var_domains;
-        for(const auto& var : unchanged_variables) {
-            vector<word_t> domain_vec = var->domain.get_cur_domain();
-            result_var_domains.insert(std::make_pair(var->clone(), unordered_set<word_t>(domain_vec.begin(), domain_vec.end())));
-        }
-        for(const auto& var : original_variables) {
-            vector<word_t> domain_vec = var->domain.get_cur_domain();
-            expected_var_domains.insert(std::make_pair(var->clone(), unordered_set<word_t>(domain_vec.begin(), domain_vec.end())));
-        }
-        result &= check_condition(dut_name.str() + " var domains",  map_to_set_contents_equal(result_var_domains, expected_var_domains, true));
+    // check var equality
+    unordered_set<unique_ptr<cw_variable> > post_ac3_variables = dut->get_variables();
+    result &= check_condition(dut_name.str() + " unchanged vars", set_contents_equal(original_variables, post_ac3_variables, true));
+
+    // check var domain equality before/after undo
+    if(!expected_result) {
+        // undo ac3, expecting unchanged domains afterwards
+        dut->undo_ac3();
+        unordered_set<unique_ptr<cw_variable> > post_undo_variables = dut->get_variables();
+
+        auto unchanged_domains = [&](bool ground_truth, const unordered_set<unique_ptr<cw_variable> >& vars) -> void {
+            unordered_map<unique_ptr<cw_variable>, unordered_set<word_t> > result_var_domains;
+            unordered_map<unique_ptr<cw_variable>, unordered_set<word_t> > expected_var_domains;
+            for(const auto& var : vars) {
+                vector<word_t> domain_vec = var->domain.get_cur_domain();
+                result_var_domains.insert(std::make_pair(var->clone(), unordered_set<word_t>(domain_vec.begin(), domain_vec.end())));
+            }
+            for(const auto& var : original_variables) {
+                vector<word_t> domain_vec = var->domain.get_cur_domain();
+                expected_var_domains.insert(std::make_pair(var->clone(), unordered_set<word_t>(domain_vec.begin(), domain_vec.end())));
+            }
+            result &= check_condition(
+                dut_name.str() + (ground_truth ? " unchanged" : " changed") + " var domains",
+                ground_truth == map_to_set_contents_equal(result_var_domains, expected_var_domains, ground_truth)
+            );
+        };
+
+        unchanged_domains(false, post_ac3_variables);
+        unchanged_domains(true, post_undo_variables);
     }
 
     return result;
