@@ -108,12 +108,12 @@ def gather_ac3_prune_data(data):
         if node.get('type') == "AC3":
             total_pairs_pruned = 0
             for child in node.get('children', []):
-                if child.get('type') == "AC3 Prune":
-                    assert('result' in child and 'vars_pruned' in child.get('result'))
+                assert(child['type'] == "AC3 Prune")
+                assert('result' in child and 'vars_pruned' in child.get('result'))
 
-                    result = child['result']
-                    vars_pruned = result['vars_pruned']
-                    total_pairs_pruned += sum(vars_pruned.values())
+                result = child['result']
+                vars_pruned = result['vars_pruned']
+                total_pairs_pruned += sum(vars_pruned.values())
 
             all_prunes.setdefault(total_pairs_pruned, {
                 "success": 0,
@@ -141,10 +141,10 @@ def gather_ac3_constr_data(data):
             constr_ids_considered = []
 
             for child in node.get('children', []):
-                if child.get('type') == "AC3 Prune":
-                    assert('name' in child)
-                    constr_id = child['name']
-                    constr_ids_considered.append(constr_id)
+                assert(child['type'] == "AC3 Prune")
+                assert('name' in child)
+                constr_id = child['name']
+                constr_ids_considered.append(constr_id)
 
             num_unique_prunes = len(set(constr_ids_considered))
             num_total_prunes = len(constr_ids_considered)

@@ -319,10 +319,9 @@ def gather_search_tree(data) -> SearchNode:
         elif data_node['type'] == "AC3":
             num_pairs_pruned = 0
             for child_data_node in data_node['children']:
-                assert(child_data_node['type'] == "AC3 Prune" or child_data_node['type'] == "Undo AC3")
-                if child_data_node['type'] == "AC3 Prune":
-                    assert(len(child_data_node['children']) == 0)
-                    num_pairs_pruned += sum(child_data_node['result']['vars_pruned'].values())
+                assert(child_data_node['type'] == "AC3 Prune")
+                assert(len(child_data_node['children']) == 0)
+                num_pairs_pruned += sum(child_data_node['result']['vars_pruned'].values())
 
             search_node.set_num_constrs(len(data_node.get('children', [])), num_pairs_pruned)
         else:
