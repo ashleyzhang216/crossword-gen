@@ -4,20 +4,20 @@
 // Description: execution time tracker and related object declarations for cw_csp performance analysis
 // ==================================================================
 
-#ifndef CW_TIMETRACKER_H
-#define CW_TIMETRACKER_H
+#ifndef CW_TRACER_H
+#define CW_TRACER_H
 
 #include "../common/common_data_types.h"
 #include "../utils/cw_utils.h"
-#include "cw_timetracker_data_types.h"
+#include "cw_tracer_data_types.h"
 #include "../common/common_parent.h"
 
 using namespace common_data_types_ns;
 using namespace cw;
-using namespace cw_timetracker_data_types_ns;
+using namespace cw_tracer_data_types_ns;
 using namespace common_parent_ns;
 
-namespace cw_timetracker_ns {
+namespace cw_tracer_ns {
     /**
      * @brief internal tree node representation of one interval of time for a single execution step 
     */
@@ -59,7 +59,7 @@ namespace cw_timetracker_ns {
     /**
      * @brief manages a tree of cw_timestep representing the whole search execution
     */
-    class cw_timetracker : public common_parent {
+    class cw_tracer : public common_parent {
         public:
             // start new timestep
             size_t start_timestep(ts_type_t type, const string& name);
@@ -68,10 +68,10 @@ namespace cw_timetracker_ns {
             void end_timestep(size_t id, ordered_json&& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(const string& filepath, ordered_json&& result = ordered_json::object());
+            void save_results(const string& filepath, ordered_json&& result = ordered_json::object()); // TODO: rename from save_results --> save_result
 
             // basic constructor, initializes root timestep
-            cw_timetracker(const string& init_name, bool enabled);
+            cw_tracer(const string& init_name, bool enabled);
 
         private:
             // whether this object should do anything at all
@@ -85,19 +85,19 @@ namespace cw_timetracker_ns {
 
             // node of current deepest unresolved timestep
             shared_ptr<cw_timestep> cur;
-    }; // cw_timetracker
+    }; // cw_tracer
 
     // conversion from cw_timestep to json
     void to_json(ordered_json& j, const shared_ptr<cw_timestep>& step);
 
     /**
-     * @brief manages calls to a cw_timetracker object during a single timestep
+     * @brief manages calls to a cw_tracer object during a single timestep
      * @note does not inherit common_parent for speed
     */
     class cw_timestamper {
         public:
             // constructor to initialize new timestep
-            cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name);
+            cw_timestamper(cw_tracer& tracker, ts_type_t type, const string& name);
 
             // returns ref to json object for modification
             ordered_json& result();
@@ -114,8 +114,8 @@ namespace cw_timetracker_ns {
             cw_timestamper& operator=(cw_timestamper&&) = delete; // move assignment
                     
         private:
-            // cw_timetracker ref to make calls to
-            cw_timetracker& tracker;
+            // cw_tracer ref to make calls to
+            cw_tracer& tracker; // TODO: rename from tracker --> tracer
 
             // id of timestep this object manages
             size_t id;
@@ -123,6 +123,6 @@ namespace cw_timetracker_ns {
             // result attached to timestep, format specific to each timestep type
             ordered_json _result;
     }; // cw_timestamper
-}; // cw_timetracker_ns
+}; // cw_tracer_ns
 
-#endif // CW_TIMETRACKER_H
+#endif // CW_TRACER_H

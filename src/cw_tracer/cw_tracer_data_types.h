@@ -15,7 +15,7 @@ using namespace cw;
 
 #define TIMETRACKER_TRACK_AC3
 
-namespace cw_timetracker_data_types_ns {
+namespace cw_tracer_data_types_ns {
     /**
      * @brief type of tasks executed during a timestep
     */
@@ -48,6 +48,6 @@ namespace cw_timetracker_data_types_ns {
         {TS_CSP_UNDO_AC3,    "Undo AC3"},
         #endif // TIMETRACKER_TRACK_AC3
     })
-}; // cw_timetracker_data_types_ns
+}; // cw_tracer_data_types_ns
 
 #endif // CW_TIMETRACKER_DATA_TYPES_H

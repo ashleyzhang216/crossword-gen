@@ -4,6 +4,6 @@
 // Description: data types implementations for execution time tracker and related object declarations for cw_csp performance analysis
 // ==================================================================
 
-#include "cw_timetracker_data_types.h"
+#include "cw_tracer_data_types.h"
 
-using namespace cw_timetracker_data_types_ns;
+using namespace cw_tracer_data_types_ns;

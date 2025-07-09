@@ -4,9 +4,9 @@
 // Description: execution time tracker and related object implementations for cw_csp performance analysis
 // ==================================================================
 
-#include "cw_timetracker.h"
+#include "cw_tracer.h"
 
-using namespace cw_timetracker_ns;
+using namespace cw_tracer_ns;
 
 // ############### cw_timestep ###############
 
@@ -43,15 +43,15 @@ void cw_timestep::resolve(size_t expected_id, ordered_json&& r) {
     end = high_resolution_clock::now();
 }
 
-// ############### cw_timetracker ###############
+// ############### cw_tracer ###############
 
 /**
- * @brief constructor for cw_timetracker for cw_csp, creates root timestep to encompass entire execution
+ * @brief constructor for cw_tracer for cw_csp, creates root timestep to encompass entire execution
  * 
  * @param init_name name for root level timestep
  * @param enabled behaviors hold for this object iff enabled is true, otherwise all calls are ignored
 */
-cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_parent((init_name + "timetracker"), VERBOSITY), enabled(enabled), next_id(0ul) {
+cw_tracer::cw_tracer(const string& init_name, bool enabled) : common_parent((init_name + "tracer"), VERBOSITY), enabled(enabled), next_id(0ul) {
     if(enabled) {
         root = make_shared<cw_timestep>(TS_CSP_TOTAL, init_name, next_id, nullptr);
         cur = root;
@@ -66,7 +66,7 @@ cw_timetracker::cw_timetracker(const string& init_name, bool enabled) : common_p
  * @param name the name or description of the new timestep
  * @returns id of timestep, which is needed upon timestep resolution for invariant checking 
 */
-size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
+size_t cw_tracer::start_timestep(ts_type_t type, const string& name) {
     if(enabled) {
         cw_assert(cur);
         cw_assert(!cur->resolved());
@@ -87,7 +87,7 @@ size_t cw_timetracker::start_timestep(ts_type_t type, const string& name) {
  * @param id the id the timestep expected to be resolved
  * @param result rvalue json obj for why/how this timestep ended
 */
-void cw_timetracker::end_timestep(size_t id, ordered_json&& result) {
+void cw_tracer::end_timestep(size_t id, ordered_json&& result) {
     if(enabled) {
         cw_assert(cur);
         cur->resolve(id, std::move(result));
@@ -101,7 +101,7 @@ void cw_timetracker::end_timestep(size_t id, ordered_json&& result) {
  *
  * @param result the json result for the root timestep
 */
-void cw_timetracker::save_results(const string& filepath, ordered_json&& result) {
+void cw_tracer::save_results(const string& filepath, ordered_json&& result) {
     if(enabled) {
         cw_assert(root);
         cw_assert(root == cur);
@@ -116,7 +116,7 @@ void cw_timetracker::save_results(const string& filepath, ordered_json&& result)
 
 // ############### json conversion ###############
 
-void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step) {
+void cw_tracer_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step) {
     cw_assert(step->end.has_value());
     j["type"] = step->type;
     j["name"] = step->name;
@@ -130,11 +130,11 @@ void cw_timetracker_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& 
 /**
  * @brief constructor for cw_timestamper, executes start_timestep() call for its timestep
  * 
- * @param tracker ref to cw_timetracker to make calls to
+ * @param tracker ref to cw_tracer to make calls to
  * @param type the type to assign to the cw_timestep this object manages
  * @param name the name to assigned to the cw_timestep this object manages
 */
-cw_timestamper::cw_timestamper(cw_timetracker& tracker, ts_type_t type, const string& name)
+cw_timestamper::cw_timestamper(cw_tracer& tracker, ts_type_t type, const string& name)
     : tracker(tracker),
       id(tracker.start_timestep(type, name)),
       _result(ordered_json::object()) {
