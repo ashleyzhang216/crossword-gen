@@ -40,7 +40,7 @@ string cw_gen::squash_options(const vector<string>& options) {
  */
 vector<string> cw_gen::solve() {
     crossword cw = crossword("puzzle cw", length, height, contents.value_or(string(num_tiles(), WILDCARD)));
-    tree = make_unique<cw_tree>("cw_tree", std::move(cw), dict_path.at(dict), display_progress_bar, profile_header);
+    tree = make_unique<cw_tree>("cw_tree", std::move(cw), dict_path.at(dict), display_progress_bar, trace_header);
 
     return tree->solve(num_solutions, allow_permutations);
 }
@@ -66,15 +66,15 @@ int main(int argc, char** argv) {
     examples_desc << "Example crossword puzzles (overrides size/contents/dict): " << cw_gen::squash_options(param_vals["example"]);
 
     options.add_options()
-        ("s,size",      "Puzzle size, in format length,height",                                  cxxopts::value<vector<uint>>()->default_value("4,4"))
-        ("c,contents",  contents_desc.str(),                                                     cxxopts::value<string>())
-        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),        cxxopts::value<string>()->default_value("xlarge"))
-        ("e,example",   examples_desc.str(),                                                     cxxopts::value<string>())
-        ("n,num",       "Number of solutions to find",                                           cxxopts::value<size_t>()->default_value("1"))
-        ("m,modify",    "Allow grid modifications upon domain exhaustion",                       cxxopts::value<bool>())
-        ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),   cxxopts::value<string>()->default_value("fatal"))
-        ("p,progress",  "Enable progress bar",                                                   cxxopts::value<bool>())
-        ("P,profile",   "Name of JSON profile file to generate if provided",                     cxxopts::value<string>())
+        ("s,size",      "Puzzle size, in format length,height",                                   cxxopts::value<vector<uint>>()->default_value("4,4"))
+        ("c,contents",  contents_desc.str(),                                                      cxxopts::value<string>())
+        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),         cxxopts::value<string>()->default_value("xlarge"))
+        ("e,example",   examples_desc.str(),                                                      cxxopts::value<string>())
+        ("n,num",       "Number of solutions to find",                                            cxxopts::value<size_t>()->default_value("1"))
+        ("m,modify",    "Allow grid modifications upon domain exhaustion",                        cxxopts::value<bool>())
+        ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),    cxxopts::value<string>()->default_value("fatal"))
+        ("p,progress",  "Enable progress bar",                                                    cxxopts::value<bool>())
+        ("t,trace",     "Name of instrumentation file, trace execution and generate if provided", cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
 
@@ -182,13 +182,13 @@ int main(int argc, char** argv) {
 
     // ############### cw_timetracker ###############
 
-    if(result.count("profile")) {
-        if(result["profile"].as<string>() == "") {
-            cout << "Error: profiling output filepath must be nonempty, got: " << endl;
+    if(result.count("trace")) {
+        if(result["trace"].as<string>() == "") {
+            cout << "Error: instrumentation output filepath must be nonempty" << endl;
             exit(1);
         }
 
-        cwgen.enable_profile(result["profile"].as<string>());
+        cwgen.enable_trace(result["trace"].as<string>());
     }
 
     // ############### solving ###############
