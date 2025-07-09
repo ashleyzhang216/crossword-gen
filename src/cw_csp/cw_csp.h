@@ -56,7 +56,7 @@ namespace cw_csp_ns {
             // get string representation of solved cw for printing when solved() == true
             string result() const;
 
-            // save profiling results
+            // save trace results to instrumentation file
             void save_timetracker_result(string filepath) const;
 
             // returns permutations of csp, i.e. csp with a permutated crossword grid

@@ -70,7 +70,7 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
 }
 
 /**
- * @brief save profiling result from cw_timetracker
+ * @brief save trace result from cw_timetracker to instrumentation file
  *
  * @param filepath the filepath to save the result to, as a json file
  */
