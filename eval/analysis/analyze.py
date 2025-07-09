@@ -19,7 +19,7 @@ SEARCH_DIR = "search"
 
 def main():
     # parse cli args
-    parser = argparse.ArgumentParser(description='Analyze profiling JSON output files')
+    parser = argparse.ArgumentParser(description='Analyze instrumentation output files')
     parser.add_argument('data_path', help='Path to the JSON data file')
     args = parser.parse_args()
 
