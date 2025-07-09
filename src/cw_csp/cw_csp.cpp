@@ -85,7 +85,7 @@ void cw_csp::save_trace_result(string filepath) const {
             {"contents", cw.init_contents()}
         })},
         {"track_ac3",
-            #ifdef TIMETRACKER_TRACK_AC3
+            #ifdef TRACER_TRACK_AC3
             true
             #else
             false
@@ -482,9 +482,9 @@ void cw_csp::initialize_csp() {
  * @return true iff resulting CSP is valid, i.e. all resulting variables have a non-empty domain
 */
 bool cw_csp::ac3() {
-    #ifdef TIMETRACKER_TRACK_AC3
+    #ifdef TRACER_TRACK_AC3
     cw_timestamper stamper(tracker, TS_CSP_AC3, "");
-    #endif // TIMETRACKER_TRACK_AC3
+    #endif // TRACER_TRACK_AC3
 
     utils.log(DEBUG, "starting AC-3 algorithm");
 
@@ -518,12 +518,12 @@ bool cw_csp::ac3() {
         // prune invalid words in domain, and if domain changed, add dependent constraints to constraint queue
         unordered_map<size_t, size_t> modified;
         {
-            #ifdef TIMETRACKER_TRACK_AC3
+            #ifdef TRACER_TRACK_AC3
             cw_timestamper stamper(tracker, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
             #endif
 
             modified = constraints[constr_id]->prune_domain(variables);
-            #ifdef TIMETRACKER_TRACK_AC3
+            #ifdef TRACER_TRACK_AC3
             stamper.result()["vars_pruned"] = ordered_json::object();
             for(const auto& [var_id, pairs_removed] : modified) {
                 stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
@@ -539,9 +539,9 @@ bool cw_csp::ac3() {
                 cw.report_invalidating_tiles(constraints[constr_id]->intersection_tiles(variables));
 
                 // early stopping upon invalid CSP
-                #ifdef TIMETRACKER_TRACK_AC3
+                #ifdef TRACER_TRACK_AC3
                 stamper.result()["success"] = false;
-                #endif // TIMETRACKER_TRACK_AC3
+                #endif // TRACER_TRACK_AC3
                 return false;
             }
 
@@ -558,9 +558,9 @@ bool cw_csp::ac3() {
     }
 
     // running AC-3 to completion does not make CSP invalid
-    #ifdef TIMETRACKER_TRACK_AC3
+    #ifdef TRACER_TRACK_AC3
     stamper.result()["success"] = true;
-    #endif // TIMETRACKER_TRACK_AC3
+    #endif // TRACER_TRACK_AC3
     return true;
 }
 
@@ -568,9 +568,9 @@ bool cw_csp::ac3() {
  * @brief undo domain pruning from previous call of AC-3 algorithm
 */
 void cw_csp::undo_ac3() {
-    #ifdef TIMETRACKER_TRACK_AC3
+    #ifdef TRACER_TRACK_AC3
     cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
-    #endif // TIMETRACKER_TRACK_AC3
+    #endif // TRACER_TRACK_AC3
 
     for(unique_ptr<cw_variable>& var : variables) {
         var->domain.undo_prev_ac3_call();

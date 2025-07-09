@@ -4,8 +4,8 @@
 // Description: data types for execution time tracker and related object declarations for cw_csp performance analysis
 // ==================================================================
 
-#ifndef CW_TIMETRACKER_DATA_TYPES_H
-#define CW_TIMETRACKER_DATA_TYPES_H
+#ifndef CW_TRACER_DATA_TYPES_H
+#define CW_TRACER_DATA_TYPES_H
 
 #include "../common/common_data_types.h"
 #include "../utils/cw_utils.h"
@@ -13,7 +13,7 @@
 using namespace common_data_types_ns;
 using namespace cw;
 
-#define TIMETRACKER_TRACK_AC3
+#define TRACER_TRACK_AC3
 
 namespace cw_tracer_data_types_ns {
     /**
@@ -27,11 +27,11 @@ namespace cw_tracer_data_types_ns {
         TS_CSP_SEARCH_STEP, // an attempt to assign any value to a variable, represents a group of search tree nodes branched off of a common parent node
         TS_CSP_TRY_ASSIGN,  // an attempt to assign a specific word during a search step, represents a search tree node
 
-        #ifdef TIMETRACKER_TRACK_AC3
+        #ifdef TRACER_TRACK_AC3
         TS_CSP_AC3,         // cw_csp.ac3()
         TS_CSP_AC3_PRUNE,   // a single call to cw_variable::prune_domain()
         TS_CSP_UNDO_AC3,    // cw_csp.undo_ac3()
-        #endif // TIMETRACKER_TRACK_AC3
+        #endif // TRACER_TRACK_AC3
     };
 
     // mapping from timestep type to display name
@@ -42,12 +42,12 @@ namespace cw_tracer_data_types_ns {
         {TS_CSP_SEARCH_STEP, "Search Step"},
         {TS_CSP_TRY_ASSIGN,  "Try Assign"},
 
-        #ifdef TIMETRACKER_TRACK_AC3
+        #ifdef TRACER_TRACK_AC3
         {TS_CSP_AC3,         "AC3"},
         {TS_CSP_AC3_PRUNE,   "AC3 Prune"},
         {TS_CSP_UNDO_AC3,    "Undo AC3"},
-        #endif // TIMETRACKER_TRACK_AC3
+        #endif // TRACER_TRACK_AC3
     })
 }; // cw_tracer_data_types_ns
 
-#endif // CW_TIMETRACKER_DATA_TYPES_H
+#endif // CW_TRACER_DATA_TYPES_H
