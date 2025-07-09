@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
         cwgen.enable_progress_bar();
     }
 
-    // ############### cw_timetracker ###############
+    // ############### cw_tracer ###############
 
     if(result.count("trace")) {
         if(result["trace"].as<string>() == "") {

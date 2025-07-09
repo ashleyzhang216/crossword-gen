@@ -15,13 +15,13 @@ using namespace cw_csp_ns;
  * @param grid rvalue crossword grid to solve and assume ownership of, can have or not have contents
  * @param dict_filepath relative filepath to dictionary of words file
  * @param print_progress_bar displays progress bar iff true
- * @param use_timetracker enables cw_timetracker iff true
+ * @param enable_tracer enables cw_tracer iff true
 */
-cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool use_timetracker) 
+cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer) 
         : common_parent(name, VERBOSITY),
-          tracker("cw_csp", use_timetracker),
+          tracker("cw_csp", enable_tracer),
           dict_filepath(dict_filepath),
-          use_timetracker(use_timetracker),
+          enable_tracer(enable_tracer),
           cw(std::move(grid)),
           total_domain(name + " total_domain", dict_filepath, print_progress_bar),
           print_progress_bar(print_progress_bar) {
@@ -70,11 +70,11 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
 }
 
 /**
- * @brief save trace result from cw_timetracker to instrumentation file
+ * @brief save trace result from cw_tracer to instrumentation file
  *
  * @param filepath the filepath to save the result to, as a json file
  */
-void cw_csp::save_timetracker_result(string filepath) const {
+void cw_csp::save_trace_result(string filepath) const {
     tracker.save_results(filepath, ordered_json::object({
         {"success", solved()},
         {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},
@@ -820,7 +820,7 @@ vector<cw_csp> cw_csp::permutations(unordered_set<string>& explored_grids) const
     vector<cw_csp> res;
 
     for(size_t i = 0; i < p.size(); ++i) {
-        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), dict_filepath, print_progress_bar, use_timetracker));
+        res.emplace_back(cw_csp(name + '-' + std::to_string(i), std::move(p[i]), dict_filepath, print_progress_bar, enable_tracer));
     }
 
     return res;

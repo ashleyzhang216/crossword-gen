@@ -73,7 +73,7 @@ namespace cw_gen_ns {
             // whether to display progress bar or not
             bool display_progress_bar = false;
 
-            // cw_timetracker enabled iff this has a value
+            // cw_tracer enabled iff this has a value
             // does not include .json file extension
             optional<string> trace_header;
     }; // cw_gen

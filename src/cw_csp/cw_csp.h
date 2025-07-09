@@ -12,8 +12,8 @@
 #include "../utils/cw_utils.h"
 #include "../crossword/crossword_data_types.h"
 #include "../crossword/crossword.h"
-#include "../cw_timetracker/cw_timetracker_data_types.h"
-#include "../cw_timetracker/cw_timetracker.h"
+#include "../cw_tracer/cw_tracer_data_types.h"
+#include "../cw_tracer/cw_tracer.h"
 #include "../word_domain/word_domain_data_types.h"
 #include "../word_domain/word_domain.h"
 
@@ -22,8 +22,8 @@ using namespace common_parent_ns;
 using namespace cw;
 using namespace crossword_data_types_ns;
 using namespace crossword_ns;
-using namespace cw_timetracker_data_types_ns;
-using namespace cw_timetracker_ns;
+using namespace cw_tracer_data_types_ns;
+using namespace cw_tracer_ns;
 using namespace word_domain_data_types_ns;
 using namespace word_domain_ns;
 
@@ -34,7 +34,7 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // base constructor, agnostic to grid layout
-            cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool use_timetracker);
+            cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer);
 
             // read-only getters for testing
             unordered_set<unique_ptr<cw_variable > >                                           get_variables()           const;
@@ -57,7 +57,7 @@ namespace cw_csp_ns {
             string result() const;
 
             // save trace results to instrumentation file
-            void save_timetracker_result(string filepath) const;
+            void save_trace_result(string filepath) const;
 
             // returns permutations of csp, i.e. csp with a permutated crossword grid
             vector<cw_csp> permutations(unordered_set<string>& explored_grids) const;
@@ -84,14 +84,14 @@ namespace cw_csp_ns {
             bool solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth);
 
         private:
-            // timetracker object for analysis
-            mutable cw_timetracker tracker;
+            // tracer object for analysis
+            mutable cw_tracer tracker; // TODO: rename from tracker --> tracer
 
             // original word dictionary filepath
             string dict_filepath;
 
             // original tracker enabling input param
-            bool use_timetracker;
+            bool enable_tracer;
 
             // crossword to be solved
             crossword cw;

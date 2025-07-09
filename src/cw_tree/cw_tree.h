@@ -39,7 +39,7 @@ namespace cw_tree_ns {
             // original progress bar enabling for searching and domain building
             bool print_progress_bar;
 
-            // enable timetracker iff this has a value
+            // enable tracer iff this has a value
             // does not include .json file extension
             optional<string> trace_header;
     }; // cw_tree

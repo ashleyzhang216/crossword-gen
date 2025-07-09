@@ -81,7 +81,7 @@ using std::make_unique;
 
 // JSON
 using basic_json   = nlohmann::json;         // unordered json
-using ordered_json = nlohmann::ordered_json; // for ordering timetracker output json fields for easier reading
+using ordered_json = nlohmann::ordered_json; // for ordering tracer output json fields for easier reading
 
 namespace common_data_types_ns {
     /**
