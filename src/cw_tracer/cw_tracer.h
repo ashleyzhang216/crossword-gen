@@ -19,7 +19,7 @@ using namespace common_parent_ns;
 
 namespace cw_tracer_ns {
     /**
-     * @brief internal tree node representation of one interval of time for a single execution step 
+     * @brief internal tree node representation of one interval of time for a single execution span 
     */
     struct cw_trace_span {
         // basic constructor, records start timestamp
@@ -57,20 +57,20 @@ namespace cw_tracer_ns {
     }; // cw_trace_span
 
     /**
-     * @brief manages a tree of cw_timestep representing the whole search execution
+     * @brief manages a tree of cw_trace_span representing the whole search execution
     */
     class cw_tracer : public common_parent {
         public:
-            // start new timestep
-            size_t start_timestep(ts_type_t type, const string& name);
+            // start new span
+            size_t start_span(ts_type_t type, const string& name);
             
-            // end previous timestep
-            void end_timestep(size_t id, ordered_json&& result);
+            // end previous span
+            void end_span(size_t id, ordered_json&& result);
 
-            // write results into JSON file and resolves root timestep
+            // write results into JSON file and resolves root span
             void save_result(const string& filepath, ordered_json&& result = ordered_json::object());
 
-            // basic constructor, initializes root timestep
+            // basic constructor, initializes root span
             cw_tracer(const string& init_name, bool enabled);
 
         private:
@@ -81,14 +81,14 @@ namespace cw_tracer_ns {
             size_t next_id;
 
             // root of whole execution tree
-            shared_ptr<cw_timestep> root;
+            shared_ptr<cw_trace_span> root;
 
-            // node of current deepest unresolved timestep
-            shared_ptr<cw_timestep> cur;
+            // node of current deepest unresolved span
+            shared_ptr<cw_trace_span> cur;
     }; // cw_tracer
 
-    // conversion from cw_timestep to json
-    void to_json(ordered_json& j, const shared_ptr<cw_timestep>& step);
+    // conversion from cw_trace_span to json
+    void to_json(ordered_json& j, const shared_ptr<cw_trace_span>& span);
 
     /**
      * @brief manages calls to a cw_tracer object during a single timestep
