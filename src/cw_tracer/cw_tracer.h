@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   6/13/2024
-// Description: execution time tracker and related object declarations for cw_csp performance analysis
+// Description: execution tracer and related object declarations for cw_csp performance analysis
 // ==================================================================
 
 #ifndef CW_TRACER_H
@@ -97,7 +97,7 @@ namespace cw_tracer_ns {
     class cw_timestamper {
         public:
             // constructor to initialize new timestep
-            cw_timestamper(cw_tracer& tracker, ts_type_t type, const string& name);
+            cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name);
 
             // returns ref to json object for modification
             ordered_json& result();
@@ -115,7 +115,7 @@ namespace cw_tracer_ns {
                     
         private:
             // cw_tracer ref to make calls to
-            cw_tracer& tracker; // TODO: rename from tracker --> tracer
+            cw_tracer& tracer;
 
             // id of timestep this object manages
             size_t id;

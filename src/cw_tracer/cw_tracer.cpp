@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   6/13/2024
-// Description: execution time tracker and related object implementations for cw_csp performance analysis
+// Description: execution tracer and related object implementations for cw_csp performance analysis
 // ==================================================================
 
 #include "cw_tracer.h"
@@ -130,13 +130,13 @@ void cw_tracer_ns::to_json(ordered_json& j, const shared_ptr<cw_timestep>& step)
 /**
  * @brief constructor for cw_timestamper, executes start_timestep() call for its timestep
  * 
- * @param tracker ref to cw_tracer to make calls to
+ * @param tracer ref to cw_tracer to make calls to
  * @param type the type to assign to the cw_timestep this object manages
  * @param name the name to assigned to the cw_timestep this object manages
 */
-cw_timestamper::cw_timestamper(cw_tracer& tracker, ts_type_t type, const string& name)
-    : tracker(tracker),
-      id(tracker.start_timestep(type, name)),
+cw_timestamper::cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name)
+    : tracer(tracer),
+      id(tracer.start_timestep(type, name)),
       _result(ordered_json::object()) {
     // do nothing, other initializations are enough
 }
@@ -152,5 +152,5 @@ ordered_json& cw_timestamper::result() {
  * @brief destructor for cw_timestamper, executes end_timestep() call for its timestep
 */
 cw_timestamper::~cw_timestamper() {
-    tracker.end_timestep(id, std::move(_result));
+    tracer.end_timestep(id, std::move(_result));
 }
