@@ -85,12 +85,12 @@ namespace cw_csp_ns {
 
         private:
             // tracer object for analysis
-            mutable cw_tracer tracker; // TODO: rename from tracker --> tracer
+            mutable cw_tracer tracer;
 
             // original word dictionary filepath
             string dict_filepath;
 
-            // original tracker enabling input param
+            // original tracer enabling input param
             bool enable_tracer;
 
             // crossword to be solved

@@ -19,7 +19,7 @@ using namespace cw_csp_ns;
 */
 cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer) 
         : common_parent(name, VERBOSITY),
-          tracker("cw_csp", enable_tracer),
+          tracer("cw_csp", enable_tracer),
           dict_filepath(dict_filepath),
           enable_tracer(enable_tracer),
           cw(std::move(grid)),
@@ -75,7 +75,7 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
  * @param filepath the filepath to save the result to, as a json file
  */
 void cw_csp::save_trace_result(string filepath) const {
-    tracker.save_results(filepath, ordered_json::object({
+    tracer.save_results(filepath, ordered_json::object({
         {"success", solved()},
         {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},
         {"grid", ordered_json::object({
@@ -98,7 +98,7 @@ void cw_csp::save_trace_result(string filepath) const {
  * @brief constructor helper method to populate all csp variables/constraints based on cw
 */
 void cw_csp::initialize_csp() {
-    cw_timestamper stamper(tracker, TS_CSP_INITIALIZE, "");
+    cw_timestamper stamper(tracer, TS_CSP_INITIALIZE, "");
 
     utils.log(DEBUG, "cw_csp starting csp initialization");
 
@@ -483,7 +483,7 @@ void cw_csp::initialize_csp() {
 */
 bool cw_csp::ac3() {
     #ifdef TRACER_TRACK_AC3
-    cw_timestamper stamper(tracker, TS_CSP_AC3, "");
+    cw_timestamper stamper(tracer, TS_CSP_AC3, "");
     #endif // TRACER_TRACK_AC3
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -519,7 +519,7 @@ bool cw_csp::ac3() {
         unordered_map<size_t, size_t> modified;
         {
             #ifdef TRACER_TRACK_AC3
-            cw_timestamper stamper(tracker, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
+            cw_timestamper stamper(tracer, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
             #endif
 
             modified = constraints[constr_id]->prune_domain(variables);
@@ -569,7 +569,7 @@ bool cw_csp::ac3() {
 */
 void cw_csp::undo_ac3() {
     #ifdef TRACER_TRACK_AC3
-    cw_timestamper stamper(tracker, TS_CSP_UNDO_AC3, "");
+    cw_timestamper stamper(tracer, TS_CSP_UNDO_AC3, "");
     #endif // TRACER_TRACK_AC3
 
     for(unique_ptr<cw_variable>& var : variables) {
@@ -652,7 +652,7 @@ size_t cw_csp::select_unassigned_var(var_ordering var_order) {
  * @return true iff successful
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, val_ordering val_order) {
-    cw_timestamper stamper(tracker, TS_CSP_SOLVE, "");
+    cw_timestamper stamper(tracer, TS_CSP_SOLVE, "");
     stamper.result()["csp_strategy"] = csp_strategy;
     stamper.result()["var_ordering"] = var_order;
     stamper.result()["val_ordering"] = val_order;
@@ -691,7 +691,7 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, va
  * @return true iff successful
 */
 bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth) {
-    cw_timestamper stamper(tracker, TS_CSP_SEARCH_STEP, "Backtracking");
+    cw_timestamper stamper(tracer, TS_CSP_SEARCH_STEP, "Backtracking");
     stamper.result()["depth"] = depth;
 
     utils.log(DEBUG, "entering solve_backtracking() with depth ", depth);
@@ -742,7 +742,7 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
-        cw_timestamper word_stamper(tracker, TS_CSP_TRY_ASSIGN, "");
+        cw_timestamper word_stamper(tracer, TS_CSP_TRY_ASSIGN, "");
         word_stamper.result()["word"] = word.word;
 
         // avoid duplicate words
