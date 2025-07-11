@@ -21,40 +21,40 @@ namespace cw_tracer_ns {
     /**
      * @brief internal tree node representation of one interval of time for a single execution step 
     */
-    struct cw_timestep {
-        // basic constructor, starts timestep measurement
-        cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev);
+    struct cw_trace_span {
+        // basic constructor, records start timestamp
+        cw_trace_span(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_trace_span>& prev);
 
-        // ends timestep measurement
+        // records end timestamp
         void resolve(size_t expected_id, ordered_json&& r);
 
-        // returns true iff timestep has been resolved
+        // returns true iff this span has been resolved
         bool resolved() { return end.has_value(); }
 
-        // type of this timestep
+        // type of this span's event
         ts_type_t type;
 
-        // description of this timestep
+        // description of this span's event
         string name;
 
-        // id of this timestep, for invariant validation
+        // id of this span, for invariant validation
         size_t id;
 
-        // parent step that this step is nested in and is a subset of, or this step is the root step if null
-        weak_ptr<cw_timestep> prev;
+        // parent span that this span is nested in and is a subset of, or null if this span is the root span
+        weak_ptr<cw_trace_span> prev;
 
-        // timestamp right before this step started
+        // timestamp right before this span started
         time_point<high_resolution_clock> start; 
 
-        // child timesteps nested in, or happened during, this timestep
-        vector<shared_ptr<cw_timestep> > children;
+        // child spans nested in, or happened during, this span
+        vector<shared_ptr<cw_trace_span> > children;
 
-        // timestamp right after this step ended, if finished
+        // timestamp right after this span ended, if finished
         optional<time_point<high_resolution_clock> > end;
 
-        // context as to how or why this timestep ended
+        // context as to how or why this span ended
         ordered_json result;
-    }; // cw_timestep
+    }; // cw_trace_span
 
     /**
      * @brief manages a tree of cw_timestep representing the whole search execution

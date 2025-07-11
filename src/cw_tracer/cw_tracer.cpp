@@ -8,17 +8,17 @@
 
 using namespace cw_tracer_ns;
 
-// ############### cw_timestep ###############
+// ############### cw_trace_span ###############
 
 /**
- * @brief constructor for cw_timestep, starts measurement of a new timestep
+ * @brief constructor for cw_trace_span, starts new span and records start timestamp
  * 
- * @param type the type of this timestep
- * @param name the name of this timestep
- * @param id the id of this timestep for invariant checking
- * @param prev ptr to parent step that this step is nested in and is a subset of, or this step is the root step if null
+ * @param type the type of this span
+ * @param name the name of this span
+ * @param id the id of this span for invariant checking
+ * @param prev ptr to parent span that this span is nested in and is a subset of, or null if this span is the root span
 */
-cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_timestep>& prev) 
+cw_trace_span::cw_trace_span(ts_type_t type, const string& name, size_t id, const shared_ptr<cw_trace_span>& prev) 
     : type(type),
       name(name),
       id(id),
@@ -29,12 +29,12 @@ cw_timestep::cw_timestep(ts_type_t type, const string& name, size_t id, const sh
 }
 
 /**
- * @brief resolves this timestep
+ * @brief resolves this span and records end timestamp
  * 
- * @param id the expected id of this timestep
- * @param r rvalue json obj for why/how this timestep ended
+ * @param id the expected id of this span
+ * @param r rvalue json obj for why/how this span ended
 */
-void cw_timestep::resolve(size_t expected_id, ordered_json&& r) {
+void cw_trace_span::resolve(size_t expected_id, ordered_json&& r) {
     cw_assert(id == expected_id);
     cw_assert(!resolved());
     cw_assert(children.empty() || children.back()->resolved());
