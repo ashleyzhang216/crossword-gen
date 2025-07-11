@@ -101,7 +101,7 @@ void cw_tracer::end_timestep(size_t id, ordered_json&& result) {
  *
  * @param result the json result for the root timestep
 */
-void cw_tracer::save_results(const string& filepath, ordered_json&& result) {
+void cw_tracer::save_result(const string& filepath, ordered_json&& result) {
     if(enabled) {
         cw_assert(root);
         cw_assert(root == cur);

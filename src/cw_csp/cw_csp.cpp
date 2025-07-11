@@ -75,7 +75,7 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
  * @param filepath the filepath to save the result to, as a json file
  */
 void cw_csp::save_trace_result(string filepath) const {
-    tracer.save_results(filepath, ordered_json::object({
+    tracer.save_result(filepath, ordered_json::object({
         {"success", solved()},
         {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},
         {"grid", ordered_json::object({

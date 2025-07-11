@@ -68,7 +68,7 @@ namespace cw_tracer_ns {
             void end_timestep(size_t id, ordered_json&& result);
 
             // write results into JSON file and resolves root timestep
-            void save_results(const string& filepath, ordered_json&& result = ordered_json::object()); // TODO: rename from save_results --> save_result
+            void save_result(const string& filepath, ordered_json&& result = ordered_json::object());
 
             // basic constructor, initializes root timestep
             cw_tracer(const string& init_name, bool enabled);
