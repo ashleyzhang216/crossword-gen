@@ -91,18 +91,18 @@ namespace cw_tracer_ns {
     void to_json(ordered_json& j, const shared_ptr<cw_trace_span>& span);
 
     /**
-     * @brief manages calls to a cw_tracer object during a single timestep
+     * @brief manages calls to a cw_tracer object during a single span
      * @note does not inherit common_parent for speed
     */
     class cw_timestamper {
         public:
-            // constructor to initialize new timestep
+            // constructor to initialize new span
             cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name);
 
             // returns ref to json object for modification
             ordered_json& result();
 
-            // desctructor to resolve the timestep this object was created to manage
+            // desctructor to resolve the span this object was created to manage
             ~cw_timestamper();
 
             // explicitly not copyable  
@@ -117,10 +117,10 @@ namespace cw_tracer_ns {
             // cw_tracer ref to make calls to
             cw_tracer& tracer;
 
-            // id of timestep this object manages
+            // id of span this object manages
             size_t id;
 
-            // result attached to timestep, format specific to each timestep type
+            // result attached to span, format specific to each span type
             ordered_json _result;
     }; // cw_timestamper
 }; // cw_tracer_ns

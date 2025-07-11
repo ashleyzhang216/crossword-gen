@@ -128,15 +128,15 @@ void cw_tracer_ns::to_json(ordered_json& j, const shared_ptr<cw_trace_span>& spa
 // ############### cw_timestamper ###############
 
 /**
- * @brief constructor for cw_timestamper, executes start_timestep() call for its timestep
+ * @brief constructor for cw_timestamper, executes start_span() call for its span
  * 
  * @param tracer ref to cw_tracer to make calls to
- * @param type the type to assign to the cw_timestep this object manages
- * @param name the name to assigned to the cw_timestep this object manages
+ * @param type the type to assign to the cw_trace_span this object manages
+ * @param name the name to assigned to the cw_trace_span this object manages
 */
 cw_timestamper::cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name)
     : tracer(tracer),
-      id(tracer.start_timestep(type, name)),
+      id(tracer.start_span(type, name)),
       _result(ordered_json::object()) {
     // do nothing, other initializations are enough
 }
@@ -149,8 +149,8 @@ ordered_json& cw_timestamper::result() {
 }
 
 /**
- * @brief destructor for cw_timestamper, executes end_timestep() call for its timestep
+ * @brief destructor for cw_timestamper, executes end_span() call for its span
 */
 cw_timestamper::~cw_timestamper() {
-    tracer.end_timestep(id, std::move(_result));
+    tracer.end_span(id, std::move(_result));
 }
