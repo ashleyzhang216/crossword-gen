@@ -98,7 +98,7 @@ void cw_csp::save_trace_result(string filepath) const {
  * @brief constructor helper method to populate all csp variables/constraints based on cw
 */
 void cw_csp::initialize_csp() {
-    cw_timestamper stamper(tracer, TS_CSP_INITIALIZE, "");
+    cw_trace_span_guard span(tracer, TS_CSP_INITIALIZE, "");
 
     utils.log(DEBUG, "cw_csp starting csp initialization");
 
@@ -430,49 +430,49 @@ void cw_csp::initialize_csp() {
     }
 
     // record whether cycle constraints were included
-    stamper.result()["cycles"] = ordered_json::object();
-    stamper.result()["cycles"]["enabled"] = true;
-    stamper.result()["cycles"]["min_len"] = cw_cycle::MIN_CYCLE_LEN;
-    stamper.result()["cycles"]["max_len"] = cw_cycle::MAX_CYCLE_LEN;
+    span.result()["cycles"] = ordered_json::object();
+    span.result()["cycles"]["enabled"] = true;
+    span.result()["cycles"]["min_len"] = cw_cycle::MIN_CYCLE_LEN;
+    span.result()["cycles"]["max_len"] = cw_cycle::MAX_CYCLE_LEN;
 
     // record constraint dependencies for debugging
-    stamper.result()["constr_deps"] = ordered_json::object();
+    span.result()["constr_deps"] = ordered_json::object();
     cw_assert(variables.size() >= constr_dependencies.size());
     for(size_t var_id : variables.ids()) {
         if(constr_dependencies.count(var_id)) {
-            stamper.result()["constr_deps"][std::to_string(var_id)] = constr_dependencies.at(var_id);
+            span.result()["constr_deps"][std::to_string(var_id)] = constr_dependencies.at(var_id);
         }
     }
 
     // record variable dependencies for debugging
-    stamper.result()["var_deps"] = ordered_json::object();
+    span.result()["var_deps"] = ordered_json::object();
     for(const auto& [var, deps] : var_deps) {
-        stamper.result()["var_deps"][std::to_string(var)] = deps;
+        span.result()["var_deps"][std::to_string(var)] = deps;
     }
 
     // record sizes of each variable's domain
     cw_assert(var_domain_sizes.size() == variables.size());
-    stamper.result()["var_domain_sizes"] = ordered_json::object();
+    span.result()["var_domain_sizes"] = ordered_json::object();
     for(const auto& [var, size] : var_domain_sizes) {
-        stamper.result()["var_domain_sizes"][std::to_string(var)] = size;
+        span.result()["var_domain_sizes"][std::to_string(var)] = size;
     }
 
     // record dependent variables of each constraint
-    stamper.result()["constr_dependent_vars"] = ordered_json::object();
+    span.result()["constr_dependent_vars"] = ordered_json::object();
     for(size_t id : constraints.ids()) {
-        stamper.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
+        span.result()["constr_dependent_vars"][std::to_string(id)] = constraints[id]->dependents();
     }
 
     // record length of each variable
-    stamper.result()["var_lens"] = ordered_json::object();
+    span.result()["var_lens"] = ordered_json::object();
     for(size_t id : variables.ids()) {
-        stamper.result()["var_lens"][std::to_string(id)] = variables[id]->length;
+        span.result()["var_lens"][std::to_string(id)] = variables[id]->length;
     }
 
     // record lengths of each constraint
-    stamper.result()["constr_lens"] = ordered_json::object();
+    span.result()["constr_lens"] = ordered_json::object();
     for(size_t id : constraints.ids()) {
-        stamper.result()["constr_lens"][std::to_string(id)] = constraints[id]->size();
+        span.result()["constr_lens"][std::to_string(id)] = constraints[id]->size();
     }
 }
 
@@ -483,7 +483,7 @@ void cw_csp::initialize_csp() {
 */
 bool cw_csp::ac3() {
     #ifdef TRACER_TRACK_AC3
-    cw_timestamper stamper(tracer, TS_CSP_AC3, "");
+    cw_trace_span_guard span(tracer, TS_CSP_AC3, "");
     #endif // TRACER_TRACK_AC3
 
     utils.log(DEBUG, "starting AC-3 algorithm");
@@ -519,14 +519,14 @@ bool cw_csp::ac3() {
         unordered_map<size_t, size_t> modified;
         {
             #ifdef TRACER_TRACK_AC3
-            cw_timestamper stamper(tracer, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
+            cw_trace_span_guard span(tracer, TS_CSP_AC3_PRUNE, std::to_string(constr_id));
             #endif
 
             modified = constraints[constr_id]->prune_domain(variables);
             #ifdef TRACER_TRACK_AC3
-            stamper.result()["vars_pruned"] = ordered_json::object();
+            span.result()["vars_pruned"] = ordered_json::object();
             for(const auto& [var_id, pairs_removed] : modified) {
-                stamper.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
+                span.result()["vars_pruned"][std::to_string(var_id)] = pairs_removed;
             }
             #endif
         }
@@ -540,7 +540,7 @@ bool cw_csp::ac3() {
 
                 // early stopping upon invalid CSP
                 #ifdef TRACER_TRACK_AC3
-                stamper.result()["success"] = false;
+                span.result()["success"] = false;
                 #endif // TRACER_TRACK_AC3
                 return false;
             }
@@ -559,7 +559,7 @@ bool cw_csp::ac3() {
 
     // running AC-3 to completion does not make CSP invalid
     #ifdef TRACER_TRACK_AC3
-    stamper.result()["success"] = true;
+    span.result()["success"] = true;
     #endif // TRACER_TRACK_AC3
     return true;
 }
@@ -569,7 +569,7 @@ bool cw_csp::ac3() {
 */
 void cw_csp::undo_ac3() {
     #ifdef TRACER_TRACK_AC3
-    cw_timestamper stamper(tracer, TS_CSP_UNDO_AC3, "");
+    cw_trace_span_guard span(tracer, TS_CSP_UNDO_AC3, "");
     #endif // TRACER_TRACK_AC3
 
     for(unique_ptr<cw_variable>& var : variables) {
@@ -652,27 +652,27 @@ size_t cw_csp::select_unassigned_var(var_ordering var_order) {
  * @return true iff successful
 */
 bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, val_ordering val_order) {
-    cw_timestamper stamper(tracer, TS_CSP_SOLVE, "");
-    stamper.result()["csp_strategy"] = csp_strategy;
-    stamper.result()["var_ordering"] = var_order;
-    stamper.result()["val_ordering"] = val_order;
+    cw_trace_span_guard span(tracer, TS_CSP_SOLVE, "");
+    span.result()["csp_strategy"] = csp_strategy;
+    span.result()["var_ordering"] = var_order;
+    span.result()["val_ordering"] = val_order;
 
     // base case for initially invalid crosswords
     if(!ac3()) {
-        stamper.result()["success"] = false;
-        stamper.result()["reason"]  = "ac3";
+        span.result()["success"] = false;
+        span.result()["reason"]  = "ac3";
         return false;
     }
 
     switch(csp_strategy) {
         case BACKTRACKING: {
                 if(solve_backtracking(var_order, val_order, print_progress_bar, 0)) {
-                    stamper.result()["success"] = true;
-                    stamper.result()["reason"]  = "recursive";
+                    span.result()["success"] = true;
+                    span.result()["reason"]  = "recursive";
                     return true;
                 } else {
-                    stamper.result()["success"] = false;
-                    stamper.result()["reason"]  = "recursive";
+                    span.result()["success"] = false;
+                    span.result()["reason"]  = "recursive";
                     return false;
                 }
             } break;
@@ -691,17 +691,17 @@ bool cw_csp::solve(csp_solving_strategy csp_strategy, var_ordering var_order, va
  * @return true iff successful
 */
 bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, bool do_progress_bar, uint depth) {
-    cw_timestamper stamper(tracer, TS_CSP_SEARCH_STEP, "Backtracking");
-    stamper.result()["depth"] = depth;
+    cw_trace_span_guard span(tracer, TS_CSP_SEARCH_STEP, "Backtracking");
+    span.result()["depth"] = depth;
 
     utils.log(DEBUG, "entering solve_backtracking() with depth ", depth);
 
     // base case
     if(solved()) {
-        stamper.result()["variable"]    = nullptr;
-        stamper.result()["success"]     = true;
-        stamper.result()["reason"]      = "solved";
-        stamper.result()["jump_height"] = nullptr;
+        span.result()["variable"]    = nullptr;
+        span.result()["success"]     = true;
+        span.result()["reason"]      = "solved";
+        span.result()["jump_height"] = nullptr;
         return true;
     }
 
@@ -725,7 +725,7 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
     sort(domain_copy.begin(), domain_copy.end(), compare);
 
     // record variable chosen
-    stamper.result()["variable"] = ordered_json::object({
+    span.result()["variable"] = ordered_json::object({
         {"origin_row",  variables[next_var]->origin_row},
         {"origin_col",  variables[next_var]->origin_col},
         {"direction",   word_dir_name.at(variables[next_var]->dir)},
@@ -742,8 +742,8 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
 
     // iterate through search space for this variable
     for(word_t word : domain_copy) {
-        cw_timestamper word_stamper(tracer, TS_CSP_TRY_ASSIGN, "");
-        word_stamper.result()["word"] = word.word;
+        cw_trace_span_guard word_span(tracer, TS_CSP_TRY_ASSIGN, "");
+        word_span.result()["word"] = word.word;
 
         // avoid duplicate words
         if(assigned_words.count(word) == 0) {
@@ -766,25 +766,25 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
                 });
 
                 // will be overwritten if fails recurisively
-                word_stamper.result()["success"] = true;
-                word_stamper.result()["reason"]  = "recursive";
+                word_span.result()["success"] = true;
+                word_span.result()["reason"]  = "recursive";
 
                 // recurse
                 if(solve_backtracking(var_order, val_order, false, depth + 1)) {
-                    stamper.result()["success"]     = true;
-                    stamper.result()["reason"]      = "recursive";
-                    stamper.result()["jump_height"] = nullptr;
+                    span.result()["success"]     = true;
+                    span.result()["reason"]      = "recursive";
+                    span.result()["jump_height"] = nullptr;
                     return true;
                 }
                 
                 // undo adding to crossword asignment
                 cw_assert(cw.undo_prev_write() == word.word);
 
-                word_stamper.result()["success"] = false;
-                word_stamper.result()["reason"]  = "recursive";
+                word_span.result()["success"] = false;
+                word_span.result()["reason"]  = "recursive";
             } else {
-                word_stamper.result()["success"] = false;
-                word_stamper.result()["reason"]  = "ac3";
+                word_span.result()["success"] = false;
+                word_span.result()["reason"]  = "ac3";
             }
             undo_ac3(); // undo AC-3 regardless of if CSP invalid or failed recursively
 
@@ -794,8 +794,8 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
             variables[next_var]->domain.unassign_domain();
             assigned_words.erase(word);
         } else {
-            word_stamper.result()["success"] = false;
-            word_stamper.result()["reason"]  = "duplicate";
+            word_span.result()["success"] = false;
+            word_span.result()["reason"]  = "duplicate";
             utils.log(DEBUG, "avoided duplicate word: ", word);
         }
 
@@ -804,9 +804,9 @@ bool cw_csp::solve_backtracking(var_ordering var_order, val_ordering val_order, 
     }
 
     // after returning here or if solution, progress bar goes out of scope and finishes printing in destructor
-    stamper.result()["success"]     = false;
-    stamper.result()["reason"]      = "domain exhausted";
-    stamper.result()["jump_height"] = 1; // upon failure, backtracking always goes up only one search step
+    span.result()["success"]     = false;
+    span.result()["reason"]      = "domain exhausted";
+    span.result()["jump_height"] = 1; // upon failure, backtracking always goes up only one search step
     return false;
 }
 

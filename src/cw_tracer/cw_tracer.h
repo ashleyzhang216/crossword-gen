@@ -94,24 +94,24 @@ namespace cw_tracer_ns {
      * @brief manages calls to a cw_tracer object during a single span
      * @note does not inherit common_parent for speed
     */
-    class cw_timestamper {
+    class cw_trace_span_guard {
         public:
             // constructor to initialize new span
-            cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name);
+            cw_trace_span_guard(cw_tracer& tracer, ts_type_t type, const string& name);
 
             // returns ref to json object for modification
             ordered_json& result();
 
             // desctructor to resolve the span this object was created to manage
-            ~cw_timestamper();
+            ~cw_trace_span_guard();
 
             // explicitly not copyable  
-            cw_timestamper(const cw_timestamper& other) = delete;            // copy constructor
-            cw_timestamper& operator=(const cw_timestamper& other) = delete; // copy assignment
+            cw_trace_span_guard(const cw_trace_span_guard& other) = delete;            // copy constructor
+            cw_trace_span_guard& operator=(const cw_trace_span_guard& other) = delete; // copy assignment
 
             // explicitly not movable
-            cw_timestamper(cw_timestamper&&) = delete;            // move constructor
-            cw_timestamper& operator=(cw_timestamper&&) = delete; // move assignment
+            cw_trace_span_guard(cw_trace_span_guard&&) = delete;            // move constructor
+            cw_trace_span_guard& operator=(cw_trace_span_guard&&) = delete; // move assignment
                     
         private:
             // cw_tracer ref to make calls to
@@ -122,7 +122,7 @@ namespace cw_tracer_ns {
 
             // result attached to span, format specific to each span type
             ordered_json _result;
-    }; // cw_timestamper
+    }; // cw_trace_span_guard
 }; // cw_tracer_ns
 
 #endif // CW_TRACER_H

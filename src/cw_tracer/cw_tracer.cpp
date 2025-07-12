@@ -125,16 +125,16 @@ void cw_tracer_ns::to_json(ordered_json& j, const shared_ptr<cw_trace_span>& spa
     j["children"] = span->children;
 }
 
-// ############### cw_timestamper ###############
+// ############### cw_trace_span_guard ###############
 
 /**
- * @brief constructor for cw_timestamper, executes start_span() call for its span
+ * @brief constructor for cw_trace_span_guard, executes start_span() call for its span
  * 
  * @param tracer ref to cw_tracer to make calls to
  * @param type the type to assign to the cw_trace_span this object manages
  * @param name the name to assigned to the cw_trace_span this object manages
 */
-cw_timestamper::cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& name)
+cw_trace_span_guard::cw_trace_span_guard(cw_tracer& tracer, ts_type_t type, const string& name)
     : tracer(tracer),
       id(tracer.start_span(type, name)),
       _result(ordered_json::object()) {
@@ -144,13 +144,13 @@ cw_timestamper::cw_timestamper(cw_tracer& tracer, ts_type_t type, const string& 
 /**
  * @brief return ref to result json object for modification
  */
-ordered_json& cw_timestamper::result() {
+ordered_json& cw_trace_span_guard::result() {
     return _result;
 }
 
 /**
- * @brief destructor for cw_timestamper, executes end_span() call for its span
+ * @brief destructor for cw_trace_span_guard, executes end_span() call for its span
 */
-cw_timestamper::~cw_timestamper() {
+cw_trace_span_guard::~cw_trace_span_guard() {
     tracer.end_span(id, std::move(_result));
 }
