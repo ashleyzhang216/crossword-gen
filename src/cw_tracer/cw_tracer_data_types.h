@@ -17,7 +17,7 @@ using namespace cw;
 
 namespace cw_tracer_data_types_ns {
     /**
-     * @brief type of tasks executed during a timestep
+     * @brief type of tasks executed during a trace span
     */
     enum ts_type_t {
         // cw_csp
@@ -34,7 +34,7 @@ namespace cw_tracer_data_types_ns {
         #endif // TRACER_TRACK_AC3
     };
 
-    // mapping from timestep type to display name
+    // mapping from trace span type to display name
     NLOHMANN_JSON_SERIALIZE_ENUM( ts_type_t, {
         {TS_CSP_TOTAL,       "CSP"},
         {TS_CSP_INITIALIZE,  "Initialize"},
