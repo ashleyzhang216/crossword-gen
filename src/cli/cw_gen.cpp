@@ -66,15 +66,15 @@ int main(int argc, char** argv) {
     examples_desc << "Example crossword puzzles (overrides size/contents/dict): " << cw_gen::squash_options(param_vals["example"]);
 
     options.add_options()
-        ("s,size",      "Puzzle size, in format length,height",                                   cxxopts::value<vector<uint>>()->default_value("4,4"))
-        ("c,contents",  contents_desc.str(),                                                      cxxopts::value<string>())
-        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),         cxxopts::value<string>()->default_value("xlarge"))
-        ("e,example",   examples_desc.str(),                                                      cxxopts::value<string>())
-        ("n,num",       "Number of solutions to find",                                            cxxopts::value<size_t>()->default_value("1"))
-        ("m,modify",    "Allow grid modifications upon domain exhaustion",                        cxxopts::value<bool>())
-        ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),    cxxopts::value<string>()->default_value("fatal"))
-        ("p,progress",  "Enable progress bar",                                                    cxxopts::value<bool>())
-        ("t,trace",     "Name of instrumentation file, trace execution and generate if provided", cxxopts::value<string>())
+        ("s,size",      "Puzzle size, in format length,height",                                      cxxopts::value<vector<uint>>()->default_value("4,4"))
+        ("c,contents",  contents_desc.str(),                                                         cxxopts::value<string>())
+        ("d,dict",      "Word dictionary: " + cw_gen::squash_options(param_vals["dict"]),            cxxopts::value<string>()->default_value("xlarge"))
+        ("e,example",   examples_desc.str(),                                                         cxxopts::value<string>())
+        ("n,num",       "Number of solutions to find",                                               cxxopts::value<size_t>()->default_value("1"))
+        ("m,modify",    "Allow grid modifications upon domain exhaustion",                           cxxopts::value<bool>())
+        ("v,verbosity", "Debug verbosity: " + cw_gen::squash_options(param_vals["verbosity"]),       cxxopts::value<string>()->default_value("fatal"))
+        ("p,progress",  "Enable progress bar",                                                       cxxopts::value<bool>())
+        ("t,trace",     "Name of instrumentation file to generate by tracing execution if provided", cxxopts::value<string>())
         ("h,help",      "Print usage")
         ;
 
