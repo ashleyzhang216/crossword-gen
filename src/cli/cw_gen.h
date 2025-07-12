@@ -33,13 +33,13 @@ namespace cw_gen_ns {
             cw_gen(string name);
 
             // these all must be set before creation of cw_csp
-            void set_dimensions     (uint l, uint h ) { length = l; height = h;                 }
-            void set_dict           (const string& d) { dict   = d;                             }
-            void set_contents       (const string& c) { contents = std::make_optional(c);       }
-            void set_num_solutions  (size_t n)        { num_solutions = n;                      }
-            void enable_modify_grid ()                { allow_permutations = true;              }
-            void enable_progress_bar()                { display_progress_bar = true;            }
-            void enable_profile     (const string& f) { profile_header = std::make_optional(f); }
+            void set_dimensions     (uint l, uint h ) { length = l; height = h;               }
+            void set_dict           (const string& d) { dict   = d;                           }
+            void set_contents       (const string& c) { contents = std::make_optional(c);     }
+            void set_num_solutions  (size_t n)        { num_solutions = n;                    }
+            void enable_modify_grid ()                { allow_permutations = true;            }
+            void enable_progress_bar()                { display_progress_bar = true;          }
+            void enable_trace       (const string& t) { trace_header = std::make_optional(t); }
 
             // for checking legal length of contents
             uint num_tiles() { return length * height; }
@@ -73,9 +73,9 @@ namespace cw_gen_ns {
             // whether to display progress bar or not
             bool display_progress_bar = false;
 
-            // cw_timetracker enabled iff this has a value
+            // cw_tracer enabled iff this has a value
             // does not include .json file extension
-            optional<string> profile_header;
+            optional<string> trace_header;
     }; // cw_gen
 } // cw_gen_ns
 

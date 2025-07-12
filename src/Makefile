@@ -12,7 +12,7 @@ COMMON_DIR=common
 CROSSWORD_DIR=crossword
 CWCSP_DIR=cw_csp
 CWTREE_DIR=cw_tree
-CWTIMETRACKER_DIR=cw_timetracker
+CWTRACER_DIR=cw_tracer
 UTIL_DIR=utils
 WORDDOMAIN_DIR=word_domain
 CWGEN_DIR=cli
@@ -45,8 +45,8 @@ OFILES = \
 		\
 		cw_tree.o \
 		\
-		cw_timetracker.o \
-		cw_timetracker_data_types.o \
+		cw_tracer.o \
+		cw_tracer_data_types.o \
 		\
 		word_domain.o \
 		word_domain_data_types.o \
@@ -67,8 +67,8 @@ HFILES = \
 		\
 		$(SRC_DIR)/$(CWTREE_DIR)/cw_tree.h \
 		\
-		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker.h \
-		$(SRC_DIR)/$(CWTIMETRACKER_DIR)/cw_timetracker_data_types.h \
+		$(SRC_DIR)/$(CWTRACER_DIR)/cw_tracer.h \
+		$(SRC_DIR)/$(CWTRACER_DIR)/cw_tracer_data_types.h \
 		\
 		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain.h \
 		$(SRC_DIR)/$(WORDDOMAIN_DIR)/word_domain_data_types.h \

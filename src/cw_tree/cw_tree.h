@@ -24,7 +24,7 @@ namespace cw_tree_ns {
     class cw_tree : public common_parent {
         public:
             // base constructor, agnostic to grid layout
-            cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& profile_header);
+            cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& trace_header);
             
             // singlethreaded search for 1 solution per permutated grid, returning up to num_solutions results
             vector<string> solve(size_t num_solutions, bool allow_permutations);
@@ -39,9 +39,9 @@ namespace cw_tree_ns {
             // original progress bar enabling for searching and domain building
             bool print_progress_bar;
 
-            // enable timetracker iff this has a value
+            // enable tracer iff this has a value
             // does not include .json file extension
-            optional<string> profile_header;
+            optional<string> trace_header;
     }; // cw_tree
 } // cw_tree_ns
 
