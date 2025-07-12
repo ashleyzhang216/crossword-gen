@@ -1,7 +1,7 @@
 // ==================================================================
 // Author: Ashley Zhang (ayz27@cornell.edu)
 // Date:   6/14/2024
-// Description: data types for execution time tracker and related object declarations for cw_csp performance analysis
+// Description: data types for execution tracer and related object declarations for cw_csp performance analysis
 // ==================================================================
 
 #ifndef CW_TRACER_DATA_TYPES_H
