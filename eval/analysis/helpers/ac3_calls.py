@@ -33,8 +33,8 @@ def plot_ac3_call_duration_freq(output_dir, ac3_success_data):
     plt.figure(figsize=(10, 6))
 
     binwidth = 2500
-    global_min = min(min(ac3_success_data['success']), min(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else min(ac3_success_data['success'])
-    global_max = max(max(ac3_success_data['success']), max(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else max(ac3_success_data['success'])
+    global_min = int(min(min(ac3_success_data['success']), min(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else min(ac3_success_data['success']))
+    global_max = int(max(max(ac3_success_data['success']), max(ac3_success_data['fail'])) if len(ac3_success_data['fail']) > 0 else max(ac3_success_data['success']))
     bins = range(global_min - binwidth, global_max + binwidth, binwidth)
 
     plt.hist(ac3_success_data['success'], bins=bins, alpha=0.5, label='Successful AC-3 Calls', color='green', edgecolor='black')
@@ -73,9 +73,9 @@ def analyze_ac3_calls(data, output_dir) -> bool:
         s = ac3_success_data['success']
         f = ac3_success_data['fail']
         a = s + f
-        file.write(f"| All | {len(a)} | {sum(a)*1e-6:.2f} | {min(a)} | {max(a)} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n" if len(a) > 0 else "| All | 0 | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Success | {len(s)} | {sum(s)*1e-6:.2f} | {min(s)} | {max(s)} | {sum(s)/len(s):.2f} | {np.median(s):.1f} |\n" if len(s) > 0 else "| Success | 0 | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Fail | {len(f)} | {sum(f)*1e-6:.2f} | {min(f)} | {max(f)} | {sum(f)/len(f):.2f} | {np.median(f):.1f} |\n" if len(f) > 0 else "| Fail | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| All | {len(a)} | {sum(a)*1e-6:.2f} | {min(a):.2f} | {max(a):.2f} | {sum(a)/len(a):.2f} | {np.median(a):.2f} |\n" if len(a) > 0 else "| All | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Success | {len(s)} | {sum(s)*1e-6:.2f} | {min(s):.2f} | {max(s):.2f} | {sum(s)/len(s):.2f} | {np.median(s):.2f} |\n" if len(s) > 0 else "| Success | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Fail | {len(f)} | {sum(f)*1e-6:.2f} | {min(f):.2f} | {max(f):.2f} | {sum(f)/len(f):.2f} | {np.median(f):.2f} |\n" if len(f) > 0 else "| Fail | 0 | 0 | N/A | N/A | N/A | N/A |\n")
 
         file.write('\n')
 

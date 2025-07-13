@@ -43,6 +43,18 @@ void cw_trace_span::resolve(size_t expected_id, ordered_json&& r) {
     end = high_resolution_clock::now();
 }
 
+/**
+ * @brief get duration of this span
+ * @pre this span is resolved
+ *
+ * @returns duration in microseconds
+*/
+double cw_trace_span::duration_us() const {
+    cw_assert(resolved());
+    auto elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end.value() - start).count();
+    return static_cast<double>(elapsed_ns) / 1000.0;
+}
+
 // ############### cw_tracer ###############
 
 /**
@@ -120,7 +132,7 @@ void cw_tracer_ns::to_json(ordered_json& j, const shared_ptr<cw_trace_span>& spa
     cw_assert(span->end.has_value());
     j["type"] = span->type;
     j["name"] = span->name;
-    j["duration_us"] = std::chrono::duration_cast<std::chrono::microseconds>(span->end.value() - span->start).count();
+    j["duration_us"] = span->duration_us();
     j["result"] = span->result;
     j["children"] = span->children;
 }
