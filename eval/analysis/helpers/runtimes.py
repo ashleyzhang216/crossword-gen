@@ -43,7 +43,7 @@ def gather_span_runtime_data(data):
 
     assert('duration_us' in data)
     assert(data['duration_us'] == total_duration)
-    assert(data['duration_us'] == sum([sum(v) for v in result.values()]))
+    assert(abs(data['duration_us'] - sum([sum(v) for v in result.values()])) < 1)
 
     return result
 

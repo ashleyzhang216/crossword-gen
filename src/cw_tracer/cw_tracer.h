@@ -29,7 +29,10 @@ namespace cw_tracer_ns {
         void resolve(size_t expected_id, ordered_json&& r);
 
         // returns true iff this span has been resolved
-        bool resolved() { return end.has_value(); }
+        bool resolved() const { return end.has_value(); }
+
+        // returns duration, assuming this span has been resolved
+        double duration() const;
 
         // type of this span's event
         ts_type_t type;
