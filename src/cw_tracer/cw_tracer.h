@@ -31,8 +31,8 @@ namespace cw_tracer_ns {
         // returns true iff this span has been resolved
         bool resolved() const { return end.has_value(); }
 
-        // returns duration, assuming this span has been resolved
-        double duration() const;
+        // returns duration, in microseconds, assuming this span has been resolved
+        double duration_us() const;
 
         // type of this span's event
         ts_type_t type;
