@@ -73,9 +73,9 @@ def analyze_ac3_calls(data, output_dir) -> bool:
         s = ac3_success_data['success']
         f = ac3_success_data['fail']
         a = s + f
-        file.write(f"| All | {len(a)} | {sum(a)*1e-6:.2f} | {min(a):.2f} | {max(a):.2f} | {sum(a)/len(a):.2f} | {np.median(a):.1f} |\n" if len(a) > 0 else "| All | 0 | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Success | {len(s)} | {sum(s)*1e-6:.2f} | {min(s):.2f} | {max(s):.2f} | {sum(s)/len(s):.2f} | {np.median(s):.1f} |\n" if len(s) > 0 else "| Success | 0 | 0 | N/A | N/A | N/A | N/A |\n")
-        file.write(f"| Fail | {len(f)} | {sum(f)*1e-6:.2f} | {min(f):.2f} | {max(f):.2f} | {sum(f)/len(f):.2f} | {np.median(f):.1f} |\n" if len(f) > 0 else "| Fail | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| All | {len(a)} | {sum(a)*1e-6:.2f} | {min(a):.2f} | {max(a):.2f} | {sum(a)/len(a):.2f} | {np.median(a):.2f} |\n" if len(a) > 0 else "| All | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Success | {len(s)} | {sum(s)*1e-6:.2f} | {min(s):.2f} | {max(s):.2f} | {sum(s)/len(s):.2f} | {np.median(s):.2f} |\n" if len(s) > 0 else "| Success | 0 | 0 | N/A | N/A | N/A | N/A |\n")
+        file.write(f"| Fail | {len(f)} | {sum(f)*1e-6:.2f} | {min(f):.2f} | {max(f):.2f} | {sum(f)/len(f):.2f} | {np.median(f):.2f} |\n" if len(f) > 0 else "| Fail | 0 | 0 | N/A | N/A | N/A | N/A |\n")
 
         file.write('\n')
 

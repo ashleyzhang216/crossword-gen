@@ -133,7 +133,7 @@ def analyze_runtimes(data, output_dir) -> bool:
             for t in span_types:
                 d = span_runtime_data[t]
                 assert(len(d) > 0)
-                file.write(f"| {t} | {len(d)} | {sum(d)*1e-6:.2f} | {min(d):.2f} | {max(d):.2f} | {sum(d)/len(d):.2f} | {np.median(d):.1f} |\n")
+                file.write(f"| {t} | {len(d)} | {sum(d)*1e-6:.2f} | {min(d):.2f} | {max(d):.2f} | {sum(d)/len(d):.2f} | {np.median(d):.2f} |\n")
 
         file.write('\n')
 
