@@ -23,7 +23,7 @@ word_domain_test_driver::word_domain_test_driver(string name) : common_parent(na
  * @param name name of driver
  * @param filepath path to .txt or .json file containing word data
 */
-word_domain_test_driver::word_domain_test_driver(string name, string filepath) : common_parent(name, VERBOSITY) {
+word_domain_test_driver::word_domain_test_driver(string name, const std::filesystem::path& filepath) : common_parent(name, VERBOSITY) {
     dut = make_unique<word_domain>(name, filepath);
 }
 

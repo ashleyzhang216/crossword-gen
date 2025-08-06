@@ -24,7 +24,7 @@ namespace word_domain_test_driver_ns {
             word_domain_test_driver(string name);
 
             // constructor with filepath contents
-            word_domain_test_driver(string name, string filepath);
+            word_domain_test_driver(string name, const std::filesystem::path& filepath);
 
             // basic directed test for trie & find_matches()
             bool test_trie_basic(string pattern, unordered_set<word_t>& ground_truth);

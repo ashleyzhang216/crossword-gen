@@ -27,7 +27,7 @@ cw_csp_test_driver::cw_csp_test_driver(string name) : common_parent(name, VERBOS
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_empty(
-    uint length, uint height, string filepath,
+    uint length, uint height, const std::filesystem::path& filepath,
     const unordered_set<unique_ptr<cw_variable> >& expected_variables,
     const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
     const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
@@ -76,7 +76,7 @@ bool cw_csp_test_driver::test_constructor_empty(
  * @return true iff successful
 */
 bool cw_csp_test_driver::test_constructor_contents(
-    uint length, uint height, string contents, string filepath,
+    uint length, uint height, string contents, const std::filesystem::path& filepath,
     const unordered_set<unique_ptr<cw_variable> >& expected_variables,
     const unordered_set<unique_ptr<cw_constraint> >& expected_constraints,
     const unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> > >& expected_constr_dependencies
@@ -122,7 +122,7 @@ bool cw_csp_test_driver::test_constructor_contents(
  * @param expected_result expected validity of resulting CSP
  * @return true iff successful
 */
-bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, string filepath, bool expected_result) {
+bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string contents, const std::filesystem::path& filepath, bool expected_result) {
     stringstream cw_name;
     stringstream dut_name;
     cw_name  << name << " test_ac3_validity(): " << length << ", " << height << " cw";
@@ -181,7 +181,7 @@ bool cw_csp_test_driver::test_ac3_validity(uint length, uint height, string cont
  * @param expected_variables ref to expected contents of variables set after running AC-3
  * @return true iff successful
 */
-bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, string filepath, bool expected_result, const unordered_set<unique_ptr<cw_variable> >& expected_variables) {
+bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, const std::filesystem::path& filepath, bool expected_result, const unordered_set<unique_ptr<cw_variable> >& expected_variables) {
     stringstream cw_name;
     stringstream dut_name;
     cw_name  << name << " test_ac3(): " << length << ", " << height << " cw";
@@ -241,7 +241,7 @@ bool cw_csp_test_driver::test_ac3(uint length, uint height, string contents, str
  * @param do_print if true, print the resulting solved crossword
  * @return true iff successful
 */
-bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, string contents, string filepath, bool expected_result, bool do_print) {
+bool cw_csp_test_driver::test_backtracking_validity(uint length, uint height, string contents, const std::filesystem::path& filepath, bool expected_result, bool do_print) {
     stringstream cw_name;
     stringstream dut_name;
     cw_name  << name << " test_backtracking_validity(): " << length << ", " << height << " cw";
