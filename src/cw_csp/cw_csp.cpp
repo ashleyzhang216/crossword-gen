@@ -17,7 +17,7 @@ using namespace cw_csp_ns;
  * @param print_progress_bar displays progress bar iff true
  * @param enable_tracer enables cw_tracer iff true
 */
-cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer) 
+cw_csp::cw_csp(const string& name, crossword&& grid, const std::filesystem::path& dict_filepath, bool print_progress_bar, bool enable_tracer) 
         : common_parent(name, VERBOSITY),
           tracer("cw_csp", enable_tracer),
           dict_filepath(dict_filepath),
@@ -74,7 +74,7 @@ unordered_map<unique_ptr<cw_variable>, unordered_set<unique_ptr<cw_constraint> >
  *
  * @param filepath the filepath to save the result to, as a json file
  */
-void cw_csp::save_trace_result(string filepath) const {
+void cw_csp::save_trace_result(const std::filesystem::path& filepath) const {
     tracer.save_result(filepath, ordered_json::object({
         {"success", solved()},
         {"solutions", solved() ? ordered_json::array({result()}) : ordered_json::array()},

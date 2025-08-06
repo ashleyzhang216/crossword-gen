@@ -23,7 +23,7 @@ namespace cw_gen_data_types_ns {
     };
 
     // map from dictionary name to path where it is located
-    unordered_map<string, string> dict_path = {
+    unordered_map<string, std::filesystem::path> dict_path = {
         {"small",   "src/data/data_small.json"},
         {"medium",   "src/data/data_medium.json"},
         {"large",   "src/data/data_large.json"},

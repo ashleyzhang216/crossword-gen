@@ -21,7 +21,7 @@ TEST_CASE("cw_csp hello_world", "[cw_csp],[hello_world],[quick]") {
 */
 TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp constructor_no_contents");
-    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const std::filesystem::path dict_barebones_path = "cw_csp/data/dict_barebones.txt";
 
     // 1x1 blank crossword
     vector<unique_ptr<cw_variable> > vars_1_1 = {}; // no words with len > 1
@@ -242,8 +242,8 @@ TEST_CASE("cw_csp constructor_no_contents", "[cw_csp],[quick]") {
 */
 TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp constructor_with_contents");
-    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
-    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const std::filesystem::path dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const std::filesystem::path dict_simple_path = "cw_csp/data/dict_simple.txt";
 
     // baseline 2x2 blank crossword
     vector<unique_ptr<cw_variable> > vars_2_2 = make_vector_unique<cw_variable>(
@@ -638,9 +638,9 @@ TEST_CASE("cw_csp constructor_with_contents", "[cw_csp],[quick]") {
 */
 TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[ac3_validity],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_check");
-    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
-    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
-    const string dict_cycle_invalid0 = "cw_csp/data/dict_cycle_invalid0.txt";
+    const std::filesystem::path dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const std::filesystem::path dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const std::filesystem::path dict_cycle_invalid0 = "cw_csp/data/dict_cycle_invalid0.txt";
 
     // ############### invalid crosswords ###############
 
@@ -716,8 +716,8 @@ TEST_CASE("cw_csp ac3_valid_check", "[cw_csp],[ac3],[ac3_validity],[quick]") {
 */
 TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[ac3_validity],[duplicates],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_valid_constraint_duplicates");
-    const string dict_single_word = "cw_csp/data/dict_single_word.txt";
-    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const std::filesystem::path dict_single_word = "cw_csp/data/dict_single_word.txt";
+    const std::filesystem::path dict_simple_path = "cw_csp/data/dict_simple.txt";
 
     // ############### valid crosswords ###############
 
@@ -760,11 +760,11 @@ TEST_CASE("cw_csp ac3_valid_constraint_duplicates", "[cw_csp],[ac3],[ac3_validit
 */
 TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp ac3_pruning");
-    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
-    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
-    const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
-    const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
-    const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
+    const std::filesystem::path dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const std::filesystem::path dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const std::filesystem::path dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
+    const std::filesystem::path dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
+    const std::filesystem::path dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
     
     // simple valid 2x2 crossword
     unordered_set<unique_ptr<cw_variable> > vars_2_2 = make_unordered_set_unique<cw_variable>(
@@ -870,12 +870,12 @@ TEST_CASE("cw_csp ac3_pruning", "[cw_csp],[ac3],[quick]") {
 */
 TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check");
-    const string dict_barebones_path = "cw_csp/data/dict_barebones.txt";
-    const string dict_1000 = "cw_csp/data/words_top1000.txt";
-    const string dict_simple_path = "cw_csp/data/dict_simple.txt";
-    const string dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
-    const string dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
-    const string dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
+    const std::filesystem::path dict_barebones_path = "cw_csp/data/dict_barebones.txt";
+    const std::filesystem::path dict_1000 = "cw_csp/data/words_top1000.txt";
+    const std::filesystem::path dict_simple_path = "cw_csp/data/dict_simple.txt";
+    const std::filesystem::path dict_nytimes_8_28_23 = "cw_csp/data/dict_nytimes_8_28_23.txt";
+    const std::filesystem::path dict_nytimes_10_17_13 = "cw_csp/data/dict_nytimes_10_17_13.txt";
+    const std::filesystem::path dict_nytimes_2_3_17 = "cw_csp/data/dict_nytimes_2_3_17.txt";
 
     // ############### valid crosswords ###############
 
@@ -990,11 +990,11 @@ TEST_CASE("cw_csp backtracking_valid_check", "[cw_csp],[backtracking],[quick]") 
 */
 TEST_CASE("cw_csp backtracking_valid_check_complex", "[cw_csp],[backtracking]") {
     cw_csp_test_driver* dut = new cw_csp_test_driver("cw_csp backtracking_valid_check_complex");
-    const string dict_1000_with_nytimes_5_16_23 = "cw_csp/data/words_top1000_with_nytimes_5_16_23.txt";
-    const string dict_1000_with_nytimes_1_14_22 = "cw_csp/data/words_top1000_with_nytimes_1_14_22.txt";
-    const string dict_1000_with_nytimes_1_13_22 = "cw_csp/data/words_top1000_with_nytimes_1_13_22.txt";
-    const string dict_1000_with_nytimes_1_12_22 = "cw_csp/data/words_top1000_with_nytimes_1_12_22.txt";
-    const string dict_1000_with_nytimes_1_11_22 = "cw_csp/data/words_top1000_with_nytimes_1_11_22.txt";
+    const std::filesystem::path dict_1000_with_nytimes_5_16_23 = "cw_csp/data/words_top1000_with_nytimes_5_16_23.txt";
+    const std::filesystem::path dict_1000_with_nytimes_1_14_22 = "cw_csp/data/words_top1000_with_nytimes_1_14_22.txt";
+    const std::filesystem::path dict_1000_with_nytimes_1_13_22 = "cw_csp/data/words_top1000_with_nytimes_1_13_22.txt";
+    const std::filesystem::path dict_1000_with_nytimes_1_12_22 = "cw_csp/data/words_top1000_with_nytimes_1_12_22.txt";
+    const std::filesystem::path dict_1000_with_nytimes_1_11_22 = "cw_csp/data/words_top1000_with_nytimes_1_11_22.txt";
 
     // ############### valid crosswords ###############
 

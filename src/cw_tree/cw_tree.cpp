@@ -17,7 +17,7 @@ using namespace cw_tree_ns;
  * @param print_progress_bar csp displays progress bar iff true
  * @param trace_header csp enables cw_tracer iff has a value
  */
-cw_tree::cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& trace_header)
+cw_tree::cw_tree(const string& name, crossword&& grid, const std::filesystem::path& filepath, bool print_progress_bar, const optional<string>& trace_header)
     : common_parent(name, VERBOSITY),
       init_grid(std::move(grid)),
       filepath(filepath),
@@ -44,7 +44,7 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
     // temporary implementation of finding single solution if permutations disallowed
     if(!allow_permutations) {
         cw_csp csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, trace_header.has_value());
-        
+
         // find single solution
         if(csp.solve(BACKTRACKING, MRV, HIGH_SCORE_AND_FREQ)) {
             cw_assert(csp.solved());
@@ -53,19 +53,27 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
 
         // save trace result to instrumentation file
         if(trace_header.has_value()) {
-            csp.save_trace_result(trace_header.value() + "0" + ".json");
+            const std::filesystem::path fp = trace_header.value() + ".json";
+            csp.save_trace_result(fp);
         }
     } else {
         // TODO: find as many solutions possible on each current grid before exploring permutations upon domain exhaustion
 
         // to avoid duplicate solutions and output instrumentation files
         unordered_set<string> explored_grids;
+
+        // to assign unique names to each output trace file
         size_t num_explored = 0ul;
 
         // init current layer with depth=0, i.e. csp on initial grid
         vector<cw_csp> cur_layer;
         size_t cur_idx = 0ul;
         cur_layer.push_back(cw_csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, trace_header.has_value()));
+
+        // create subdirectory for any trace files to be written into
+        if(trace_header.has_value()) {
+            std::filesystem::create_directory(trace_header.value());
+        }
 
         // find solutions until no more needed or no more children nodes to explore
         // this prioritizes permutations with fewer additional black tiles
@@ -80,7 +88,8 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
 
                 // save trace result to instrumentation file
                 if(trace_header.has_value()) {
-                    cur_layer.at(cur_idx).save_trace_result(trace_header.value() + std::to_string(num_explored++) + ".json");
+                    const std::filesystem::path fp = trace_header.value() + '/' + std::to_string(num_explored++) + ".json";
+                    cur_layer.at(cur_idx).save_trace_result(fp);
                 }
 
                 ++cur_idx;

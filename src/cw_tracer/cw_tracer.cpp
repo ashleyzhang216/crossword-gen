@@ -111,6 +111,7 @@ void cw_tracer::end_span(size_t id, ordered_json&& result) {
  * @brief saves the results in a JSON file at the specified path
  * @pre this is the first time results are saved
  *
+ * @param filepath the filepath to save the json file at
  * @param result the json result for the root span
 */
 void cw_tracer::save_result(const string& filepath, ordered_json&& result) {

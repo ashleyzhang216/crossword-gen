@@ -30,6 +30,7 @@
 #include <bitset>
 #include <functional>
 #include <numeric>
+#include <filesystem>
 
 #include "../lib/src/json.hpp"
 
