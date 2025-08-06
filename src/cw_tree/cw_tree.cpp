@@ -61,6 +61,8 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
 
         // to avoid duplicate solutions and output instrumentation files
         unordered_set<string> explored_grids;
+
+        // to assign unique names to each output trace file
         size_t num_explored = 0ul;
 
         // init current layer with depth=0, i.e. csp on initial grid
