@@ -24,8 +24,8 @@ word_domain::word_domain(string name) : word_domain(name, std::nullopt) {
  * @param filepath path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-word_domain::word_domain(string name, string filepath, bool print_progress_bar)
-        : word_domain(name, optional<string>(filepath), print_progress_bar) {
+word_domain::word_domain(string name, const std::filesystem::path& filepath, bool print_progress_bar)
+        : word_domain(name, optional<std::filesystem::path>(filepath), print_progress_bar) {
     // do nothing, delegated to constructor does everything needed
 }
 
@@ -36,7 +36,7 @@ word_domain::word_domain(string name, string filepath, bool print_progress_bar)
  * @param filepath_opt optional, may contain path to .txt or .json file containing word data
  * @param print_progress_bar displays progress bar iff true, default: false
 */
-word_domain::word_domain(string name, optional<string> filepath_opt, bool print_progress_bar)
+word_domain::word_domain(string name, const optional<std::filesystem::path>& filepath_opt, bool print_progress_bar)
         : common_parent(name, VERBOSITY),
         filepath_opt(filepath_opt),
         unassigned_domain_size(0),
@@ -49,16 +49,16 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
 
     // if filepath was provided
     if(filepath_opt.has_value()) {
-        string filepath = filepath_opt.value();
+        std::filesystem::path filepath = filepath_opt.value();
         string word;
         optional<string> parsed_word;
         unique_ptr<progress_bar> bar = nullptr;
 
-        if(has_suffix(filepath, ".txt")) {
+        if(has_suffix(static_cast<string>(filepath), ".txt")) {
             // open file
             ifstream word_file;
             word_file.open(filepath);
-            cw_assert_m(word_file.is_open(), "could not open txt file " + filepath);
+            cw_assert_m(word_file.is_open(), "could not open txt file " + static_cast<string>(filepath));
 
             // count total number of lines in file for progress bar
             uint num_lines = 0;
@@ -92,10 +92,10 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             }
             word_file.close();
 
-        } else if(has_suffix(filepath, ".json")) {
+        } else if(has_suffix(static_cast<string>(filepath), ".json")) {
             // open word file, parse data
             ifstream word_file(filepath);
-            cw_assert_m(word_file.is_open(), "could not open json file " + filepath);
+            cw_assert_m(word_file.is_open(), "could not open json file " + static_cast<string>(filepath));
             basic_json j = basic_json::parse(word_file);
             
             // create progress bar, now that denominator (j.size()) is known
@@ -112,7 +112,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
                 // add word
                 if(word.size() >= MIN_WORD_LEN && word.size() <= MAX_WORD_LEN) {
                     add_word(word_t(word, data["Score"], data["Frequency"]));
-                } 
+                }
 
                 // another word added
                 if(bar) bar->incr_numerator();
@@ -120,7 +120,7 @@ word_domain::word_domain(string name, optional<string> filepath_opt, bool print_
             word_file.close();
 
         } else {
-            utils.log(FATAL, "word_domain got file of invalid type: ", filepath);
+            utils.log(FATAL, "word_domain got file of invalid type: ", static_cast<string>(filepath));
             return;
         }
     }

@@ -34,7 +34,7 @@ namespace cw_csp_ns {
     class cw_csp : public common_parent {
         public:
             // base constructor, agnostic to grid layout
-            cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer);
+            cw_csp(const string& name, crossword&& grid, const std::filesystem::path& dict_filepath, bool print_progress_bar, bool enable_tracer);
 
             // read-only getters for testing
             unordered_set<unique_ptr<cw_variable > >                                           get_variables()           const;
@@ -88,7 +88,7 @@ namespace cw_csp_ns {
             mutable cw_tracer tracer;
 
             // original word dictionary filepath
-            string dict_filepath;
+            std::filesystem::path dict_filepath;
 
             // original tracer enabling input param
             bool enable_tracer;

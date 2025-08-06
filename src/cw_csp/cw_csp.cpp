@@ -17,7 +17,7 @@ using namespace cw_csp_ns;
  * @param print_progress_bar displays progress bar iff true
  * @param enable_tracer enables cw_tracer iff true
 */
-cw_csp::cw_csp(const string& name, crossword&& grid, const string& dict_filepath, bool print_progress_bar, bool enable_tracer) 
+cw_csp::cw_csp(const string& name, crossword&& grid, const std::filesystem::path& dict_filepath, bool print_progress_bar, bool enable_tracer) 
         : common_parent(name, VERBOSITY),
           tracer("cw_csp", enable_tracer),
           dict_filepath(dict_filepath),

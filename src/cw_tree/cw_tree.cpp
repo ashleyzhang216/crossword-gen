@@ -17,7 +17,7 @@ using namespace cw_tree_ns;
  * @param print_progress_bar csp displays progress bar iff true
  * @param trace_header csp enables cw_tracer iff has a value
  */
-cw_tree::cw_tree(const string& name, crossword&& grid, const string& filepath, bool print_progress_bar, const optional<string>& trace_header)
+cw_tree::cw_tree(const string& name, crossword&& grid, const std::filesystem::path& filepath, bool print_progress_bar, const optional<string>& trace_header)
     : common_parent(name, VERBOSITY),
       init_grid(std::move(grid)),
       filepath(filepath),

@@ -27,10 +27,10 @@ namespace word_domain_ns {
             word_domain(string name);
             
             // constructor with filepath
-            word_domain(string name, string filepath, bool print_progress_bar = false);
+            word_domain(string name, const std::filesystem::path& filepath, bool print_progress_bar = false);
 
             // constructor with filepath opt
-            word_domain(string name, optional<string> filepath_opt, bool print_progress_bar = false);
+            word_domain(string name, const optional<std::filesystem::path>& filepath_opt, bool print_progress_bar = false);
 
             // constructor with set of domain, exclusively for cw_variable domain representation
             word_domain(string name, unordered_set<word_t>&& domain);
@@ -104,7 +104,7 @@ namespace word_domain_ns {
         
         private:
             // opt file that this object may have read from
-            optional<string> filepath_opt;
+            optional<std::filesystem::path> filepath_opt;
 
             // all trie nodes
             id_obj_manager<trie_node> nodes;
