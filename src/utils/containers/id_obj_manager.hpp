@@ -24,7 +24,7 @@ namespace cw {
         : std::true_type {};
 
     /**
-     * @brief helpers to check if struct has clone() function returning a unique_ptr to itself
+     * @brief helpers to check if struct has clone() function returning a unique_ptr to a copy of itself
     */
     template <typename T, typename = void>
     struct has_clone : std::false_type {};
@@ -65,7 +65,7 @@ namespace cw {
             const unique_ptr<T>& operator[](size_t n) const {
                 return const_cast<const unique_ptr<T>&>(const_cast<id_obj_manager*>(this)->operator[](n));
             }
-            
+
             // ids of all managed elements
             vector<size_t> ids() const {
                 vector<size_t> res(size());
