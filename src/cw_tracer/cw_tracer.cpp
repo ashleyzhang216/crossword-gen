@@ -121,13 +121,9 @@ void cw_tracer::save_result(const string& filepath, ordered_json&& result) {
         cw_assert(!root->resolved());
         end_span(0ul, std::move(result));
 
-        // std::filesystem::path fp = "pls/" + filepath;
-
         ordered_json j = root;
         std::ofstream file(filepath);
         file << std::setw(2) << j << endl;
-
-        // std::cout << "Saved trace file to " << fp << std::endl;
     }
 }
 
