@@ -57,7 +57,7 @@ namespace cw_csp_ns {
             string result() const;
 
             // save trace results to instrumentation file
-            void save_trace_result(string filepath) const;
+            void save_trace_result(const std::filesystem::path& filepath) const;
 
             // returns permutations of csp, i.e. csp with a permutated crossword grid
             vector<cw_csp> permutations(unordered_set<string>& explored_grids) const;

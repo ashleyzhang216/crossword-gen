@@ -44,7 +44,7 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
     // temporary implementation of finding single solution if permutations disallowed
     if(!allow_permutations) {
         cw_csp csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, trace_header.has_value());
-        
+
         // find single solution
         if(csp.solve(BACKTRACKING, MRV, HIGH_SCORE_AND_FREQ)) {
             cw_assert(csp.solved());
@@ -53,7 +53,8 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
 
         // save trace result to instrumentation file
         if(trace_header.has_value()) {
-            csp.save_trace_result(trace_header.value() + "0" + ".json");
+            const std::filesystem::path fp = trace_header.value() + ".json";
+            csp.save_trace_result(fp);
         }
     } else {
         // TODO: find as many solutions possible on each current grid before exploring permutations upon domain exhaustion
@@ -66,6 +67,11 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
         vector<cw_csp> cur_layer;
         size_t cur_idx = 0ul;
         cur_layer.push_back(cw_csp(name + " cw_csp", std::move(init_grid), filepath, print_progress_bar, trace_header.has_value()));
+
+        // create subdirectory for any trace files to be written into
+        if(trace_header.has_value()) {
+            std::filesystem::create_directory(trace_header.value());
+        }
 
         // find solutions until no more needed or no more children nodes to explore
         // this prioritizes permutations with fewer additional black tiles
@@ -80,7 +86,8 @@ vector<string> cw_tree::solve(size_t num_solutions, bool allow_permutations) {
 
                 // save trace result to instrumentation file
                 if(trace_header.has_value()) {
-                    cur_layer.at(cur_idx).save_trace_result(trace_header.value() + std::to_string(num_explored++) + ".json");
+                    const std::filesystem::path fp = trace_header.value() + '/' + std::to_string(num_explored++) + ".json";
+                    cur_layer.at(cur_idx).save_trace_result(fp);
                 }
 
                 ++cur_idx;

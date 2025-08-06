@@ -34,7 +34,7 @@ namespace cw_gen_ns {
 
             // these all must be set before creation of cw_csp
             void set_dimensions     (uint l, uint h ) { length = l; height = h;               }
-            void set_dict           (const string& d) { dict   = d;                           }
+            void set_dict           (const string& d) { dict = d;                             }
             void set_contents       (const string& c) { contents = std::make_optional(c);     }
             void set_num_solutions  (size_t n)        { num_solutions = n;                    }
             void enable_modify_grid ()                { allow_permutations = true;            }
