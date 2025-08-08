@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from helpers.utils import get_track_ac3
 
@@ -63,7 +64,7 @@ def plot_init_search_runtimes(output_dir, init_search_runtime_data):
     plt.xlabel('Execution Step')
     plt.ylabel('Total Duration (s)')
 
-    plt.savefig(output_dir + 'init_search_runtimes.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'init_search_runtimes.png'), bbox_inches='tight')
     plt.close()
 
 # plot total runtime distribution by span type
@@ -100,7 +101,7 @@ def plot_total_runtime_by_span_type(output_dir, span_runtime_data):
     plt.xlabel('Span Type')
     plt.ylabel('Total Duration (s)')
 
-    plt.savefig(output_dir + 'total_runtime_by_span_type.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'total_runtime_by_span_type.png'), bbox_inches='tight')
     plt.close()
 
 #################### parent function ####################
@@ -116,7 +117,7 @@ def analyze_runtimes(data, output_dir) -> bool:
     plot_init_search_runtimes(output_dir, init_search_runtime_data)
     plot_total_runtime_by_span_type(output_dir, span_runtime_data)
 
-    with open(output_dir + 'runtimes_metrics.md', 'w') as file:
+    with open(os.path.join(output_dir, 'runtimes_metrics.md'), 'w') as file:
         file.write("## Runtimes Metrics\n\n")
 
         file.write("### Runtime breakdown\n")

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from enum import Enum
 from graphviz import Digraph
 from typing import Callable
@@ -504,9 +505,9 @@ def plot_search_tree(output_dir, search_tree:SearchNode):
     # place legend over root node
     dot.edge('legend_0', str(id(search_tree)), style='invis')
 
-    dot.render(output_dir + 'search_tree.gv', view=False, format='pdf')
-    dot.render(output_dir + 'search_tree.gv', view=False, format='svg')
-    dot.render(output_dir + 'search_tree.gv', view=False, format='png')
+    dot.render(os.path.join(output_dir, 'search_tree.gv'), view=False, format='pdf')
+    dot.render(os.path.join(output_dir, 'search_tree.gv'), view=False, format='svg')
+    dot.render(os.path.join(output_dir, 'search_tree.gv'), view=False, format='png')
 
 # plot histogram of jump heights
 def plot_jump_height_freq(output_dir, jump_height_data):
@@ -523,7 +524,7 @@ def plot_jump_height_freq(output_dir, jump_height_data):
     plt.xlabel('Jump Height')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'jump_height_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'jump_height_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot bar graph of reason frequencies
@@ -551,7 +552,7 @@ def plot_reason_freq(output_dir, reason_data):
     plt.xlabel('Reason')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'reason_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'reason_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of exclusive dead end subtree sizes (DESS)
@@ -564,7 +565,7 @@ def plot_exclusive_dess_freq(output_dir, dess_data):
     plt.xlabel('Dead End Subtree Size')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'exclusive_dess_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'exclusive_dess_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of exclusive constraints checked per dead end (CCDE)
@@ -577,7 +578,7 @@ def plot_exclusive_ccde_freq(output_dir, ccde_data):
     plt.xlabel('Constraints Checked')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'exclusive_ccde_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'exclusive_ccde_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of exclusive pruned per dead end (PPDE)
@@ -590,7 +591,7 @@ def plot_exclusive_ppde_freq(output_dir, ppde_data):
     plt.xlabel('Pairs Pruned')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'exclusive_ppde_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'exclusive_ppde_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot number of nodes at each depth
@@ -607,7 +608,7 @@ def plot_num_nodes_by_depth(output_dir, node_depth_data):
     plt.ylabel('Number of Nodes')
     plt.grid(True, alpha=0.3)
 
-    plt.savefig(output_dir + 'num_nodes_by_depth.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'num_nodes_by_depth.png'), bbox_inches='tight')
     plt.close()
 
 # plot effective branching factor (EBF) vs depth
@@ -634,7 +635,7 @@ def plot_ebf_by_depth(output_dir, ebf_data):
         bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
     )
 
-    plt.savefig(output_dir + 'ebf_by_depth.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'ebf_by_depth.png'), bbox_inches='tight')
     plt.close()
 
 # plot average branching factor (ABF) vs depth
@@ -661,7 +662,7 @@ def plot_abf_by_depth(output_dir, abf_data):
         bbox=dict(boxstyle='round', pad=0.4, facecolor='white', alpha=0.8, edgecolor='0.8')
     )
 
-    plt.savefig(output_dir + 'abf_by_depth.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'abf_by_depth.png'), bbox_inches='tight')
     plt.close()
 
 #################### parent function ####################
@@ -696,7 +697,7 @@ def analyze_search(data, output_dir) -> bool:
     plot_ebf_by_depth(output_dir, ebf_data)
     plot_abf_by_depth(output_dir, abf_data)
 
-    with open(output_dir + 'search_metrics.md', 'w') as file:
+    with open(os.path.join(output_dir, 'search_metrics.md'), 'w') as file:
         file.write("## Search Metrics\n\n")
 
         file.write("### Search node reasons\n")

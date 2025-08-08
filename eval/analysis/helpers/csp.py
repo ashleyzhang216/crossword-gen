@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from helpers.utils import get_initialize_field
 
@@ -60,7 +61,7 @@ def plot_var_len_freq(output_dir, var_len_data):
     plt.xlabel('Variable Length')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'var_len_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'var_len_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of constraint lengths
@@ -84,7 +85,7 @@ def plot_constr_len_freq(output_dir, constr_len_data):
     plt.xlabel('Constraint Length')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'constr_len_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'constr_len_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of variable domain sizes
@@ -97,7 +98,7 @@ def plot_dom_size_freq(output_dir, dom_size_data):
     plt.xlabel('Domain Size')
     plt.ylabel('Frequency')
 
-    plt.savefig(output_dir + 'dom_size_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'dom_size_freq.png'), bbox_inches='tight')
     plt.close()
 
 #################### parent function ####################
@@ -112,7 +113,7 @@ def analyze_csp(data, output_dir) -> bool:
     plot_constr_len_freq(output_dir, constr_len_data)
     plot_dom_size_freq(output_dir, dom_size_data)
 
-    with open(output_dir + 'csp_metrics.md', 'w') as file:
+    with open(os.path.join(output_dir, 'csp_metrics.md'), 'w') as file:
         file.write("## CSP Metrics\n\n")
 
         file.write("### Variable lengths\n")

@@ -100,5 +100,5 @@ def combine_metrics_files(subdirs, output_file):
                     continue
 
                 for md_file in md_files:
-                    with open(subdir + md_file, 'r') as f:
+                    with open(os.path.join(subdir, md_file), 'r') as f:
                         combined.write(f.read())

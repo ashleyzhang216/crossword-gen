@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from helpers.utils import get_track_ac3
 
@@ -45,7 +46,7 @@ def plot_ac3_call_duration_freq(output_dir, ac3_success_data):
     plt.ylabel('Frequency')
     plt.legend()
 
-    plt.savefig(output_dir + 'ac3_call_duration_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'ac3_call_duration_freq.png'), bbox_inches='tight')
     plt.close()
 
 #################### parent function ####################
@@ -60,7 +61,7 @@ def analyze_ac3_calls(data, output_dir) -> bool:
 
     plot_ac3_call_duration_freq(output_dir, ac3_success_data)
 
-    with open(output_dir + 'ac3_calls_metrics.md', 'w') as file:
+    with open(os.path.join(output_dir, 'ac3_calls_metrics.md'), 'w') as file:
         file.write("## AC-3 Calls Metrics\n\n")
 
         num_success, num_fail = len(ac3_success_data['success']), len(ac3_success_data['fail'])

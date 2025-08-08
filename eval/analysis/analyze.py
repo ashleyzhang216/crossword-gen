@@ -39,11 +39,11 @@ def main():
         break
 
     # create subdirs
-    ac3_pruning_path = output_dir + '/' + AC3_PRUNING_DIR + '/'
-    ac3_calls_path = output_dir + '/' + AC3_CALLS_DIR + '/'
-    runtimes_path = output_dir + '/' + RUNTIMES_DIR + '/'
-    csp_path = output_dir + '/' + CSP_DIR + '/'
-    search_path = output_dir + '/' + SEARCH_DIR + '/'
+    ac3_pruning_path = os.path.join(output_dir, AC3_PRUNING_DIR)
+    ac3_calls_path = os.path.join(output_dir, AC3_CALLS_DIR)
+    runtimes_path = os.path.join(output_dir, RUNTIMES_DIR)
+    csp_path = os.path.join(output_dir, CSP_DIR)
+    search_path = os.path.join(output_dir, SEARCH_DIR)
     os.makedirs(ac3_pruning_path)
     os.makedirs(ac3_calls_path)
     os.makedirs(runtimes_path)
@@ -67,7 +67,7 @@ def main():
     analyze_csp(data, csp_path)
     analyze_search(data, search_path)
 
-    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path, csp_path, search_path], output_dir + '/' + "metrics.md")
+    combine_metrics_files([ac3_pruning_path, ac3_calls_path, runtimes_path, csp_path, search_path], os.path.join(output_dir, "metrics.md"))
     print(f"Results for {args.data_path} written to new directory {output_dir}")
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
+import os
 
 from helpers.utils import get_track_ac3, get_initialize_field, weighted_linear_regression
 
@@ -306,7 +307,7 @@ def plot_avg_pair_prune_durations(output_dir, constr_len_prune_data, filter=True
     plt.grid(True, alpha=0.3)
     plt.legend()
 
-    plt.savefig(output_dir + 'avg_pair_prune_durations.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'avg_pair_prune_durations.png'), bbox_inches='tight')
     plt.close()
 
 # plot unweighted histogram of microseconds per pair pruned
@@ -332,7 +333,7 @@ def plot_duration_per_pair_prune_freq(output_dir, constr_len_prune_data):
 
     plt.legend()
 
-    plt.savefig(output_dir + 'duration_per_pair_prune_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'duration_per_pair_prune_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot weighted histogram of microseconds per pair pruned
@@ -358,7 +359,7 @@ def plot_weighted_duration_per_pair_prune_freq(output_dir, constr_len_prune_data
 
     plt.legend(title='Frequencies Weighted by Num Pairs Pruned')
 
-    plt.savefig(output_dir + 'weighted_duration_per_pair_prune_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'weighted_duration_per_pair_prune_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of number of pairs pruned per ac3 prune
@@ -381,7 +382,7 @@ def plot_prune_size_freqs(output_dir, constr_prune_data):
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Frequency (log scale)')
 
-    plt.savefig(output_dir + 'prune_size_freqs.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'prune_size_freqs.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of num pairs pruned, separated by constraint lengths
@@ -419,7 +420,7 @@ def plot_pairs_pruned_freq_by_constr_len(output_dir, constr_prune_data, constr_l
     plt.ylabel('Frequency (log scale)')
     plt.legend()
 
-    plt.savefig(output_dir + 'pairs_pruned_freq_by_constr_len.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'pairs_pruned_freq_by_constr_len.png'), bbox_inches='tight')
     plt.close()
 
 # plot comparison of total pairs pruned per constraint length
@@ -455,7 +456,7 @@ def plot_total_pairs_pruned_by_constr_len(output_dir, constr_prune_data, constr_
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Pairs Pruned')
 
-    plt.savefig(output_dir + 'total_pairs_pruned_by_constr_len.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'total_pairs_pruned_by_constr_len.png'), bbox_inches='tight')
     plt.close()
 
 # plot bar graph of total time spent by # of pairs pruned in a single pass
@@ -481,7 +482,7 @@ def plot_total_durations_by_num_pairs_pruned(output_dir, constr_prune_data):
     plt.xlabel('Number of Pairs Pruned in Pass')
     plt.ylabel('Total Duration of Prunes (s)')
 
-    plt.savefig(output_dir + 'total_durations_by_num_pairs_pruned.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'total_durations_by_num_pairs_pruned.png'), bbox_inches='tight')
     plt.close()
 
 # plot bar graph of total time spent by constraint lengths
@@ -513,7 +514,7 @@ def plot_total_durations_by_constr_len(output_dir, constr_len_prune_data):
     plt.xlabel('Constraint Length')
     plt.ylabel('Total Duration (s)')
 
-    plt.savefig(output_dir + 'total_durations_by_constr_len.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'total_durations_by_constr_len.png'), bbox_inches='tight')
     plt.close()
 
 # plot bar graph of total time spent by constraint length AND success
@@ -547,7 +548,7 @@ def plot_total_durations_by_constr_len_success(output_dir, constr_len_success_pr
     ax.legend(loc='upper right', ncols=len(lengths))
     ax.set_ylim(0, 1.1 * max([max([sum(d)*1e-6 for d in total_durations[r]]) for r in results.keys()]))
 
-    plt.savefig(output_dir + 'total_durations_by_constr_len_success.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'total_durations_by_constr_len_success.png'), bbox_inches='tight')
     plt.close()
 
 # plot ratio of non-null AC-3 prunes vs var domain size
@@ -582,7 +583,7 @@ def plot_success_prune_ratio_vs_var_domain_size(output_dir, var_prune_data, var_
     plt.grid(True, alpha=0.3)
     plt.legend()
 
-    plt.savefig(output_dir + 'success_prune_ratio_vs_var_domain_size.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'success_prune_ratio_vs_var_domain_size.png'), bbox_inches='tight')
     plt.close()
 
 # plot ratio of non-null AC-3 prunes vs var lengths
@@ -617,7 +618,7 @@ def plot_success_prune_ratio_vs_var_lens(output_dir, var_prune_data, var_lens):
     plt.grid(True, alpha=0.3)
     plt.legend()
 
-    plt.savefig(output_dir + 'success_prune_ratio_vs_var_lens.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'success_prune_ratio_vs_var_lens.png'), bbox_inches='tight')
     plt.close()
 
 # plot ratio of non-null AC-3 prunes vs constraint lengths
@@ -659,7 +660,7 @@ def plot_success_prune_ratio_vs_constr_lens(output_dir, constr_prune_data, const
     plt.xlabel('Constraint Lengths')
     plt.ylabel('Ratio of Successful AC-3 Prunes')
 
-    plt.savefig(output_dir + 'success_prune_ratio_vs_constr_lens.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'success_prune_ratio_vs_constr_lens.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of number of pairs pruned per ac3 call
@@ -685,7 +686,7 @@ def plot_pairs_pruned_per_ac3_freq(output_dir, ac3_prune_data):
     plt.ylabel('Frequency')
     plt.legend()
 
-    plt.savefig(output_dir + 'pairs_pruned_per_ac3_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'pairs_pruned_per_ac3_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of number of unique prunes/constraints considered per ac3 call
@@ -715,7 +716,7 @@ def plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constra
     plt.ylabel('Frequency')
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
-    plt.savefig(output_dir + 'num_unique_prunes_per_ac3_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'num_unique_prunes_per_ac3_freq.png'), bbox_inches='tight')
     plt.close()
 
 # plot histogram of total number of prunes/constraints considered per ac3 call
@@ -745,7 +746,7 @@ def plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, num_constrai
     plt.ylabel('Frequency')
     plt.legend(title=f"Out of {num_constraints} constraints available")
 
-    plt.savefig(output_dir + 'num_total_prunes_per_ac3_freq.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'num_total_prunes_per_ac3_freq.png'), bbox_inches='tight')
     plt.close()
 
 #################### parent function ####################
@@ -783,7 +784,7 @@ def analyze_ac3_pruning(data, output_dir) -> bool:
     plot_num_unique_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
     plot_num_total_prunes_per_ac3_freq(output_dir, ac3_constr_data, len(get_initialize_field(data, "constr_lens").keys()))
 
-    with open(output_dir + 'ac3_pruning_metrics.md', 'w') as file:
+    with open(os.path.join(output_dir, 'ac3_pruning_metrics.md'), 'w') as file:
         file.write("## AC-3 Pruning Metrics\n\n")
 
         file.write("### Time per pair pruned (successful prunes weighted equally)\n")
