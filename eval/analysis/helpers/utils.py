@@ -87,7 +87,20 @@ def weighted_linear_regression(x, y, weights=None):
         'weights': weights
     }
 
-#################### metrics file handling ####################
+#################### file handling ####################
+
+def find_all_data_files(path):
+    assert(os.path.isdir(path) or os.path.isfile(path))
+
+    if(os.path.isfile(path)):
+        return [path]
+
+    result = []
+    for cur_path, _, files in os.walk(path):
+        for f in files:
+            result.append(os.path.join(cur_path, f))
+
+    return sorted(result)
 
 def combine_metrics_files(subdirs, output_file):
     with open(output_file, 'w') as combined:

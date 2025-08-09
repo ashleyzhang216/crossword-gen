@@ -8,7 +8,7 @@ from helpers.ac3_pruning import analyze_ac3_pruning
 from helpers.ac3_calls import analyze_ac3_calls
 from helpers.runtimes import analyze_runtimes
 from helpers.csp import analyze_csp
-from helpers.utils import combine_metrics_files
+from helpers.utils import find_all_data_files, combine_metrics_files
 from helpers.search import analyze_search
 
 AC3_PRUNING_DIR = "ac3_pruning"
@@ -20,7 +20,7 @@ SEARCH_DIR = "search"
 def main():
     # parse cli args
     parser = argparse.ArgumentParser(description='Analyze instrumentation output files')
-    parser.add_argument('data_path', help='Path to the JSON data file')
+    parser.add_argument('data_path', help='Path to the JSON data file(s)')
     args = parser.parse_args()
 
     # create output dir
@@ -49,6 +49,14 @@ def main():
     os.makedirs(runtimes_path)
     os.makedirs(csp_path)
     os.makedirs(search_path)
+
+    paths = find_all_data_files(args.data_path)
+
+    # TODO: DEBUG
+    for p in paths:
+        print(p)
+    if os.path.isdir(args.data_path):
+        return
 
     # open file
     try:
