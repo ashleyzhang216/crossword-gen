@@ -50,24 +50,26 @@ def main():
     os.makedirs(csp_path)
     os.makedirs(search_path)
 
+    # find file(s)
     paths = find_all_data_files(args.data_path)
 
-    # TODO: DEBUG
-    for p in paths:
-        print(p)
-    if os.path.isdir(args.data_path):
-        return
+    # open file(s)
+    datas = []
+    for path in paths:
+        try:
+            with open(path, 'r') as file:
+                datas.append(json.load(file))
+                print(f"Parsed data from {path}") # TODO: DEBUG
+        except FileNotFoundError:
+            print(f"Error: File at '{path}' not found, skipping")
+        except json.JSONDecodeError as e:
+            print(f"Error: Failed to parse JSON file at '{path}': {e}, skipping")
 
-    # open file
-    try:
-        with open(args.data_path, 'r') as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        print(f"Error: File '{args.data_path}' not found.")
+    if(len(datas) == 0):
+        print(f"Error: No valid JSON files found at '{args.data_path}'")
         sys.exit(1)
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to parse JSON file '{args.data_path}'. {e}")
-        sys.exit(1)
+
+    data = datas[0] # TODO: DEBUG
 
     analyze_ac3_pruning(data, ac3_pruning_path)
     analyze_ac3_calls(data, ac3_calls_path)
