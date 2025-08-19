@@ -19,8 +19,8 @@ SEARCH_DIR = "search"
 
 def main():
     # parse cli args
-    parser = argparse.ArgumentParser(description='Analyze instrumentation output files')
-    parser.add_argument('data_path', help='Path to the JSON data file(s)')
+    parser = argparse.ArgumentParser(description='Analyze instrumentation output file(s)')
+    parser.add_argument('data_path', help='Path to the data file or directory of files')
     args = parser.parse_args()
 
     # create output dir
@@ -35,7 +35,7 @@ def main():
             if i < attempts - 1:
                 continue
             else:
-                raise FileExistsError("Failed to create output directory")
+                raise FileExistsError("Failed to create output directory due to name collision")
         break
 
     # create subdirs
@@ -63,7 +63,7 @@ def main():
         except FileNotFoundError:
             print(f"Error: File at '{path}' not found, skipping")
         except json.JSONDecodeError as e:
-            print(f"Error: Failed to parse JSON file at '{path}': {e}, skipping")
+            print(f"Error: Skipping file at '{path}' due to parsing error: {e}")
 
     if(len(datas) == 0):
         print(f"Error: No valid JSON files found at '{args.data_path}'")
