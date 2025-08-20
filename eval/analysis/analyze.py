@@ -53,23 +53,25 @@ def main():
     # find file(s)
     paths = find_all_data_files(args.data_path)
 
-    # open file(s)
-    datas = []
+    # open file(s), contructs dict of file path -> json object
+    all_data = {}
     for path in paths:
         try:
             with open(path, 'r') as file:
-                datas.append(json.load(file))
+                # datas.append(json.load(file))
+                all_data.update({path: json.load(file)})
                 print(f"Parsed data from {path}") # TODO: DEBUG
         except FileNotFoundError:
             print(f"Error: File at '{path}' not found, skipping")
         except json.JSONDecodeError as e:
             print(f"Error: Skipping file at '{path}' due to parsing error: {e}")
 
-    if(len(datas) == 0):
+    if(len(all_data) == 0):
         print(f"Error: No valid JSON files found at '{args.data_path}'")
         sys.exit(1)
 
-    data = datas[0] # TODO: DEBUG
+    # TODO: DEBUG
+    data = list(all_data.values())[0]
 
     analyze_ac3_pruning(data, ac3_pruning_path)
     analyze_ac3_calls(data, ac3_calls_path)
